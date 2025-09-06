@@ -5,24 +5,29 @@ import { getDatabase, connectDatabaseEmulator } from "firebase/database";
 import { getMessaging, isSupported } from "firebase/messaging";
 import { getStorage } from "firebase/storage";
 
-// Firebase configuration
+// NEW Firebase configuration for ERP-FOR-TSA (as per REBUILD_BLUEPRINT.md)
 const firebaseConfig = {
-  apiKey: "AIzaSyB9bMIY2KA3-N2rOvidXoyzVeWWJwPuC4M",
-  authDomain: "code-for-erp.firebaseapp.com",
-  projectId: "code-for-erp",
-  storageBucket: "code-for-erp.firebasestorage.app",
-  messagingSenderId: "490842962773",
-  appId: "1:490842962773:web:b2a5688d22416ebc710ddc"
+  apiKey: "AIzaSyB8Z4GdoLZsBW6bfmAh_BSTftpTRUXPZMw",
+  authDomain: "erp-for-tsa.firebaseapp.com",
+  projectId: "erp-for-tsa",
+  storageBucket: "erp-for-tsa.firebasestorage.app",
+  messagingSenderId: "271232983905",
+  appId: "1:271232983905:web:7d06c8f5ec269824759b20",
+  measurementId: "G-6CYWPS4N0G"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize services
+// Initialize services (following REBUILD_BLUEPRINT architecture)
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const rtdb = getDatabase(app);
 export const storage = getStorage(app);
+
+// Analytics for production monitoring
+import { getAnalytics } from 'firebase/analytics';
+export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 
 // Initialize messaging only if supported (PWA feature)
 let messaging: any = null;

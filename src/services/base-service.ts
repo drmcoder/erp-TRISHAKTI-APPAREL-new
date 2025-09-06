@@ -1,4 +1,4 @@
-// Base Service for Firebase operations
+// Enhanced Base Service for Firebase operations
 import { 
   doc, 
   getDoc, 
@@ -13,15 +13,22 @@ import {
   limit,
   writeBatch,
   onSnapshot,
-  Timestamp 
+  Timestamp,
+  runTransaction,
+  serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
+import { OptimisticUpdates } from './optimistic-updates';
+import { ConnectionMonitor } from './connection-monitor';
 
 export interface ServiceResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
+  code?: string;
   id?: string;
+  message?: string;
+  details?: any;
 }
 
 export interface QueryOptions {
@@ -381,5 +388,176 @@ export class BaseService {
       size: this.cache.size,
       keys: Array.from(this.cache.keys()),
     };
+  }
+
+  /**
+   * Atomic transaction for race condition prevention
+   */
+  async atomicUpdate<T>(
+    id: string, 
+    updateFunction: (currentData: T | null) => T | null,
+    retryCount = 3
+  ): Promise<ServiceResponse<T>> {
+    try {
+      const docRef = this.getDocRef(id);
+      
+      const result = await runTransaction(db, async (transaction) => {
+        const doc = await transaction.get(docRef);
+        const currentData = doc.exists() ? { id: doc.id, ...doc.data() } as T : null;
+        
+        const updatedData = updateFunction(currentData);
+        
+        if (updatedData === null) {
+          // Abort transaction
+          return null;
+        }
+        
+        const updatePayload = {
+          ...updatedData,
+          updatedAt: serverTimestamp()
+        };
+        
+        transaction.set(docRef, updatePayload);
+        return updatedData;
+      });
+      
+      if (result) {
+        this.cache.delete(id);
+        return { success: true, data: result, message: 'Atomic update successful' };
+      } else {
+        return { success: false, error: 'Transaction aborted', code: 'TRANSACTION_ABORTED' };
+      }
+    } catch (error) {
+      if (retryCount > 0 && error instanceof Error && error.message.includes('aborted')) {
+        // Retry on transaction conflicts
+        await new Promise(resolve => setTimeout(resolve, 100 * (4 - retryCount)));
+        return this.atomicUpdate(id, updateFunction, retryCount - 1);
+      }
+      
+      console.error(`Atomic update failed for ${id}:`, error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Transaction failed',
+        code: 'ATOMIC_UPDATE_FAILED'
+      };
+    }
+  }
+
+  /**
+   * Optimistic update with rollback capability
+   */
+  async optimisticUpdate<T>(
+    id: string,
+    updates: Partial<T>,
+    serverOperation: () => Promise<any>
+  ): Promise<ServiceResponse<T>> {
+    const updateId = OptimisticUpdates.generateUpdateId('service');
+    
+    try {
+      // Get current data for rollback
+      const currentResult = await this.getById<T>(id, false);
+      const originalData = currentResult.success ? currentResult.data : undefined;
+      
+      // Apply optimistic update
+      await OptimisticUpdates.applyOptimisticUpdate(
+        updateId,
+        'update',
+        this.collectionName,
+        id,
+        updates,
+        originalData,
+        serverOperation
+      );
+      
+      // Return optimistic result immediately
+      const optimisticData = { ...originalData, ...updates } as T;
+      this.setCache(id, optimisticData);
+      
+      return { 
+        success: true, 
+        data: optimisticData,
+        message: 'Optimistic update applied'
+      };
+    } catch (error) {
+      console.error(`Optimistic update failed for ${id}:`, error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Optimistic update failed',
+        code: 'OPTIMISTIC_UPDATE_FAILED'
+      };
+    }
+  }
+
+  /**
+   * Retry operation with exponential backoff
+   */
+  async withRetry<T>(
+    operation: () => Promise<T>,
+    maxRetries = 3,
+    baseDelay = 1000
+  ): Promise<T> {
+    let lastError: Error;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+        
+        if (attempt === maxRetries) break;
+        
+        // Exponential backoff
+        const delay = baseDelay * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        console.warn(`Retry attempt ${attempt + 1}/${maxRetries} after ${delay}ms`);
+      }
+    }
+    
+    throw lastError!;
+  }
+
+  /**
+   * Check connection status before operations
+   */
+  private async ensureConnection(): Promise<boolean> {
+    if (!ConnectionMonitor.isOnline()) {
+      console.warn('Offline mode - operation queued');
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Enhanced create with business logic validation
+   */
+  async createWithValidation<T>(
+    data: T, 
+    validator?: (data: T) => { isValid: boolean; errors: string[] },
+    id?: string
+  ): Promise<ServiceResponse<T>> {
+    // Validate input
+    if (validator) {
+      const validation = validator(data);
+      if (!validation.isValid) {
+        return {
+          success: false,
+          error: validation.errors.join(', '),
+          code: 'VALIDATION_ERROR'
+        };
+      }
+    }
+    
+    // Check connection
+    const isOnline = await this.ensureConnection();
+    if (!isOnline) {
+      return {
+        success: false,
+        error: 'No network connection',
+        code: 'NETWORK_ERROR'
+      };
+    }
+    
+    return this.create(data, id);
   }
 }

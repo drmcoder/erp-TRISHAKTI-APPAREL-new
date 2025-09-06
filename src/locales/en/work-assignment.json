@@ -1,0 +1,178 @@
+{
+  "title": "Work Assignments",
+  "dashboard": "Assignment Dashboard",
+  "kanban": "Kanban Board",
+  "self_assign": "Self Assignment",
+  "my_work": "My Work",
+  "actions": {
+    "assign_work": "Assign Work",
+    "bulk_assign": "Bulk Assign",
+    "create_assignment": "Create Assignment",
+    "start_work": "Start Work",
+    "pause_work": "Pause Work",
+    "complete_work": "Complete Work",
+    "request_assignment": "Request Assignment",
+    "approve_assignment": "Approve Assignment",
+    "reject_assignment": "Reject Assignment"
+  },
+  "status": {
+    "pending": "Pending Assignment",
+    "assigned": "Assigned",
+    "started": "In Progress",
+    "paused": "Paused",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "on_hold": "On Hold"
+  },
+  "fields": {
+    "work_item": "Work Item",
+    "bundle_number": "Bundle Number",
+    "operation": "Operation",
+    "operator": "Operator",
+    "supervisor": "Supervisor",
+    "assigned_at": "Assigned At",
+    "started_at": "Started At",
+    "completed_at": "Completed At",
+    "target_quantity": "Target Quantity",
+    "completed_quantity": "Completed Quantity",
+    "target_rate": "Target Rate",
+    "actual_rate": "Actual Rate",
+    "estimated_duration": "Estimated Duration",
+    "actual_duration": "Actual Duration",
+    "efficiency": "Efficiency",
+    "quality_grade": "Quality Grade",
+    "notes": "Notes",
+    "special_instructions": "Special Instructions"
+  },
+  "operations": {
+    "cutting": "Cutting",
+    "sewing": "Sewing",
+    "stitching": "Stitching",
+    "embroidery": "Embroidery",
+    "finishing": "Finishing",
+    "button_hole": "Button Hole",
+    "zipper": "Zipper Attachment",
+    "hemming": "Hemming",
+    "pressing": "Pressing",
+    "packaging": "Packaging"
+  },
+  "assignment_methods": {
+    "manual": "Manual Assignment",
+    "ai_recommended": "AI Recommended",
+    "self_requested": "Self Requested",
+    "auto_assigned": "Auto Assigned"
+  },
+  "filters": {
+    "all": "All Assignments",
+    "by_status": "Filter by Status",
+    "by_operator": "Filter by Operator",
+    "by_operation": "Filter by Operation",
+    "by_priority": "Filter by Priority",
+    "by_date": "Filter by Date"
+  },
+  "kanban": {
+    "columns": {
+      "pending": "Pending",
+      "assigned": "Assigned", 
+      "in_progress": "In Progress",
+      "review": "Under Review",
+      "completed": "Completed"
+    },
+    "drag_drop": {
+      "drag_to_assign": "Drag to assign work",
+      "drop_to_reassign": "Drop here to reassign",
+      "invalid_move": "Invalid move",
+      "assignment_successful": "Assignment successful"
+    }
+  },
+  "ai_recommendations": {
+    "title": "AI Recommendations",
+    "best_match": "Best Match",
+    "confidence": "Confidence",
+    "reasons": "Reasons",
+    "skill_match": "Skill Match",
+    "availability": "Availability",
+    "efficiency": "Historical Efficiency",
+    "workload": "Current Workload",
+    "experience": "Experience Level",
+    "no_recommendations": "No recommendations available"
+  },
+  "self_assignment": {
+    "title": "Available Work",
+    "request_work": "Request This Work",
+    "compatible_work": "Compatible Work",
+    "recommended_for_you": "Recommended for You",
+    "skill_required": "Skill Required",
+    "difficulty": "Difficulty Level",
+    "estimated_time": "Estimated Time",
+    "request_sent": "Request sent for approval",
+    "already_requested": "Already requested",
+    "not_eligible": "Not eligible for this work"
+  },
+  "approval": {
+    "title": "Assignment Approvals",
+    "pending_requests": "Pending Requests",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "approval_reason": "Approval Reason",
+    "rejection_reason": "Rejection Reason",
+    "auto_approved": "Auto-approved by system"
+  },
+  "bulk_assignment": {
+    "title": "Bulk Assignment",
+    "select_items": "Select Work Items",
+    "select_operators": "Select Operators",
+    "assignment_strategy": "Assignment Strategy",
+    "strategies": {
+      "balanced": "Balanced Distribution",
+      "skill_based": "Skill-based Matching",
+      "workload_based": "Workload-based",
+      "ai_optimized": "AI Optimized"
+    },
+    "preview": "Preview Assignments",
+    "conflicts": "Assignment Conflicts",
+    "warnings": "Warnings",
+    "assign_all": "Assign All"
+  },
+  "production": {
+    "title": "Production Tracking",
+    "current_work": "Current Work",
+    "work_session": "Work Session",
+    "timer": "Work Timer",
+    "piece_count": "Piece Count",
+    "progress": "Progress",
+    "rate": "Production Rate",
+    "target": "Target",
+    "actual": "Actual",
+    "variance": "Variance",
+    "quality": "Quality",
+    "defects": "Defects",
+    "rework": "Rework"
+  },
+  "messages": {
+    "assignment_created": "Work assignment created successfully",
+    "assignment_updated": "Assignment updated successfully",
+    "assignment_deleted": "Assignment removed successfully",
+    "work_started": "Work session started",
+    "work_paused": "Work session paused",
+    "work_completed": "Work completed successfully",
+    "request_submitted": "Assignment request submitted",
+    "request_approved": "Assignment request approved",
+    "request_rejected": "Assignment request rejected",
+    "no_available_work": "No work available for assignment",
+    "operator_not_available": "Operator is not available",
+    "skill_mismatch": "Operator skills don't match requirements",
+    "workload_exceeded": "Operator workload limit exceeded"
+  },
+  "notifications": {
+    "new_assignment": "New work assigned to you",
+    "assignment_updated": "Your assignment has been updated",
+    "assignment_due": "Assignment deadline approaching",
+    "work_completed": "Work completed by {{operator}}",
+    "quality_issue": "Quality issue reported",
+    "approval_needed": "Assignment approval needed",
+    "break_reminder": "Break time reminder"
+  }
+}

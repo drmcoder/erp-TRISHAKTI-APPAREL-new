@@ -1,0 +1,178 @@
+{
+  "title": "कार्य असाइनमेन्ट",
+  "dashboard": "असाइनमेन्ट ड्यासबोर्ड",
+  "kanban": "कान्बान बोर्ड",
+  "self_assign": "स्वयं असाइनमेन्ट",
+  "my_work": "मेरो काम",
+  "actions": {
+    "assign_work": "काम असाइन गर्नुहोस्",
+    "bulk_assign": "थोक असाइनमेन्ट",
+    "create_assignment": "असाइनमेन्ट सिर्जना गर्नुहोस्",
+    "start_work": "काम सुरु गर्नुहोस्",
+    "pause_work": "काम रोक्नुहोस्",
+    "complete_work": "काम पूरा गर्नुहोस्",
+    "request_assignment": "असाइनमेन्ट अनुरोध गर्नुहोस्",
+    "approve_assignment": "असाइनमेन्ट स्वीकृत गर्नुहोस्",
+    "reject_assignment": "असाइनमेन्ट अस्वीकार गर्नुहोस्"
+  },
+  "status": {
+    "pending": "असाइनमेन्ट पेन्डिङ",
+    "assigned": "असाइन गरिएको",
+    "started": "चलिरहेको",
+    "paused": "रोकिएको",
+    "completed": "पूरा",
+    "cancelled": "रद्द गरिएको",
+    "on_hold": "होल्डमा"
+  },
+  "fields": {
+    "work_item": "कार्य आइटम",
+    "bundle_number": "बन्डल नम्बर",
+    "operation": "अपरेसन",
+    "operator": "अपरेटर",
+    "supervisor": "सुपरभाइजर",
+    "assigned_at": "असाइन गरिएको समय",
+    "started_at": "सुरु गरिएको समय",
+    "completed_at": "पूरा गरिएको समय",
+    "target_quantity": "लक्ष्य मात्रा",
+    "completed_quantity": "पूरा गरिएको मात्रा",
+    "target_rate": "लक्ष्य दर",
+    "actual_rate": "वास्तविक दर",
+    "estimated_duration": "अनुमानित अवधि",
+    "actual_duration": "वास्तविक अवधि",
+    "efficiency": "दक्षता",
+    "quality_grade": "गुणवत्ता ग्रेड",
+    "notes": "टिप्पणीहरू",
+    "special_instructions": "विशेष निर्देशनहरू"
+  },
+  "operations": {
+    "cutting": "काट्ने",
+    "sewing": "सिलाई",
+    "stitching": "स्टिचिङ",
+    "embroidery": "कढाई",
+    "finishing": "फिनिसिङ",
+    "button_hole": "बटन होल",
+    "zipper": "जिपर जड्ने",
+    "hemming": "हेमिङ",
+    "pressing": "प्रेसिङ",
+    "packaging": "प्याकेजिङ"
+  },
+  "assignment_methods": {
+    "manual": "म्यानुअल असाइनमेन्ट",
+    "ai_recommended": "AI सिफारिस",
+    "self_requested": "स्वयं अनुरोध",
+    "auto_assigned": "स्वचालित असाइन"
+  },
+  "filters": {
+    "all": "सबै असाइनमेन्ट",
+    "by_status": "स्थिति अनुसार छान्नुहोस्",
+    "by_operator": "अपरेटर अनुसार छान्नुहोस्",
+    "by_operation": "अपरेसन अनुसार छान्नुहोस्",
+    "by_priority": "प्राथमिकता अनुसार छान्नुहोस्",
+    "by_date": "मिति अनुसार छान्नुहोस्"
+  },
+  "kanban": {
+    "columns": {
+      "pending": "पेन्डिङ",
+      "assigned": "असाइन गरिएको",
+      "in_progress": "चलिरहेको",
+      "review": "समीक्षाधीन",
+      "completed": "पूरा"
+    },
+    "drag_drop": {
+      "drag_to_assign": "असाइन गर्न तान्नुहोस्",
+      "drop_to_reassign": "पुन: असाइन गर्न यहाँ छोड्नुहोस्",
+      "invalid_move": "अवैध चाल",
+      "assignment_successful": "असाइनमेन्ट सफल"
+    }
+  },
+  "ai_recommendations": {
+    "title": "AI सिफारिसहरू",
+    "best_match": "उत्तम मिल",
+    "confidence": "विश्वास",
+    "reasons": "कारणहरू",
+    "skill_match": "सीप मिल",
+    "availability": "उपलब्धता",
+    "efficiency": "ऐतिहासिक दक्षता",
+    "workload": "हालको कार्यभार",
+    "experience": "अनुभव स्तर",
+    "no_recommendations": "कुनै सिफारिस उपलब्ध छैन"
+  },
+  "self_assignment": {
+    "title": "उपलब्ध काम",
+    "request_work": "यो काम अनुरोध गर्नुहोस्",
+    "compatible_work": "मिल्ने काम",
+    "recommended_for_you": "तपाईंको लागि सिफारिस",
+    "skill_required": "आवश्यक सीप",
+    "difficulty": "कठिनाई स्तर",
+    "estimated_time": "अनुमानित समय",
+    "request_sent": "स्वीकृतिको लागि अनुरोध पठाइयो",
+    "already_requested": "पहिले नै अनुरोध गरिएको",
+    "not_eligible": "यो कामको लागि योग्य छैन"
+  },
+  "approval": {
+    "title": "असाइनमेन्ट स्वीकृति",
+    "pending_requests": "पेन्डिङ अनुरोधहरू",
+    "approve": "स्वीकृत गर्नुहोस्",
+    "reject": "अस्वीकार गर्नुहोस्",
+    "approved": "स्वीकृत",
+    "rejected": "अस्वीकृत",
+    "approval_reason": "स्वीकृति कारण",
+    "rejection_reason": "अस्वीकृति कारण",
+    "auto_approved": "सिस्टमद्वारा स्वतः स्वीकृत"
+  },
+  "bulk_assignment": {
+    "title": "थोक असाइनमेन्ट",
+    "select_items": "कार्य आइटमहरू चयन गर्नुहोस्",
+    "select_operators": "अपरेटरहरू चयन गर्नुहोस्",
+    "assignment_strategy": "असाइनमेन्ट रणनीति",
+    "strategies": {
+      "balanced": "सन्तुलित वितरण",
+      "skill_based": "सीप-आधारित मिलान",
+      "workload_based": "कार्यभार-आधारित",
+      "ai_optimized": "AI अनुकूलित"
+    },
+    "preview": "असाइनमेन्ट पूर्वावलोकन",
+    "conflicts": "असाइनमेन्ट द्वन्द्व",
+    "warnings": "चेतावनीहरू",
+    "assign_all": "सबै असाइन गर्नुहोस्"
+  },
+  "production": {
+    "title": "उत्पादन ट्रयाकिङ",
+    "current_work": "हालको काम",
+    "work_session": "कार्य सत्र",
+    "timer": "कार्य टाइमर",
+    "piece_count": "टुक्रा गणना",
+    "progress": "प्रगति",
+    "rate": "उत्पादन दर",
+    "target": "लक्ष्य",
+    "actual": "वास्तविक",
+    "variance": "भिन्नता",
+    "quality": "गुणवत्ता",
+    "defects": "दोषहरू",
+    "rework": "पुनः कार्य"
+  },
+  "messages": {
+    "assignment_created": "कार्य असाइनमेन्ट सफलतापूर्वक सिर्जना गरियो",
+    "assignment_updated": "असाइनमेन्ट सफलतापूर्वक अद्यावधिक गरियो",
+    "assignment_deleted": "असाइनमेन्ट सफलतापूर्वक हटाइयो",
+    "work_started": "कार्य सत्र सुरु गरियो",
+    "work_paused": "कार्य सत्र रोकियो",
+    "work_completed": "काम सफलतापूर्वक पूरा गरियो",
+    "request_submitted": "असाइनमेन्ट अनुरोध पेश गरियो",
+    "request_approved": "असाइनमेन्ट अनुरोध स्वीकृत गरियो",
+    "request_rejected": "असाइनमेन्ट अनुरोध अस्वीकार गरियो",
+    "no_available_work": "असाइनमेन्टको लागि कुनै काम उपलब्ध छैन",
+    "operator_not_available": "अपरेटर उपलब्ध छैन",
+    "skill_mismatch": "अपरेटर सीपहरू आवश्यकताहरू मेल खाँदैनन्",
+    "workload_exceeded": "अपरेटर कार्यभार सीमा नाघ्यो"
+  },
+  "notifications": {
+    "new_assignment": "तपाईंलाई नयाँ काम असाइन गरियो",
+    "assignment_updated": "तपाईंको असाइनमेन्ट अद्यावधिक गरियो",
+    "assignment_due": "असाइनमेन्ट समयसीमा नजिकै",
+    "work_completed": "{{operator}} द्वारा काम पूरा गरियो",
+    "quality_issue": "गुणवत्ता समस्या रिपोर्ट गरियो",
+    "approval_needed": "असाइनमेन्ट स्वीकृति आवश्यक",
+    "break_reminder": "विश्राम समय सम्झना"
+  }
+}

@@ -1221,4 +1221,447 @@ if (damageResult.success) {
 
 ---
 
-This API documentation provides comprehensive coverage of all the key APIs used in the Garment ERP PWA, focusing on the critical business workflows of work management, damage reporting, and payment processing.
+## 📱 Week 7 UI/UX Enhancement APIs
+
+### **PWA Service API**
+
+#### **Install PWA**
+```javascript
+// Install PWA from browser
+const installPWA = async () => {
+  try {
+    const result = await pwaService.showInstallPrompt();
+    return {
+      success: true,
+      data: {
+        outcome: result.outcome, // 'accepted' or 'dismissed'
+        installed: result.outcome === 'accepted'
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+```
+
+#### **Service Worker Registration**
+```javascript
+// Register service worker for offline functionality
+const registerServiceWorker = async () => {
+  try {
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      
+      return {
+        success: true,
+        data: {
+          registrationId: registration.id,
+          scope: registration.scope,
+          updateFound: !!registration.waiting
+        }
+      };
+    }
+    
+    return {
+      success: false,
+      error: 'Service Worker not supported'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+```
+
+### **Notification Service API**
+
+#### **Subscribe to Push Notifications**
+```javascript
+// POST /api/notifications/subscribe
+const subscribeToPushNotifications = async (subscription) => {
+  try {
+    const response = await fetch('/api/notifications/subscribe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getAuthToken()}`
+      },
+      body: JSON.stringify({
+        subscription,
+        preferences: {
+          assignments: true,
+          quality: true,
+          system: false,
+          breaks: true
+        }
+      })
+    });
+
+    const result = await response.json();
+    
+    return {
+      success: result.success,
+      data: result.data
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+```
+
+#### **Send In-App Notification**
+```javascript
+// POST /api/notifications/in-app
+const sendInAppNotification = async (notificationData) => {
+  try {
+    const notification = await notificationService.sendNotification({
+      type: notificationData.type,
+      title: notificationData.title,
+      message: notificationData.message,
+      priority: notificationData.priority,
+      userId: notificationData.userId,
+      actionUrl: notificationData.actionUrl,
+      actions: notificationData.actions
+    });
+
+    return {
+      success: true,
+      data: {
+        notificationId: notification.id,
+        delivered: true,
+        timestamp: new Date()
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+```
+
+#### **Real-time Notification Stream**
+```javascript
+// GET /api/notifications/stream (Server-Sent Events)
+const subscribeToNotificationStream = (userId, callback) => {
+  const eventSource = new EventSource(`/api/notifications/stream?userId=${userId}`);
+  
+  eventSource.onmessage = (event) => {
+    try {
+      const notification = JSON.parse(event.data);
+      callback({
+        success: true,
+        data: notification
+      });
+    } catch (error) {
+      callback({
+        success: false,
+        error: 'Failed to parse notification'
+      });
+    }
+  };
+
+  eventSource.onerror = (error) => {
+    callback({
+      success: false,
+      error: 'Notification stream error'
+    });
+  };
+
+  return () => eventSource.close();
+};
+```
+
+### **Internationalization API**
+
+#### **Get Translations**
+```javascript
+// GET /api/i18n/translations/:language
+const getTranslations = async (language = 'en') => {
+  try {
+    const resources = await import(`../locales/${language}/index.js`);
+    
+    return {
+      success: true,
+      data: {
+        language,
+        resources: resources.default,
+        rtl: language === 'ne' // Right-to-left for Nepali
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: 'Failed to load translations',
+      fallback: 'en'
+    };
+  }
+};
+```
+
+#### **Format Currency**
+```javascript
+// Format currency based on locale
+const formatCurrency = (amount, language = 'en') => {
+  try {
+    const formatters = {
+      en: new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'NPR',
+        currencyDisplay: 'symbol'
+      }),
+      ne: new Intl.NumberFormat('ne-NP', {
+        style: 'currency',
+        currency: 'NPR',
+        currencyDisplay: 'symbol'
+      })
+    };
+
+    const formatter = formatters[language] || formatters.en;
+    
+    return {
+      success: true,
+      data: {
+        formatted: formatter.format(amount),
+        raw: amount,
+        currency: 'NPR'
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+      fallback: `Rs. ${amount}`
+    };
+  }
+};
+```
+
+### **Performance Analytics API**
+
+#### **Get Performance Metrics**
+```javascript
+// GET /api/analytics/performance
+const getPerformanceMetrics = async () => {
+  try {
+    // Collect performance metrics
+    const navigation = performance.getEntriesByType('navigation')[0];
+    const paint = performance.getEntriesByType('paint');
+    const resources = performance.getEntriesByType('resource');
+
+    const metrics = {
+      loadTime: navigation.loadEventEnd - navigation.loadEventStart,
+      domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+      firstPaint: paint.find(p => p.name === 'first-paint')?.startTime || 0,
+      firstContentfulPaint: paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
+      resourceCount: resources.length,
+      cacheHits: resources.filter(r => r.transferSize === 0).length
+    };
+
+    return {
+      success: true,
+      data: {
+        metrics,
+        performance: {
+          grade: calculatePerformanceGrade(metrics),
+          recommendations: getPerformanceRecommendations(metrics)
+        }
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+```
+
+### **Offline Queue API**
+
+#### **Queue Offline Action**
+```javascript
+// Queue action when offline
+const queueOfflineAction = async (action) => {
+  try {
+    const queueItem = {
+      id: generateId(),
+      action: action.type,
+      data: action.data,
+      timestamp: new Date().toISOString(),
+      retries: 0,
+      maxRetries: 3
+    };
+
+    // Store in IndexedDB for persistence
+    await storeOfflineAction(queueItem);
+
+    return {
+      success: true,
+      data: {
+        queueId: queueItem.id,
+        queued: true,
+        willSync: true
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+```
+
+#### **Process Offline Queue**
+```javascript
+// Process queued actions when back online
+const processOfflineQueue = async () => {
+  try {
+    const queuedActions = await getOfflineQueue();
+    const results = [];
+
+    for (const action of queuedActions) {
+      try {
+        const result = await executeQueuedAction(action);
+        if (result.success) {
+          await removeFromQueue(action.id);
+          results.push({ actionId: action.id, status: 'synced' });
+        } else {
+          action.retries++;
+          if (action.retries >= action.maxRetries) {
+            await removeFromQueue(action.id);
+            results.push({ actionId: action.id, status: 'failed', error: result.error });
+          } else {
+            await updateQueueItem(action);
+            results.push({ actionId: action.id, status: 'retry' });
+          }
+        }
+      } catch (error) {
+        results.push({ actionId: action.id, status: 'error', error: error.message });
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        processed: results.length,
+        synced: results.filter(r => r.status === 'synced').length,
+        failed: results.filter(r => r.status === 'failed').length,
+        retries: results.filter(r => r.status === 'retry').length,
+        results
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+```
+
+### **Touch Gesture API**
+
+#### **Handle Swipe Gestures**
+```javascript
+// Handle swipe gestures for navigation
+const handleSwipeGesture = (element, callbacks) => {
+  let startX, startY, startTime;
+
+  element.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    startTime = Date.now();
+  });
+
+  element.addEventListener('touchend', (e) => {
+    if (!startX || !startY) return;
+
+    const touch = e.changedTouches[0];
+    const endX = touch.clientX;
+    const endY = touch.clientY;
+    const endTime = Date.now();
+
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
+    const deltaTime = endTime - startTime;
+
+    // Determine swipe direction and execute callback
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50 && deltaTime < 500) {
+      if (deltaX > 0) {
+        callbacks.onSwipeRight?.(deltaX);
+      } else {
+        callbacks.onSwipeLeft?.(Math.abs(deltaX));
+      }
+    }
+
+    // Reset values
+    startX = startY = null;
+  });
+};
+```
+
+## 🔧 API Configuration and Settings
+
+### **Environment Configuration**
+```javascript
+const API_CONFIG = {
+  development: {
+    baseURL: 'http://localhost:3001/api/v1',
+    firebase: {
+      apiKey: process.env.REACT_APP_FIREBASE_API_KEY_DEV,
+      projectId: 'tsa-erp-dev'
+    },
+    features: {
+      notifications: true,
+      offline: true,
+      analytics: false
+    }
+  },
+  production: {
+    baseURL: 'https://api.tsa-erp.com/v1',
+    firebase: {
+      apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+      projectId: 'tsa-erp-production'
+    },
+    features: {
+      notifications: true,
+      offline: true,
+      analytics: true
+    }
+  }
+};
+```
+
+### **Cache Configuration**
+```javascript
+const CACHE_CONFIG = {
+  strategies: {
+    'static-resources': 'CacheFirst',
+    'api-data': 'NetworkFirst',
+    'user-data': 'StaleWhileRevalidate',
+    'offline-fallback': 'CacheOnly'
+  },
+  ttl: {
+    'static-resources': 86400000, // 24 hours
+    'api-data': 300000, // 5 minutes
+    'user-data': 600000, // 10 minutes
+    'translations': 3600000 // 1 hour
+  }
+};
+```
+
+---
+
+This API documentation provides comprehensive coverage of all the key APIs used in the Garment ERP PWA, focusing on the critical business workflows of work management, damage reporting, payment processing, and the enhanced Week 7 UI/UX features including PWA capabilities, notifications, internationalization, and mobile optimizations.
