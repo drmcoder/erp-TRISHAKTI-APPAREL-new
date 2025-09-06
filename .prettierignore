@@ -1,0 +1,11 @@
+dist/
+node_modules/
+coverage/
+build/
+*.min.js
+*.min.css
+*.map
+package-lock.json
+.gitignore
+.eslintignore
+*.md
