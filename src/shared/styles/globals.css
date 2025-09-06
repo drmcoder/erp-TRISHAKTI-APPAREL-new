@@ -1,0 +1,422 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700;800&display=swap');
+
+/* Base styles */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-white text-secondary-900 transition-colors duration-300;
+  }
+
+  /* Dark mode */
+  .dark body {
+    @apply bg-secondary-900 text-secondary-100;
+  }
+
+  /* Focus styles */
+  *:focus {
+    @apply outline-none;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-secondary-100 dark:bg-secondary-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-secondary-300 dark:bg-secondary-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-secondary-400 dark:bg-secondary-500;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-primary-100 text-primary-900;
+  }
+
+  .dark ::selection {
+    @apply bg-primary-900 text-primary-100;
+  }
+}
+
+/* Component styles */
+@layer components {
+  /* Typography scale classes */
+  .text-display-2xl {
+    @apply text-5xl font-bold leading-tight tracking-tight;
+  }
+
+  .text-display-xl {
+    @apply text-4xl font-bold leading-tight tracking-tight;
+  }
+
+  .text-display-lg {
+    @apply text-3xl font-bold leading-tight;
+  }
+
+  .text-display-md {
+    @apply text-2xl font-semibold leading-tight;
+  }
+
+  .text-display-sm {
+    @apply text-xl font-semibold leading-tight;
+  }
+
+  .text-display-xs {
+    @apply text-lg font-semibold;
+  }
+
+  /* Body text classes */
+  .text-body-xl {
+    @apply text-xl leading-relaxed;
+  }
+
+  .text-body-lg {
+    @apply text-lg leading-relaxed;
+  }
+
+  .text-body-md {
+    @apply text-base leading-relaxed;
+  }
+
+  .text-body-sm {
+    @apply text-sm leading-relaxed;
+  }
+
+  .text-body-xs {
+    @apply text-xs leading-relaxed;
+  }
+
+  /* Caption classes */
+  .text-caption {
+    @apply text-xs text-secondary-500 dark:text-secondary-400 font-medium;
+  }
+
+  .text-overline {
+    @apply text-xs text-secondary-500 dark:text-secondary-400 font-semibold uppercase tracking-wide;
+  }
+
+  /* ERP-specific utility classes */
+  .status-pending {
+    @apply text-warning-700 bg-warning-50 border-warning-200;
+  }
+
+  .status-in-progress {
+    @apply text-primary-700 bg-primary-50 border-primary-200;
+  }
+
+  .status-completed {
+    @apply text-success-700 bg-success-50 border-success-200;
+  }
+
+  .status-cancelled {
+    @apply text-danger-700 bg-danger-50 border-danger-200;
+  }
+
+  .status-on-hold {
+    @apply text-secondary-700 bg-secondary-50 border-secondary-200;
+  }
+
+  /* Priority classes */
+  .priority-low {
+    @apply text-success-700 bg-success-50;
+  }
+
+  .priority-medium {
+    @apply text-warning-700 bg-warning-50;
+  }
+
+  .priority-high {
+    @apply text-danger-700 bg-danger-50;
+  }
+
+  .priority-critical {
+    @apply text-danger-800 bg-danger-100 font-semibold;
+  }
+
+  /* Dark mode status classes */
+  .dark .status-pending {
+    @apply text-warning-300 bg-warning-900 border-warning-700;
+  }
+
+  .dark .status-in-progress {
+    @apply text-primary-300 bg-primary-900 border-primary-700;
+  }
+
+  .dark .status-completed {
+    @apply text-success-300 bg-success-900 border-success-700;
+  }
+
+  .dark .status-cancelled {
+    @apply text-danger-300 bg-danger-900 border-danger-700;
+  }
+
+  .dark .status-on-hold {
+    @apply text-secondary-300 bg-secondary-800 border-secondary-600;
+  }
+
+  .dark .priority-low {
+    @apply text-success-300 bg-success-900;
+  }
+
+  .dark .priority-medium {
+    @apply text-warning-300 bg-warning-900;
+  }
+
+  .dark .priority-high {
+    @apply text-danger-300 bg-danger-900;
+  }
+
+  .dark .priority-critical {
+    @apply text-danger-200 bg-danger-800;
+  }
+
+  /* Layout utilities */
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-spacing {
+    @apply py-12 sm:py-16 lg:py-20;
+  }
+
+  .card-shadow {
+    @apply shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .card-shadow-elevated {
+    @apply shadow-lg hover:shadow-xl transition-shadow duration-200;
+  }
+
+  /* Animation utilities */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out;
+  }
+
+  .animate-fade-in-down {
+    animation: fadeInDown 0.5s ease-out;
+  }
+
+  .animate-fade-in-left {
+    animation: fadeInLeft 0.5s ease-out;
+  }
+
+  .animate-fade-in-right {
+    animation: fadeInRight 0.5s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  /* Focus ring utilities */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+
+  .focus-ring-inset {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-inset;
+  }
+
+  .dark .focus-ring {
+    @apply focus:ring-primary-400 focus:ring-offset-secondary-900;
+  }
+
+  .dark .focus-ring-inset {
+    @apply focus:ring-primary-400;
+  }
+}
+
+/* Utility classes */
+@layer utilities {
+  /* Spacing utilities */
+  .space-y-0\.5 > * + * {
+    @apply mt-0.5;
+  }
+
+  .space-y-1\.5 > * + * {
+    @apply mt-1.5;
+  }
+
+  .space-y-2\.5 > * + * {
+    @apply mt-2.5;
+  }
+
+  .space-y-3\.5 > * + * {
+    @apply mt-3.5;
+  }
+
+  /* Responsive utilities */
+  .container-fluid {
+    @apply w-full max-w-none mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-sm {
+    @apply w-full max-w-screen-sm mx-auto px-4 sm:px-6;
+  }
+
+  .container-md {
+    @apply w-full max-w-screen-md mx-auto px-4 sm:px-6;
+  }
+
+  .container-lg {
+    @apply w-full max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-xl {
+    @apply w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-2xl {
+    @apply w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Print utilities */
+  @media print {
+    .print-hidden {
+      @apply hidden;
+    }
+
+    .print-visible {
+      @apply block;
+    }
+
+    .print-break-before {
+      break-before: page;
+    }
+
+    .print-break-after {
+      break-after: page;
+    }
+
+    .print-break-inside-avoid {
+      break-inside: avoid;
+    }
+  }
+}
+
+/* Custom keyframe animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Print styles for ERP reports */
+@media print {
+  @page {
+    margin: 0.5in;
+  }
+
+  .print-report {
+    @apply text-black bg-white;
+    font-size: 11pt;
+    line-height: 1.2;
+  }
+
+  .print-report h1 {
+    @apply text-lg font-bold mb-4;
+  }
+
+  .print-report h2 {
+    @apply text-base font-semibold mb-3;
+  }
+
+  .print-report h3 {
+    @apply text-sm font-semibold mb-2;
+  }
+
+  .print-report table {
+    @apply w-full border-collapse;
+  }
+
+  .print-report th,
+  .print-report td {
+    @apply border border-gray-400 px-2 py-1 text-xs;
+  }
+
+  .print-report th {
+    @apply bg-gray-200 font-semibold;
+  }
+}
