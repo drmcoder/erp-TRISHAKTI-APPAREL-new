@@ -1,0 +1,152 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  FIREBASE_PROJECT_ID: 'tsa-erp-production'
+
+jobs:
+  deploy:
+    name: Deploy to Firebase
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Run Tests
+        run: |
+          npm run test:run
+          npm run type-check
+          npm run lint
+
+      - name: Build for Production
+        run: npm run build
+        env:
+          NODE_ENV: production
+          VITE_APP_VERSION: ${{ github.sha }}
+          VITE_BUILD_DATE: ${{ github.run_number }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+
+      - name: Setup Firebase CLI
+        uses: w9jds/setup-firebase@main
+        with:
+          tools: hosting
+          firebase_token: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deploy to Firebase Hosting
+        run: |
+          firebase use ${{ env.FIREBASE_PROJECT_ID }}
+          firebase deploy --only hosting --message "Deploy from GitHub Actions - ${{ github.sha }}"
+
+      - name: Verify Deployment
+        run: |
+          echo "Waiting for deployment to be available..."
+          sleep 30
+          curl -I https://${{ env.FIREBASE_PROJECT_ID }}.web.app || exit 1
+          echo "✅ Deployment successful!"
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+
+      - name: Create Release
+        if: success()
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            ## Changes
+            - Deployed from commit: ${{ github.sha }}
+            - Build number: ${{ github.run_number }}
+            - Deployment URL: https://${{ env.FIREBASE_PROJECT_ID }}.web.app
+            
+            ## Performance Metrics
+            See the Lighthouse report in the deployment artifacts.
+          draft: false
+          prerelease: false
+
+  staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    if: github.ref == 'refs/heads/develop'
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build for Staging
+        run: npm run build
+        env:
+          NODE_ENV: staging
+          VITE_APP_VERSION: ${{ github.sha }}
+          VITE_BUILD_DATE: ${{ github.run_number }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_STAGING_API_BASE_URL }}
+          VITE_FIREBASE_PROJECT_ID: tsa-erp-staging
+
+      - name: Deploy to Firebase Staging
+        uses: w9jds/setup-firebase@main
+        with:
+          tools: hosting
+          firebase_token: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deploy Staging
+        run: |
+          firebase use tsa-erp-staging
+          firebase deploy --only hosting --message "Staging deploy - ${{ github.sha }}"
+
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    environment: production
+    if: failure()
+    
+    steps:
+      - name: Setup Firebase CLI
+        uses: w9jds/setup-firebase@main
+        with:
+          firebase_token: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Rollback to Previous Version
+        run: |
+          firebase use ${{ env.FIREBASE_PROJECT_ID }}
+          PREVIOUS_VERSION=$(firebase hosting:channel:list --json | jq -r '.[0].version')
+          firebase hosting:channel:deploy --version=$PREVIOUS_VERSION live

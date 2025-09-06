@@ -16,7 +16,14 @@
     "test:run": "vitest run",
     "test:coverage": "vitest --coverage",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deploy:staging": "./scripts/deploy.sh staging",
+    "deploy:production": "./scripts/deploy.sh production",
+    "deploy:staging:dry-run": "./scripts/deploy.sh staging --dry-run",
+    "deploy:production:backup": "./scripts/deploy.sh production --backup",
+    "analyze:complexity": "ts-node scripts/analyze-complexity.ts",
+    "analyze:bundle": "vite-bundle-analyzer dist",
+    "ci:full": "npm run type-check && npm run lint && npm run test:coverage && npm run build"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
