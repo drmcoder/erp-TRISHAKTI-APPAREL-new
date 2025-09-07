@@ -18,7 +18,7 @@ import {
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
-import { LoadingSpinner } from '@/shared/components/loading-spinner';
+import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { useOperatorWithStatus } from '../hooks';
 import { STATUS_CONFIG, MACHINE_TYPES, SKILL_LEVELS } from '../types';
 

@@ -132,6 +132,35 @@ export const CardFooter: React.FC<CardFooterProps> = ({
   </div>
 );
 
+// Additional commonly used Card exports
+export const CardContent: React.FC<CardBodyProps> = CardBody;
+
+export const CardDescription: React.FC<{ className?: string; children: React.ReactNode }> = ({
+  className,
+  children,
+  ...props
+}) => (
+  <p
+    className={cn('text-sm text-secondary-600 dark:text-secondary-400', className)}
+    {...props}
+  >
+    {children}
+  </p>
+);
+
+export const CardTitle: React.FC<{ className?: string; children: React.ReactNode }> = ({
+  className,
+  children,
+  ...props
+}) => (
+  <h3
+    className={cn('text-lg font-semibold text-secondary-900 dark:text-secondary-100', className)}
+    {...props}
+  >
+    {children}
+  </h3>
+);
+
 // Specialized card variants
 export const StatsCard: React.FC<{
   title: string;

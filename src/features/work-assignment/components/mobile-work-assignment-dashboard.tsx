@@ -18,7 +18,10 @@ import {
   Edit,
   Trash2,
   Eye,
-  ArrowRight
+  ArrowRight,
+  Briefcase,
+  Users,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +36,7 @@ import {
   TouchNumberInput 
 } from '@/components/ui/touch-friendly-components';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { WorkItem, WorkAssignment, OperatorSummary } from '../types';
+import type { WorkItem, WorkAssignment, OperatorSummary } from '../types';
 import { isMobile, isTablet } from '@/config/ui-config';
 
 interface MobileWorkAssignmentDashboardProps {

@@ -13,7 +13,7 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import { AssignmentRequest, WorkItem, OperatorSummary } from '../types';
+import type { AssignmentRequest, WorkItem, OperatorSummary } from '../types';
 import { atomicOperationsService } from './atomic-operations';
 import { aiRecommendationEngine } from './ai-recommendation-engine';
 

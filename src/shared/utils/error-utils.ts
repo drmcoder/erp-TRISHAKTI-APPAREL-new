@@ -37,6 +37,10 @@ export class AppError extends Error {
 }
 
 export const ErrorCodes = {
+  // General errors
+  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+  WARNING: 'WARNING',
+  
   // Authentication errors
   AUTH_FAILED: 'AUTH_FAILED',
   SESSION_EXPIRED: 'SESSION_EXPIRED',

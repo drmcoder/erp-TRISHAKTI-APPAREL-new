@@ -15,17 +15,19 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
-import { LoadingSpinner } from '@/shared/components/loading-spinner';
+import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import {
   useWorkBundles,
   useOperators,
   useBulkAssignWork,
   useAssignmentRecommendations
 } from '../hooks/use-work-assignments';
-import {
+import type {
   WorkBundle,
   OperatorSummary,
-  AssignWorkData,
+  AssignWorkData
+} from '../types';
+import {
   WORK_PRIORITIES
 } from '../types';
 

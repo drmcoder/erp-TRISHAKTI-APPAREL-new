@@ -2,29 +2,10 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
-import { TokenService } from '@/services/token-service';
+import type { User, LoginCredentials } from '@/types/auth';
 
-// Types
-interface User {
-  id: string;
-  username: string;
-  name: string;
-  role: 'operator' | 'supervisor' | 'management' | 'admin';
-  email?: string;
-  permissions: string[];
-  department?: string;
-  machineType?: string;
-  skills?: string[];
-  active: boolean;
-  lastLogin?: Date;
-  createdAt: Date;
-}
-
-interface LoginCredentials {
-  username: string;
-  password: string;
-  rememberMe?: boolean;
-}
+// Re-export types for backwards compatibility
+export type { User, LoginCredentials } from '@/types/auth';
 
 interface AuthState {
   // State
@@ -73,6 +54,7 @@ export const useAuthStore = create<AuthState>()(
 
             if (result.success && result.data) {
               // Initialize JWT tokens
+              const { TokenService } = await import('@/services/token-service');
               const { accessToken: _accessToken, refreshToken: _refreshToken } = TokenService.initializeTokens(result.data);
               
               const sessionDuration = credentials.rememberMe 
@@ -113,6 +95,7 @@ export const useAuthStore = create<AuthState>()(
             const result = await AuthService.logout(get().user?.id);
 
             // Clear JWT tokens
+            const { TokenService } = await import('@/services/token-service');
             TokenService.clearTokens();
 
             if (result.success) {
@@ -214,6 +197,7 @@ export const useAuthStore = create<AuthState>()(
         // Initialize from stored tokens (for page refresh)
         initializeFromTokens: async () => {
           try {
+            const { TokenService } = await import('@/services/token-service');
             const user = TokenService.getUserFromToken();
             const sessionExpiry = TokenService.getSessionExpiry();
             
@@ -248,7 +232,8 @@ export const useAuthStore = create<AuthState>()(
               }
               
               // Clear invalid tokens
-              TokenService.clearTokens();
+              const { TokenService: ClearTokenService } = await import('@/services/token-service');
+              ClearTokenService.clearTokens();
               set(state => {
                 state.user = null;
                 state.isAuthenticated = false;
@@ -260,7 +245,8 @@ export const useAuthStore = create<AuthState>()(
             }
           } catch (error) {
             console.error('Error initializing from tokens:', error);
-            TokenService.clearTokens();
+            const { TokenService: ErrorTokenService } = await import('@/services/token-service');
+            ErrorTokenService.clearTokens();
             set(state => {
               state.user = null;
               state.isAuthenticated = false;
@@ -273,6 +259,7 @@ export const useAuthStore = create<AuthState>()(
 
         // Auto-refresh token if needed
         autoRefreshToken: async () => {
+          const { TokenService } = await import('@/services/token-service');
           const success = await TokenService.autoRefreshToken();
           if (!success) {
             // Token refresh failed, logout user

@@ -15,7 +15,8 @@ import {
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
-import { WorkAssignmentSummary, WORK_PRIORITIES } from '../types';
+import type { WorkAssignmentSummary } from '../types';
+import { WORK_PRIORITIES } from '../types';
 
 interface DraggableAssignmentCardProps {
   assignment: WorkAssignmentSummary;

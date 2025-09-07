@@ -1,4 +1,4 @@
-import { User } from '@/app/store/auth-store';
+import type { User } from '@/types/auth';
 
 // Define permission constants
 export const PERMISSIONS = {

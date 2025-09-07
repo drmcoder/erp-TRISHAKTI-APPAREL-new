@@ -1,4 +1,4 @@
-import { WorkItem, Operator, WorkAssignmentRecommendation, SkillMatch, WorkloadAnalysis } from '@/types/work-assignment-types';
+import type { WorkItem, Operator, WorkAssignmentRecommendation, SkillMatch, WorkloadAnalysis } from '@/types/work-assignment-types';
 import { format, differenceInHours, addHours } from 'date-fns';
 
 export interface RecommendationContext {

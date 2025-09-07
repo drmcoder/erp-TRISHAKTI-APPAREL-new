@@ -5,32 +5,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand Colors for TSA ERP
+        // TSA Brand Colors from Company Logo
         brand: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9', // Primary brand color
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-          950: '#082f49',
+          50: '#eff4ff',
+          100: '#dde7ff', 
+          200: '#c3d4ff',
+          300: '#99b8ff',
+          400: '#6892ff',
+          500: '#3d4a9a', // TSA Blue from logo
+          600: '#2d3875',
+          700: '#252e5f',
+          800: '#1e2449',
+          900: '#181b36',
+          950: '#0f1125',
         },
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
-          950: '#082f49',
+          50: '#fff1f1',
+          100: '#ffe1e1',
+          200: '#ffc7c7', 
+          300: '#ff9f9f',
+          400: '#ff6868',
+          500: '#e53e3e', // TSA Red from logo
+          600: '#d12727',
+          700: '#b01e1e',
+          800: '#921c1c',
+          900: '#7a1d1d',
+          950: '#420a0a',
         },
         secondary: {
           50: '#f8fafc',

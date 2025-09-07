@@ -9,6 +9,7 @@ import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   apiKey: "AIzaSyB8Z4GdoLZsBW6bfmAh_BSTftpTRUXPZMw",
   authDomain: "erp-for-tsa.firebaseapp.com",
+  databaseURL: "https://erp-for-tsa-default-rtdb.firebaseio.com",
   projectId: "erp-for-tsa",
   storageBucket: "erp-for-tsa.firebasestorage.app",
   messagingSenderId: "271232983905",

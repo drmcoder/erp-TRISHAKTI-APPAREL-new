@@ -9,6 +9,9 @@ import { ProductionDashboard } from './features/analytics/components/production-
 import { QualityManagementDashboard } from './features/quality/components/quality-management-dashboard';
 import { EarningsDashboard } from './features/earnings/components/earnings-dashboard';
 import { OperatorManagementDashboard } from './features/operators/components/operator-management-dashboard';
+import { BreakManagementSystem } from './features/work-assignment/components/break-management-system';
+import { SelfAssignmentInterface } from './features/work-assignment/components/self-assignment-interface';
+import { ProductionTimer } from './features/work-assignment/components/production-timer';
 
 // Login Component
 const LoginPage = ({ onLogin }: { onLogin: (username: string) => void }) => {
@@ -136,10 +139,14 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
         }
       case 'work-assignment':
         return userRole === 'operator' ? 
-          <OperatorWorkDashboard operatorId={userId} /> : 
+          <OperatorWorkDashboard 
+            operatorId={userId} 
+            operatorName="Current Operator"
+            operatorSkills={{ skillLevel: "intermediate", efficiency: 0.8 }}
+          /> : 
           <AssignmentDashboard />;
       case 'bundles':
-        return <BundleLifecycleManager />;
+        return <BundleLifecycleManager mode="view" />;
       case 'analytics':
         return <ProductionDashboard />;
       case 'quality':
@@ -148,6 +155,43 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
         return <EarningsDashboard userRole={userRole} operatorId={userRole === 'operator' ? userId : undefined} />;
       case 'operators':
         return <OperatorManagementDashboard userRole={userRole} />;
+      case 'breaks':
+        return <BreakManagementSystem 
+          operatorId={userId} 
+          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current User'}
+          sessionId={`session-${Date.now()}`}
+          sessionStartTime={new Date(Date.now() - 2 * 60 * 60 * 1000)} // 2 hours ago
+          workDuration={2 * 60 * 60 * 1000} // 2 hours in milliseconds
+        />;
+      case 'self-assignment':
+        return <SelfAssignmentInterface 
+          operatorId={userId}
+          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current User'}
+          operatorSkills={{
+            skillLevel: 'intermediate',
+            machineTypes: ['sewing', 'overlock', 'cutting'],
+            primaryMachine: 'sewing',
+            specializations: ['precision-work', 'quality-control']
+          }}
+          maxConcurrentWork={3}
+        />;
+      case 'timer':
+        return <div className="p-8">
+          <h2 className="text-2xl font-bold mb-4">Production Timer</h2>
+          <ProductionTimer 
+            workItemId="sample-work-item-001"
+            operatorId={userId}
+            workItem={{
+              id: "sample-work-item-001",
+              bundleId: "bundle-001",
+              description: "Sample Production Task",
+              targetQuantity: 50,
+              estimatedTime: 120, // 2 hours in minutes
+              priority: "medium",
+              status: "assigned"
+            } as any}
+          />
+        </div>;
       default:
         return <OperatorDashboard operatorId={userId} />;
     }
@@ -188,6 +232,40 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
                 >
                   Work Assignment
                 </button>
+                <button
+                  onClick={() => setCurrentView('breaks')}
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    currentView === 'breaks' 
+                      ? 'bg-brand-100 text-brand-700' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Break Management
+                </button>
+                {userRole === 'operator' && (
+                  <button
+                    onClick={() => setCurrentView('self-assignment')}
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      currentView === 'self-assignment' 
+                        ? 'bg-brand-100 text-brand-700' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Self Assignment
+                  </button>
+                )}
+                {userRole === 'operator' && (
+                  <button
+                    onClick={() => setCurrentView('timer')}
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      currentView === 'timer' 
+                        ? 'bg-brand-100 text-brand-700' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Production Timer
+                  </button>
+                )}
                 <button
                   onClick={() => setCurrentView('bundles')}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
@@ -261,176 +339,6 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
   );
 };
 
-// Dashboard View
-const DashboardView = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center">
-        <div className="p-2 bg-primary-100 rounded-lg">
-          <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-          </svg>
-        </div>
-        <div className="ml-4">
-          <h3 className="text-lg font-semibold text-gray-900">Active Operators</h3>
-          <p className="text-2xl font-bold text-primary-600">24</p>
-        </div>
-      </div>
-    </div>
-
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center">
-        <div className="p-2 bg-success-100 rounded-lg">
-          <svg className="w-6 h-6 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div className="ml-4">
-          <h3 className="text-lg font-semibold text-gray-900">Completed Today</h3>
-          <p className="text-2xl font-bold text-success-600">1,247</p>
-        </div>
-      </div>
-    </div>
-
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center">
-        <div className="p-2 bg-warning-100 rounded-lg">
-          <svg className="w-6 h-6 text-warning-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <div className="ml-4">
-          <h3 className="text-lg font-semibold text-gray-900">In Progress</h3>
-          <p className="text-2xl font-bold text-warning-600">89</p>
-        </div>
-      </div>
-    </div>
-
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center">
-        <div className="p-2 bg-brand-100 rounded-lg">
-          <svg className="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-          </svg>
-        </div>
-        <div className="ml-4">
-          <h3 className="text-lg font-semibold text-gray-900">Efficiency</h3>
-          <p className="text-2xl font-bold text-brand-600">87%</p>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Work Assignment View
-const WorkAssignmentView = () => (
-  <div className="bg-white rounded-lg shadow">
-    <div className="px-6 py-4 border-b border-gray-200">
-      <h2 className="text-xl font-semibold text-gray-900">Work Assignment</h2>
-    </div>
-    <div className="p-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Available Bundles</h3>
-          <div className="space-y-3">
-            {[
-              { id: 'B001', article: 'T-Shirt', pieces: 100, priority: 'High' },
-              { id: 'B002', article: 'Jeans', pieces: 50, priority: 'Medium' },
-              { id: 'B003', article: 'Dress', pieces: 75, priority: 'Low' },
-            ].map((bundle) => (
-              <div key={bundle.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="font-medium text-gray-900">{bundle.id} - {bundle.article}</h4>
-                    <p className="text-sm text-gray-600">{bundle.pieces} pieces</p>
-                  </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    bundle.priority === 'High' ? 'bg-primary-100 text-primary-800' :
-                    bundle.priority === 'Medium' ? 'bg-warning-100 text-warning-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {bundle.priority}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Active Operators</h3>
-          <div className="space-y-3">
-            {[
-              { name: 'Ram Sharma', machine: 'Overlock', status: 'Working' },
-              { name: 'Sita Patel', machine: 'Flatlock', status: 'Break' },
-              { name: 'Hari Singh', machine: 'Single Needle', status: 'Working' },
-            ].map((operator) => (
-              <div key={operator.name} className="border rounded-lg p-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h4 className="font-medium text-gray-900">{operator.name}</h4>
-                    <p className="text-sm text-gray-600">{operator.machine}</p>
-                  </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    operator.status === 'Working' ? 'bg-success-100 text-success-800' : 'bg-warning-100 text-warning-800'
-                  }`}>
-                    {operator.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Operators View
-const OperatorsView = () => (
-  <div className="bg-white rounded-lg shadow">
-    <div className="px-6 py-4 border-b border-gray-200">
-      <h2 className="text-xl font-semibold text-gray-900">Operator Management</h2>
-    </div>
-    <div className="p-6">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Machine</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Today's Pieces</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Earnings</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {[
-              { name: 'Ram Sharma', machine: 'Overlock', status: 'Working', pieces: 45, earnings: 'Rs. 675' },
-              { name: 'Sita Patel', machine: 'Flatlock', status: 'Break', pieces: 32, earnings: 'Rs. 480' },
-              { name: 'Hari Singh', machine: 'Single Needle', status: 'Working', pieces: 28, earnings: 'Rs. 420' },
-              { name: 'Gita Thapa', machine: 'Overlock', status: 'Working', pieces: 52, earnings: 'Rs. 780' },
-            ].map((operator) => (
-              <tr key={operator.name}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{operator.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{operator.machine}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    operator.status === 'Working' ? 'bg-success-100 text-success-800' : 'bg-warning-100 text-warning-800'
-                  }`}>
-                    {operator.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{operator.pieces}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-success-600">{operator.earnings}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-);
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

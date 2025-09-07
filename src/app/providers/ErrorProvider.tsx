@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useCallback } from 'react';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { useUIStore } from '@/app/store/ui-store';
-import { AppError, ErrorCode, logError, createAppError } from '@/shared/utils/error-utils';
+import { AppError, logError, createAppError, ErrorCodes } from '@/shared/utils/error-utils';
+import type { ErrorCode } from '@/shared/utils/error-utils';
 
 interface ErrorContextValue {
   reportError: (error: Error | string, context?: any) => void;
@@ -37,7 +38,7 @@ export const ErrorProvider: React.FC<ErrorProviderProps> = ({
     context: any = {}
   ) => {
     const error = typeof errorInput === 'string' 
-      ? createAppError(errorInput, 'UNKNOWN_ERROR' as ErrorCode, context)
+      ? createAppError(errorInput, ErrorCodes.UNKNOWN_ERROR, context)
       : errorInput;
 
     logError(error, context, 'error');
@@ -51,7 +52,7 @@ export const ErrorProvider: React.FC<ErrorProviderProps> = ({
   }, [addError]);
 
   const reportWarning = useCallback((message: string, context: any = {}) => {
-    logError(new AppError(message, 'WARNING' as ErrorCode, context), context, 'warn');
+    logError(new AppError(message, ErrorCodes.WARNING, context), context, 'warn');
     
     addError({
       message,

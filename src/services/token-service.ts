@@ -1,4 +1,4 @@
-import { User } from '@/app/store/auth-store';
+import type { User } from '@/types/auth';
 
 // Simple JWT-like token structure for the ERP system
 interface TokenPayload {

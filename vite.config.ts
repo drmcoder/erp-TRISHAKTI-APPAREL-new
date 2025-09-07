@@ -37,10 +37,21 @@ export default defineConfig({
 
   server: {
     port: 3000,
+    host: '0.0.0.0', // Allow access from network
     open: true,
+    cors: true,
     hmr: {
       overlay: false,
+      port: 3001,
     },
+    // Proxy configuration for API calls if needed
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
   },
 
   optimizeDeps: {

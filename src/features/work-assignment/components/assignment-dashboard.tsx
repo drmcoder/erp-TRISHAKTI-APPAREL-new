@@ -28,12 +28,12 @@ import {
   useAssignmentStatistics
 } from '../hooks/use-work-assignments';
 import { useOperators } from '../hooks/use-operators';
-import { 
+import type { 
   WorkBundle, 
   WorkAssignmentSummary, 
-  AssignmentFilters,
-  ASSIGNMENT_STATUS 
+  AssignmentFilters
 } from '../types';
+import { ASSIGNMENT_STATUS } from '../types';
 
 interface AssignmentDashboardProps {
   onCreateBundle?: () => void;

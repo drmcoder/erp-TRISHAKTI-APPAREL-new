@@ -24,7 +24,19 @@
       "Read(///**)",
       "Bash(chmod:*)",
       "Bash(npm run build:*)",
-      "Bash(npx netlify-cli deploy:*)"
+      "Bash(npx netlify-cli deploy:*)",
+      "Bash(npm start)",
+      "Bash(npm run:*)",
+      "Bash(pkill:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(node:*)",
+      "Bash(firebase projects:list:*)",
+      "Bash(firebase projects:describe:*)",
+      "Bash(firebase project:info:*)",
+      "Bash(firebase:*)",
+      "Bash(find:*)",
+      "Bash(curl:*)",
+      "Bash(cd:*)"
     ],
     "deny": [],
     "ask": []

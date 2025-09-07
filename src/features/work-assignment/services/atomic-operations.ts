@@ -11,7 +11,7 @@ import {
   FirebaseFirestore
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import { WorkAssignment, WorkItem, AssignmentRequest } from '../types';
+import type { WorkAssignment, WorkItem, AssignmentRequest } from '../types';
 
 export interface AtomicAssignmentOperation {
   workItemId: string;

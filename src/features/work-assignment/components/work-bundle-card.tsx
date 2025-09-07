@@ -14,7 +14,8 @@ import {
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card } from '@/shared/components/ui/card';
-import { WorkBundle, WORK_PRIORITIES, ASSIGNMENT_STATUS } from '../types';
+import type { WorkBundle } from '../types';
+import { WORK_PRIORITIES, ASSIGNMENT_STATUS } from '../types';
 
 interface WorkBundleCardProps {
   bundle: WorkBundle;

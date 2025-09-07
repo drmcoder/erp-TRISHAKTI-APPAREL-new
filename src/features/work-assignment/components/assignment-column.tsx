@@ -7,7 +7,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { DraggableAssignmentCard } from './draggable-assignment-card';
-import { WorkAssignmentSummary, ASSIGNMENT_STATUS } from '../types';
+import type { WorkAssignmentSummary } from '../types';
+import { ASSIGNMENT_STATUS } from '../types';
 
 interface AssignmentColumnProps {
   status: string;
