@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/santoshrijal/TSA erp /erp-for-tsa-production/new documentation files/**)",
+      "Read(//Users/santoshrijal/TSA erp /erp-for-tsa-production/**)",
+      "Bash(npm install:*)",
+      "Bash(npx husky init:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(firebase --version)",
+      "Bash(firebase use:*)",
+      "Bash(firebase init:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(npm run lint)",
+      "Bash(npx eslint:*)",
+      "Bash(npm run lint:*)",
+      "Bash(git remote get-url:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Read(//Users/santoshrijal/**)",
+      "Read(///**)",
+      "Bash(chmod:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx netlify-cli deploy:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
