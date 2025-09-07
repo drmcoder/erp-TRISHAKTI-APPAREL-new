@@ -296,7 +296,7 @@ export class ProductionTrackingLogic {
     // Break compliance rules
     const workingHours = (shift.end.getTime() - shift.start.getTime()) / (1000 * 60 * 60);
     const requiredBreaks = this.getRequiredBreaks(workingHours);
-    const compliance = this.checkBreakCompliance(breaks, requiredBreaks);
+    const compliance = this.checkBreakComplianceInternal(breaks, requiredBreaks);
     
     // Check if overdue for break
     const lastBreak = breaks[breaks.length - 1];
@@ -311,6 +311,30 @@ export class ProductionTrackingLogic {
       compliance,
       overdue
     };
+  }
+
+  // Public method for simple break compliance check (used by BreakManagementSystem)
+  checkBreakCompliance(params: {
+    workDuration: number;
+    breaks: Break[];
+    sessionStartTime: Date;
+    operatorId: string;
+  }): boolean {
+    try {
+      const { workDuration, breaks } = params;
+      
+      // Calculate working hours from duration
+      const workingHours = workDuration / (1000 * 60 * 60);
+      
+      // Get required breaks for this duration
+      const requiredBreaks = this.getRequiredBreaks(workingHours);
+      
+      // Check compliance using private method
+      return this.checkBreakComplianceInternal(breaks || [], requiredBreaks || []);
+    } catch (error) {
+      console.error('Error in checkBreakCompliance:', error);
+      return false;
+    }
   }
 
   // Evaluate break compliance
@@ -374,8 +398,18 @@ export class ProductionTrackingLogic {
     return required as Break[];
   }
 
-  // Check break compliance
-  private checkBreakCompliance(actual: Break[], required: Break[]): boolean {
+  // Check break compliance (private helper method)
+  private checkBreakComplianceInternal(actual: Break[], required: Break[]): boolean {
+    if (!required || !Array.isArray(required)) {
+      console.warn('checkBreakCompliance: required breaks array is undefined or invalid');
+      return true; // Return true to avoid blocking when required breaks are not defined
+    }
+    
+    if (!actual || !Array.isArray(actual)) {
+      console.warn('checkBreakCompliance: actual breaks array is undefined or invalid');
+      return false;
+    }
+    
     return required.every(req => 
       actual.some(act => act.breakType === req.breakType)
     );

@@ -1,8 +1,9 @@
 // src/services/entities/index.ts
 // Enhanced Firebase Service Classes for ERP System
 
-// Export base service
-export { EnhancedBaseFirebaseService } from '../../infrastructure/firebase/base-service';
+// Import and export base service
+import { EnhancedBaseFirebaseService } from '../../infrastructure/firebase/base-service';
+export { EnhancedBaseFirebaseService };
 
 // Export specific service classes
 export { OperatorService } from './operator-service';

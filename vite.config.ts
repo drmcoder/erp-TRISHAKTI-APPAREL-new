@@ -51,7 +51,7 @@ export default defineConfig({
     cors: true,
     hmr: {
       overlay: false,
-      port: 3001,
+      port: 3003,
     },
     // Proxy configuration for API calls if needed
     proxy: {
