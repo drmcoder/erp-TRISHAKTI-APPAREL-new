@@ -49,6 +49,7 @@ describe('ResponsiveLayout', () => {
     uid: 'test-user',
     email: 'test@example.com',
     displayName: 'Test User',
+    name: 'Test User',
     role: 'operator'
   };
 
