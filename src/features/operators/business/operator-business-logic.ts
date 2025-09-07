@@ -9,7 +9,7 @@ import {
   UpdateOperatorData,
   MACHINE_TYPES,
   SKILL_LEVELS 
-} from '@/types/operator-types';
+} from '../types/operator-interfaces';
 import { operatorService } from '../services';
 
 export interface BusinessRuleResult {

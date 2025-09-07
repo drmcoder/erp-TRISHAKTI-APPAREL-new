@@ -3,11 +3,13 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/shared/utils';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost' | 'outline' | 'link';
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'ghost' | 'outline' | 'link' | 'back';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   loading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  icon?: React.ReactNode;
+  iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
   rounded?: boolean;
   children: React.ReactNode;
