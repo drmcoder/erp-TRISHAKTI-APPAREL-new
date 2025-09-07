@@ -17,7 +17,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
-import { LoadingSpinner } from '@/shared/components/loading-spinner';
+import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { EmptyState } from '@/shared/components/empty-state';
 import { WorkBundleCard } from './work-bundle-card';
 import { AssignmentColumn } from './assignment-column';
@@ -25,9 +25,9 @@ import { BulkAssignmentModal } from './bulk-assignment-modal';
 import { 
   useWorkBundles, 
   useWorkAssignments, 
-  useAssignmentStatistics,
-  useOperators 
+  useAssignmentStatistics
 } from '../hooks/use-work-assignments';
+import { useOperators } from '../hooks/use-operators';
 import { 
   WorkBundle, 
   WorkAssignmentSummary, 

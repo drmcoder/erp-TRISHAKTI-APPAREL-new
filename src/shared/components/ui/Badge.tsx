@@ -86,7 +86,7 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
           badgeShapes[shape],
           
           // Variant styles
-          outline ? badgeVariants[variant].outline : badgeVariants[variant].solid,
+          outline ? badgeVariants[variant]?.outline || badgeVariants.default.outline : badgeVariants[variant]?.solid || badgeVariants.default.solid,
           
           className
         )}
