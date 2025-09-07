@@ -1,0 +1,163 @@
+{
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "add": "Add",
+    "create": "Create",
+    "update": "Update",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "export": "Export",
+    "import": "Import",
+    "print": "Print",
+    "refresh": "Refresh",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "open": "Open",
+    "start": "Start",
+    "pause": "Pause",
+    "stop": "Stop",
+    "complete": "Complete",
+    "retry": "Retry",
+    "loading": "Loading...",
+    "uploading": "Uploading...",
+    "downloading": "Downloading...",
+    "processing": "Processing..."
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "online": "Online",
+    "offline": "Offline",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "completed": "Completed",
+    "in_progress": "In Progress",
+    "paused": "Paused",
+    "cancelled": "Cancelled",
+    "failed": "Failed",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info"
+  },
+  "priority": {
+    "urgent": "Urgent",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
+  },
+  "time": {
+    "now": "Now",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "this_week": "This Week",
+    "last_week": "Last Week",
+    "this_month": "This Month",
+    "last_month": "Last Month",
+    "this_year": "This Year",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days",
+    "weeks": "weeks",
+    "months": "months",
+    "years": "years",
+    "ago": "ago",
+    "from_now": "from now"
+  },
+  "messages": {
+    "success": {
+      "saved": "Saved successfully",
+      "created": "Created successfully",
+      "updated": "Updated successfully",
+      "deleted": "Deleted successfully",
+      "imported": "Imported successfully",
+      "exported": "Exported successfully"
+    },
+    "error": {
+      "general": "An error occurred",
+      "network": "Network error",
+      "not_found": "Not found",
+      "unauthorized": "Unauthorized access",
+      "forbidden": "Access forbidden",
+      "validation": "Validation error",
+      "required_field": "This field is required",
+      "invalid_format": "Invalid format",
+      "file_too_large": "File is too large",
+      "unsupported_format": "Unsupported file format"
+    },
+    "confirmation": {
+      "delete": "Are you sure you want to delete this item?",
+      "delete_multiple": "Are you sure you want to delete {{count}} items?",
+      "unsaved_changes": "You have unsaved changes. Are you sure you want to leave?",
+      "permanent_action": "This action cannot be undone."
+    },
+    "empty": {
+      "no_data": "No data available",
+      "no_results": "No results found",
+      "no_items": "No items to display",
+      "empty_list": "The list is empty"
+    },
+    "offline": {
+      "title": "You're Offline",
+      "description": "The app is working in offline mode. Your data will sync when you're back online.",
+      "try_again": "Try Again"
+    }
+  },
+  "forms": {
+    "required": "Required",
+    "optional": "Optional",
+    "placeholder": {
+      "search": "Search...",
+      "enter_text": "Enter text",
+      "select_option": "Select an option",
+      "choose_file": "Choose file",
+      "enter_email": "Enter email address",
+      "enter_phone": "Enter phone number",
+      "enter_amount": "Enter amount",
+      "enter_date": "Select date"
+    },
+    "validation": {
+      "email": "Please enter a valid email address",
+      "phone": "Please enter a valid phone number",
+      "number": "Please enter a valid number",
+      "url": "Please enter a valid URL",
+      "date": "Please enter a valid date",
+      "min_length": "Must be at least {{min}} characters",
+      "max_length": "Must not exceed {{max}} characters",
+      "password_mismatch": "Passwords do not match"
+    }
+  },
+  "pagination": {
+    "page": "Page",
+    "of": "of",
+    "items_per_page": "Items per page",
+    "showing": "Showing",
+    "to": "to",
+    "total": "total",
+    "first": "First",
+    "last": "Last"
+  },
+  "units": {
+    "pieces": "pieces",
+    "hours": "hours",
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "meters": "meters",
+    "kilograms": "kilograms",
+    "percentage": "percentage"
+  }
+}
