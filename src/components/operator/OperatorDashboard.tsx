@@ -1,7 +1,7 @@
 // Real Operator Dashboard - Connected to Production Firebase Services
 import React, { useState, useEffect } from 'react';
-// import { productionTSAService } from '@/services/production-ready-service';
-import { mockDataService as productionTSAService } from '@/services/mock-data-service';
+import { productionTSAService } from '@/services/production-ready-service';
+// import { mockDataService as productionTSAService } from '@/services/mock-data-service';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { Card } from '@/shared/components/ui/Card';
 import { Badge } from '@/shared/components/ui/Badge';
@@ -175,7 +175,7 @@ export const OperatorDashboard: React.FC<OperatorDashboardProps> = ({ operatorId
           <p className="text-gray-500 text-center py-8">No work recommendations available</p>
         ) : (
           <div className="space-y-4">
-            {recommendations.slice(0, 5).map((rec, index) => (
+            {recommendations.slice(0, 5).map((rec) => (
               <div key={rec.workItem.id} className="border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div>
@@ -191,7 +191,7 @@ export const OperatorDashboard: React.FC<OperatorDashboardProps> = ({ operatorId
                 
                 <div className="flex flex-wrap gap-1 mb-3">
                   {rec.reasons.map((reason: string, i: number) => (
-                    <Badge key={i} variant="outline" className="text-xs">
+                    <Badge key={i} variant="secondary" className="text-xs">
                       {reason}
                     </Badge>
                   ))}

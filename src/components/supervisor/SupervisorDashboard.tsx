@@ -1,7 +1,7 @@
 // Real Supervisor Dashboard - Connected to Production Firebase Services
 import React, { useState, useEffect } from 'react';
-// import { productionTSAService } from '@/services/production-ready-service';
-import { mockDataService as productionTSAService } from '@/services/mock-data-service';
+import { productionTSAService } from '@/services/production-ready-service';
+// import { mockDataService as productionTSAService } from '@/services/mock-data-service';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { Card } from '@/shared/components/ui/Card';
 import { Badge } from '@/shared/components/ui/Badge';
