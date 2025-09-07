@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OperatorDashboard } from './components/operator/OperatorDashboard';
 import { SupervisorDashboard } from './components/supervisor/SupervisorDashboard';
 import { AssignmentDashboard } from './features/work-assignment/components/assignment-dashboard';
@@ -12,6 +13,20 @@ import { OperatorManagementDashboard } from './features/operators/components/ope
 import { BreakManagementSystem } from './features/work-assignment/components/break-management-system';
 import { SelfAssignmentInterface } from './features/work-assignment/components/self-assignment-interface';
 import { ProductionTimer } from './features/work-assignment/components/production-timer';
+import { WIPEntryForm } from './features/wip/components/wip-entry-form';
+import { ArticleTemplateManager } from './features/templates/components/article-template-manager';
+import { WorkflowSequencer } from './features/workflow/components/workflow-sequencer';
+
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Login Component
 const LoginPage = ({ onLogin }: { onLogin: (username: string) => void }) => {
@@ -142,7 +157,7 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
           <OperatorWorkDashboard 
             operatorId={userId} 
             operatorName="Current Operator"
-            operatorSkills={{ skillLevel: "intermediate", efficiency: 0.8 }}
+            operatorSkills={{ skillLevel: "intermediate", efficiency: 0.8, qualityScore: 0.85 }}
           /> : 
           <AssignmentDashboard />;
       case 'bundles':
@@ -192,6 +207,15 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
             } as any}
           />
         </div>;
+      case 'wip-entry':
+        return <WIPEntryForm 
+          onSave={(wipEntry) => console.log('WIP Entry saved:', wipEntry)}
+          onCancel={() => setCurrentView('dashboard')}
+        />;
+      case 'templates':
+        return <ArticleTemplateManager />;
+      case 'workflow':
+        return <WorkflowSequencer />;
       default:
         return <OperatorDashboard operatorId={userId} />;
     }
@@ -275,6 +299,36 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
                   }`}
                 >
                   Bundle Management
+                </button>
+                <button
+                  onClick={() => setCurrentView('wip-entry')}
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    currentView === 'wip-entry' 
+                      ? 'bg-brand-100 text-brand-700' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  WIP Entry
+                </button>
+                <button
+                  onClick={() => setCurrentView('templates')}
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    currentView === 'templates' 
+                      ? 'bg-brand-100 text-brand-700' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Templates
+                </button>
+                <button
+                  onClick={() => setCurrentView('workflow')}
+                  className={`px-3 py-2 rounded-md text-sm font-medium ${
+                    currentView === 'workflow' 
+                      ? 'bg-brand-100 text-brand-700' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Workflow
                 </button>
                 <button
                   onClick={() => setCurrentView('analytics')}
@@ -361,13 +415,15 @@ function App() {
   };
 
   return (
-    <BrowserRouter>
-      {!isAuthenticated ? (
-        <LoginPage onLogin={handleLogin} />
-      ) : (
-        <Dashboard userRole={userRole} onLogout={handleLogout} />
-      )}
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        {!isAuthenticated ? (
+          <LoginPage onLogin={handleLogin} />
+        ) : (
+          <Dashboard userRole={userRole} onLogout={handleLogout} />
+        )}
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
