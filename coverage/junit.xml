@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="44" failures="29" errors="0" time="0.411958632">
-    <testsuite name="src/services/__tests__/notification-service.test.ts" timestamp="2025-09-07T10:35:04.918Z" hostname="Santoshs-Air.mshome.net" tests="17" failures="2" errors="0" skipped="0" time="0.179845604">
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; sendNotification &gt; should create and store a notification" time="0.104494927">
+<testsuites name="vitest tests" tests="44" failures="29" errors="0" time="0.221471647">
+    <testsuite name="src/services/__tests__/notification-service.test.ts" timestamp="2025-09-07T15:18:34.747Z" hostname="Santoshs-MacBook-Air.local" tests="17" failures="2" errors="0" skipped="0" time="0.161593992">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; sendNotification &gt; should create and store a notification" time="0.06399278">
             <system-err>
 Error: Not implemented: HTMLMediaElement.prototype.play
     at module.exports (/Users/santoshrijal/TSA erp /node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
@@ -28,23 +28,23 @@ Failed to play notification sound: TypeError: Cannot read properties of undefine
 
             </system-err>
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; sendNotification &gt; should not send notification if category is disabled" time="0.000999704">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; sendNotification &gt; should not send notification if category is disabled" time="0.003159281">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; sendNotification &gt; should suppress notification during quiet hours" time="0.00108026">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; sendNotification &gt; should suppress notification during quiet hours" time="0.002366503">
             <system-out>
 Notification suppressed due to quiet hours
 
             </system-out>
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; markAsRead &gt; should mark notification as read" time="0.004540055">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; markAsRead &gt; should mark notification as read" time="0.000804468">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; markAsRead &gt; should not mark already read notification" time="0.03787174">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; markAsRead &gt; should not mark already read notification" time="0.00114668">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; getUnreadCount &gt; should return correct unread count" time="0.000655814">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; getUnreadCount &gt; should return correct unread count" time="0.01239772">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; subscription management &gt; should add and remove subscribers" time="0.001825049">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; subscription management &gt; should add and remove subscribers" time="0.000987496">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; subscription management &gt; should notify subscribers when notification is sent" time="0.004872291">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; subscription management &gt; should notify subscribers when notification is sent" time="0.00887767">
             <system-out>
 Notification suppressed due to quiet hours
 
@@ -60,19 +60,19 @@ Number of calls: 0
  ❯ src/services/__tests__/notification-service.test.ts:211:24
             </failure>
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should filter by type" time="0.00199293">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should filter by type" time="0.004020436">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should filter by read status" time="0.001535888">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should filter by read status" time="0.000773839">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should filter by priority" time="0.000391855">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should filter by priority" time="0.001303786">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should limit results" time="0.000294727">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should limit results" time="0.000692124">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should sort by timestamp descending" time="0.000255092">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should sort by timestamp descending" time="0.000496483">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; toast notifications &gt; should show toast notification" time="0.001689739">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; toast notifications &gt; should show toast notification" time="0.002095879">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; toast notifications &gt; should auto-remove toast after duration" time="0.011799136">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; toast notifications &gt; should auto-remove toast after duration" time="0.03911373">
             <failure message="expected [ { title: &apos;Success&apos;, …(4) }, …(1) ] to have a length of 1 but got 2" type="AssertionError">
 AssertionError: expected [ { title: &apos;Success&apos;, …(4) }, …(1) ] to have a length of 1 but got 2
 
@@ -85,152 +85,152 @@ AssertionError: expected [ { title: &apos;Success&apos;, …(4) }, …(1) ] to h
  ❯ src/services/__tests__/notification-service.test.ts:315:49
             </failure>
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; settings management &gt; should update notification settings" time="0.000514586">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; settings management &gt; should update notification settings" time="0.003252401">
         </testcase>
-        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; settings management &gt; should save settings to localStorage" time="0.000946581">
-        </testcase>
-    </testsuite>
-    <testsuite name="src/services/__tests__/pwa-service.test.ts" timestamp="2025-09-07T10:35:04.945Z" hostname="Santoshs-Air.mshome.net" tests="23" failures="23" errors="0" skipped="0" time="0.232113028">
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; initialization &gt; should register service worker on initialization" time="0.00506944">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; initialization &gt; should set up install prompt listener" time="0.001076859">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; initialization &gt; should set up online/offline listeners" time="0.000753036">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; service worker registration &gt; should register service worker successfully" time="0.001586489">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; service worker registration &gt; should handle service worker registration failure" time="0.000960792">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; service worker registration &gt; should return null if service worker is not supported" time="0.00789149">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should capture install prompt event" time="0.000849364">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should show install prompt if available" time="0.00091021">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should return null if no install prompt available" time="0.001545124">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should check if app is installable" time="0.000820561">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; push notification management &gt; should subscribe to push notifications" time="0.000748318">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; push notification management &gt; should get existing push subscription" time="0.000622406">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; push notification management &gt; should show notification via service worker" time="0.014801743">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should add action to offline queue" time="0.000878581">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should process offline queue when online" time="0.000700605">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should retry failed actions with exponential backoff" time="0.003225812">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should remove action after max retries" time="0.00090598">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; connection status management &gt; should detect online status" time="0.000728882">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; connection status management &gt; should detect offline status" time="0.107783582">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; connection status management &gt; should handle online event" time="0.036005823">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; app state management &gt; should check if running in standalone mode" time="0.001072464">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; app state management &gt; should check if running in browser" time="0.000710118">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
-        </testcase>
-        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; cleanup &gt; should clean up resources on destroy" time="0.000597857">
-            <failure message="PWAService is not a constructor" type="TypeError">
-TypeError: PWAService is not a constructor
- ❯ src/services/__tests__/pwa-service.test.ts:61:18
-            </failure>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; settings management &gt; should save settings to localStorage" time="0.001628578">
         </testcase>
     </testsuite>
-    <testsuite name="src/test/integration/notification-workflow.test.tsx" timestamp="2025-09-07T10:35:04.975Z" hostname="Santoshs-Air.mshome.net" tests="1" failures="1" errors="0" skipped="0" time="0">
+    <testsuite name="src/services/__tests__/pwa-service.test.ts" timestamp="2025-09-07T15:18:34.811Z" hostname="Santoshs-MacBook-Air.local" tests="23" failures="23" errors="0" skipped="0" time="0.059877655">
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; initialization &gt; should register service worker on initialization" time="0.006413221">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; initialization &gt; should set up install prompt listener" time="0.00102029">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; initialization &gt; should set up online/offline listeners" time="0.000779952">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; service worker registration &gt; should register service worker successfully" time="0.006876016">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; service worker registration &gt; should handle service worker registration failure" time="0.000906125">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; service worker registration &gt; should return null if service worker is not supported" time="0.00145756">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should capture install prompt event" time="0.000789935">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should show install prompt if available" time="0.000772705">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should return null if no install prompt available" time="0.000912144">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should check if app is installable" time="0.001742314">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; push notification management &gt; should subscribe to push notifications" time="0.000972672">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; push notification management &gt; should get existing push subscription" time="0.000713674">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; push notification management &gt; should show notification via service worker" time="0.000670915">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should add action to offline queue" time="0.000705912">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should process offline queue when online" time="0.0009402">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should retry failed actions with exponential backoff" time="0.000783672">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should remove action after max retries" time="0.000844856">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; connection status management &gt; should detect online status" time="0.003023549">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; connection status management &gt; should detect offline status" time="0.007255199">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; connection status management &gt; should handle online event" time="0.000754794">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; app state management &gt; should check if running in standalone mode" time="0.001413412">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; app state management &gt; should check if running in browser" time="0.001612777">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; cleanup &gt; should clean up resources on destroy" time="0.001397911">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/integration/notification-workflow.test.tsx" timestamp="2025-09-07T15:18:34.842Z" hostname="Santoshs-MacBook-Air.local" tests="1" failures="1" errors="0" skipped="0" time="0">
         <testcase classname="src/test/integration/notification-workflow.test.tsx" name="src/test/integration/notification-workflow.test.tsx" time="0">
             <failure message="Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?" type="Error">
 Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?
@@ -252,7 +252,7 @@ Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; fro
             </failure>
         </testcase>
     </testsuite>
-    <testsuite name="src/test/integration/work-assignment-workflow.test.tsx" timestamp="2025-09-07T10:35:04.977Z" hostname="Santoshs-Air.mshome.net" tests="1" failures="1" errors="0" skipped="0" time="0">
+    <testsuite name="src/test/integration/work-assignment-workflow.test.tsx" timestamp="2025-09-07T15:18:34.843Z" hostname="Santoshs-MacBook-Air.local" tests="1" failures="1" errors="0" skipped="0" time="0">
         <testcase classname="src/test/integration/work-assignment-workflow.test.tsx" name="src/test/integration/work-assignment-workflow.test.tsx" time="0">
             <failure message="Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?" type="Error">
 Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?
@@ -274,7 +274,7 @@ Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; fro
             </failure>
         </testcase>
     </testsuite>
-    <testsuite name="src/components/layout/__tests__/responsive-layout.test.tsx" timestamp="2025-09-07T10:35:04.979Z" hostname="Santoshs-Air.mshome.net" tests="1" failures="1" errors="0" skipped="0" time="0">
+    <testsuite name="src/components/layout/__tests__/responsive-layout.test.tsx" timestamp="2025-09-07T15:18:34.845Z" hostname="Santoshs-MacBook-Air.local" tests="1" failures="1" errors="0" skipped="0" time="0">
         <testcase classname="src/components/layout/__tests__/responsive-layout.test.tsx" name="src/components/layout/__tests__/responsive-layout.test.tsx" time="0">
             <failure message="Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?" type="Error">
 Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?
@@ -296,7 +296,7 @@ Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; fro
             </failure>
         </testcase>
     </testsuite>
-    <testsuite name="src/components/ui/__tests__/touch-friendly-components.test.tsx" timestamp="2025-09-07T10:35:04.981Z" hostname="Santoshs-Air.mshome.net" tests="1" failures="1" errors="0" skipped="0" time="0">
+    <testsuite name="src/components/ui/__tests__/touch-friendly-components.test.tsx" timestamp="2025-09-07T15:18:34.848Z" hostname="Santoshs-MacBook-Air.local" tests="1" failures="1" errors="0" skipped="0" time="0">
         <testcase classname="src/components/ui/__tests__/touch-friendly-components.test.tsx" name="src/components/ui/__tests__/touch-friendly-components.test.tsx" time="0">
             <failure message="Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?" type="Error">
 Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?

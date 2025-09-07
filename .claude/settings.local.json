@@ -39,7 +39,8 @@
       "Bash(cd:*)",
       "Bash(npx tsc:*)",
       "Bash(sed:*)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []
