@@ -19,6 +19,8 @@ import {
   runTransaction,
   enableNetwork,
   disableNetwork,
+} from 'firebase/firestore';
+import type {
   DocumentData,
   QueryDocumentSnapshot,
   Unsubscribe,
