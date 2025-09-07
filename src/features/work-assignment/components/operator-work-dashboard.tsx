@@ -28,9 +28,11 @@ import {
   usePauseWorkSession,
   useCompleteAssignment
 } from '../hooks/use-work-assignments';
-import {
+import type {
   WorkAssignmentSummary,
-  WorkSession,
+  WorkSession
+} from '../types';
+import {
   ASSIGNMENT_STATUS
 } from '../types';
 

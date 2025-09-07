@@ -53,7 +53,7 @@ import {
   ServiceMetrics,
   AnalyticsEvent,
 } from '../../types/service-types';
-import { BaseEntity, AuditLog } from '../../types/entities';
+import type { BaseEntity, AuditLog } from '../../types/entities';
 
 // Enhanced Base Firebase Service with comprehensive features
 export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {

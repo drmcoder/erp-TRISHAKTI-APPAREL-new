@@ -1,8 +1,8 @@
 // src/services/entities/supervisor-service.ts
 import { EnhancedBaseFirebaseService } from '../../infrastructure/firebase/base-service';
 import { COLLECTIONS } from '../../config/firebase';
-import { Supervisor } from '../../types/entities';
-import { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
+import type { Supervisor } from '../../types/entities';
+import type { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
 
 export class SupervisorService extends EnhancedBaseFirebaseService<Supervisor> {
   constructor(config?: Partial<ServiceConfig>) {

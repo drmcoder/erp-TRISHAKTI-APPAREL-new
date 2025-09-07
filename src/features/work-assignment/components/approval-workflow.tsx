@@ -26,7 +26,8 @@ import {
   useRejectAssignmentRequest,
   useBulkProcessRequests
 } from '../hooks/use-work-assignments';
-import { AssignmentRequest, WORK_PRIORITIES } from '../types';
+import type { AssignmentRequest } from '../types';
+import { WORK_PRIORITIES } from '../types';
 
 interface ApprovalWorkflowProps {
   supervisorId: string;

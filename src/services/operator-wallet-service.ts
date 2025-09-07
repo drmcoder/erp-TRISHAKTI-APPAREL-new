@@ -1,5 +1,6 @@
 // Operator Wallet Service with bundle payment hold logic
-import { BaseService, ServiceResponse, WhereClause } from './base-service';
+import { BaseService } from './base-service';
+import type { ServiceResponse, WhereClause } from './base-service';
 import { 
   doc, 
   writeBatch, 

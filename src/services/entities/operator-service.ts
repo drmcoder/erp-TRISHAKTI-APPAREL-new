@@ -1,8 +1,8 @@
 // src/services/entities/operator-service.ts
 import { EnhancedBaseFirebaseService } from '../../infrastructure/firebase/base-service';
 import { COLLECTIONS } from '../../config/firebase';
-import { Operator } from '../../types/entities';
-import { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
+import type { Operator } from '../../types/entities';
+import type { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
 
 export class OperatorService extends EnhancedBaseFirebaseService<Operator> {
   constructor(config?: Partial<ServiceConfig>) {

@@ -1,6 +1,6 @@
 // src/types/service-types.ts
-import { WhereFilterOp, OrderByDirection } from 'firebase/firestore';
-import { BaseEntity } from './entities';
+import type { WhereFilterOp, OrderByDirection } from 'firebase/firestore';
+import type { BaseEntity } from './entities';
 
 // Standard service response format
 export interface ServiceResponse<T = any> {

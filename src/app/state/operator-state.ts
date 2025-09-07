@@ -1,7 +1,7 @@
 // Global State Management for Operator Module
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { OperatorSummary, Operator, OperatorStatus } from '@/features/operators/types';
+import type { OperatorSummary, Operator, OperatorStatus } from '@/features/operators/types';
 
 // Operator State Interface
 interface OperatorState {

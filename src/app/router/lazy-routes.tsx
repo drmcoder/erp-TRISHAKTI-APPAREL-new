@@ -1,8 +1,9 @@
 // Lazy Routes Configuration
 // Code splitting and lazy loading for route-based components
 
-import { lazy, LazyExoticComponent, ComponentType } from 'react';
-import { RouteObject } from 'react-router-dom';
+import { lazy } from 'react';
+import type { LazyExoticComponent, ComponentType } from 'react';
+import type { RouteObject } from 'react-router-dom';
 import { withLazyLoading, LazyWrapper } from '@/components/common/lazy-components';
 
 // Lazy load main feature components

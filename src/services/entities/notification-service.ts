@@ -1,8 +1,8 @@
 // src/services/entities/notification-service.ts
 import { EnhancedBaseFirebaseService } from '../../infrastructure/firebase/base-service';
 import { COLLECTIONS } from '../../config/firebase';
-import { Notification } from '../../types/entities';
-import { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
+import type { Notification } from '../../types/entities';
+import type { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
 
 export class NotificationService extends EnhancedBaseFirebaseService<Notification> {
   constructor(config?: Partial<ServiceConfig>) {

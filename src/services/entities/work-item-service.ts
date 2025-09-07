@@ -1,8 +1,8 @@
 // src/services/entities/work-item-service.ts
 import { EnhancedBaseFirebaseService } from '../../infrastructure/firebase/base-service';
 import { COLLECTIONS } from '../../config/firebase';
-import { WorkItem } from '../../types/entities';
-import { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
+import type { WorkItem } from '../../types/entities';
+import type { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
 
 export class WorkItemService extends EnhancedBaseFirebaseService<WorkItem> {
   constructor(config?: Partial<ServiceConfig>) {

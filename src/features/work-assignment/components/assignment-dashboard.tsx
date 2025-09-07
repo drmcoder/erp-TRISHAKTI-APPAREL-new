@@ -2,7 +2,8 @@
 // Comprehensive dashboard for managing work assignments with drag-and-drop interface
 
 import React, { useState, useMemo } from 'react';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core';
+import { DndContext, DragOverlay } from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, arrayMove } from '@dnd-kit/sortable';
 import {
   PlusIcon,

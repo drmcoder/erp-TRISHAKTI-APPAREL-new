@@ -1,8 +1,8 @@
 // src/services/entities/bundle-service.ts
 import { EnhancedBaseFirebaseService } from '../../infrastructure/firebase/base-service';
 import { COLLECTIONS } from '../../config/firebase';
-import { Bundle } from '../../types/entities';
-import { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
+import type { Bundle } from '../../types/entities';
+import type { ServiceResponse, QueryOptions, ServiceConfig } from '../../types/service-types';
 
 export class BundleService extends EnhancedBaseFirebaseService<Bundle> {
   constructor(config?: Partial<ServiceConfig>) {
