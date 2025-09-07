@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="44" failures="29" errors="0" time="0.411958632">
+    <testsuite name="src/services/__tests__/notification-service.test.ts" timestamp="2025-09-07T10:35:04.918Z" hostname="Santoshs-Air.mshome.net" tests="17" failures="2" errors="0" skipped="0" time="0.179845604">
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; sendNotification &gt; should create and store a notification" time="0.104494927">
+            <system-err>
+Error: Not implemented: HTMLMediaElement.prototype.play
+    at module.exports (/Users/santoshrijal/TSA erp /node_modules/jsdom/lib/jsdom/browser/not-implemented.js:9:17)
+    at HTMLAudioElementImpl.play (/Users/santoshrijal/TSA erp /node_modules/jsdom/lib/jsdom/living/nodes/HTMLMediaElement-impl.js:118:5)
+    at HTMLAudioElement.play (/Users/santoshrijal/TSA erp /node_modules/jsdom/lib/jsdom/living/generated/HTMLMediaElement.js:146:60)
+    at NotificationService.playNotificationSound (/Users/santoshrijal/TSA erp /src/services/notification-service.ts:386:13)
+    at NotificationService.sendNotification (/Users/santoshrijal/TSA erp /src/services/notification-service.ts:132:12)
+    at /Users/santoshrijal/TSA erp /src/services/__tests__/notification-service.test.ts:41:33
+    at file:///Users/santoshrijal/TSA%20erp%20/node_modules/@vitest/runner/dist/chunk-hooks.js:155:11
+    at file:///Users/santoshrijal/TSA%20erp%20/node_modules/@vitest/runner/dist/chunk-hooks.js:752:26
+    at file:///Users/santoshrijal/TSA%20erp%20/node_modules/@vitest/runner/dist/chunk-hooks.js:1897:20
+    at new Promise (&lt;anonymous&gt;) [90mundefined[39m
+Failed to play notification sound: TypeError: Cannot read properties of undefined (reading &apos;catch&apos;)
+    at NotificationService.playNotificationSound [90m(/Users/santoshrijal/TSA erp /[39msrc/services/notification-service.ts:386:18[90m)[39m
+    at NotificationService.sendNotification [90m(/Users/santoshrijal/TSA erp /[39msrc/services/notification-service.ts:132:12[90m)[39m
+    at [90m/Users/santoshrijal/TSA erp /[39msrc/services/__tests__/notification-service.test.ts:41:33
+    at [90mfile:///Users/santoshrijal/TSA%20erp%20/[39mnode_modules/[4m@vitest[24m/runner/dist/chunk-hooks.js:155:11
+    at [90mfile:///Users/santoshrijal/TSA%20erp%20/[39mnode_modules/[4m@vitest[24m/runner/dist/chunk-hooks.js:752:26
+    at [90mfile:///Users/santoshrijal/TSA%20erp%20/[39mnode_modules/[4m@vitest[24m/runner/dist/chunk-hooks.js:1897:20
+    at new Promise (&lt;anonymous&gt;)
+    at runWithTimeout [90m(file:///Users/santoshrijal/TSA%20erp%20/[39mnode_modules/[4m@vitest[24m/runner/dist/chunk-hooks.js:1863:10[90m)[39m
+    at runTest [90m(file:///Users/santoshrijal/TSA%20erp%20/[39mnode_modules/[4m@vitest[24m/runner/dist/chunk-hooks.js:1574:12[90m)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; sendNotification &gt; should not send notification if category is disabled" time="0.000999704">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; sendNotification &gt; should suppress notification during quiet hours" time="0.00108026">
+            <system-out>
+Notification suppressed due to quiet hours
+
+            </system-out>
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; markAsRead &gt; should mark notification as read" time="0.004540055">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; markAsRead &gt; should not mark already read notification" time="0.03787174">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; getUnreadCount &gt; should return correct unread count" time="0.000655814">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; subscription management &gt; should add and remove subscribers" time="0.001825049">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; subscription management &gt; should notify subscribers when notification is sent" time="0.004872291">
+            <system-out>
+Notification suppressed due to quiet hours
+
+            </system-out>
+            <failure message="expected &quot;spy&quot; to be called with arguments: [ ObjectContaining{…} ][90m
+
+Number of calls: [1m0[22m
+[39m" type="AssertionError">
+AssertionError: expected &quot;spy&quot; to be called with arguments: [ ObjectContaining{…} ]
+
+Number of calls: 0
+
+ ❯ src/services/__tests__/notification-service.test.ts:211:24
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should filter by type" time="0.00199293">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should filter by read status" time="0.001535888">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should filter by priority" time="0.000391855">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should limit results" time="0.000294727">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; filtering &gt; should sort by timestamp descending" time="0.000255092">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; toast notifications &gt; should show toast notification" time="0.001689739">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; toast notifications &gt; should auto-remove toast after duration" time="0.011799136">
+            <failure message="expected [ { title: &apos;Success&apos;, …(4) }, …(1) ] to have a length of 1 but got 2" type="AssertionError">
+AssertionError: expected [ { title: &apos;Success&apos;, …(4) }, …(1) ] to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ src/services/__tests__/notification-service.test.ts:315:49
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; settings management &gt; should update notification settings" time="0.000514586">
+        </testcase>
+        <testcase classname="src/services/__tests__/notification-service.test.ts" name="NotificationService &gt; settings management &gt; should save settings to localStorage" time="0.000946581">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/services/__tests__/pwa-service.test.ts" timestamp="2025-09-07T10:35:04.945Z" hostname="Santoshs-Air.mshome.net" tests="23" failures="23" errors="0" skipped="0" time="0.232113028">
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; initialization &gt; should register service worker on initialization" time="0.00506944">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; initialization &gt; should set up install prompt listener" time="0.001076859">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; initialization &gt; should set up online/offline listeners" time="0.000753036">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; service worker registration &gt; should register service worker successfully" time="0.001586489">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; service worker registration &gt; should handle service worker registration failure" time="0.000960792">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; service worker registration &gt; should return null if service worker is not supported" time="0.00789149">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should capture install prompt event" time="0.000849364">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should show install prompt if available" time="0.00091021">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should return null if no install prompt available" time="0.001545124">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; install prompt management &gt; should check if app is installable" time="0.000820561">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; push notification management &gt; should subscribe to push notifications" time="0.000748318">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; push notification management &gt; should get existing push subscription" time="0.000622406">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; push notification management &gt; should show notification via service worker" time="0.014801743">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should add action to offline queue" time="0.000878581">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should process offline queue when online" time="0.000700605">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should retry failed actions with exponential backoff" time="0.003225812">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; offline queue management &gt; should remove action after max retries" time="0.00090598">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; connection status management &gt; should detect online status" time="0.000728882">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; connection status management &gt; should detect offline status" time="0.107783582">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; connection status management &gt; should handle online event" time="0.036005823">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; app state management &gt; should check if running in standalone mode" time="0.001072464">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; app state management &gt; should check if running in browser" time="0.000710118">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+        <testcase classname="src/services/__tests__/pwa-service.test.ts" name="PWAService &gt; cleanup &gt; should clean up resources on destroy" time="0.000597857">
+            <failure message="PWAService is not a constructor" type="TypeError">
+TypeError: PWAService is not a constructor
+ ❯ src/services/__tests__/pwa-service.test.ts:61:18
+            </failure>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/integration/notification-workflow.test.tsx" timestamp="2025-09-07T10:35:04.975Z" hostname="Santoshs-Air.mshome.net" tests="1" failures="1" errors="0" skipped="0" time="0">
+        <testcase classname="src/test/integration/notification-workflow.test.tsx" name="src/test/integration/notification-workflow.test.tsx" time="0">
+            <failure message="Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?" type="Error">
+Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/santoshrijal/TSA erp /src/config/i18n-config.ts:6:29
+  1  |  import i18n from &quot;i18next&quot;;
+  2  |  import { initReactI18next } from &quot;react-i18next&quot;;
+  3  |  import LanguageDetector from &quot;i18next-browser-languagedetector&quot;;
+     |                                ^
+  4  |  import Backend from &quot;i18next-http-backend&quot;;
+  5  |  import enCommon from &quot;../locales/en/common.json&quot;;
+ ❯ TransformPluginContext._formatLog ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31522:43
+ ❯ TransformPluginContext.error ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31519:14
+ ❯ normalizeUrl ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:29991:18
+ ❯ ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:30049:32
+ ❯ TransformPluginContext.transform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:30017:4
+ ❯ EnvironmentPluginContainer.transform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31320:14
+ ❯ loadAndTransform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:26407:26
+            </failure>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/test/integration/work-assignment-workflow.test.tsx" timestamp="2025-09-07T10:35:04.977Z" hostname="Santoshs-Air.mshome.net" tests="1" failures="1" errors="0" skipped="0" time="0">
+        <testcase classname="src/test/integration/work-assignment-workflow.test.tsx" name="src/test/integration/work-assignment-workflow.test.tsx" time="0">
+            <failure message="Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?" type="Error">
+Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/santoshrijal/TSA erp /src/config/i18n-config.ts:6:29
+  1  |  import i18n from &quot;i18next&quot;;
+  2  |  import { initReactI18next } from &quot;react-i18next&quot;;
+  3  |  import LanguageDetector from &quot;i18next-browser-languagedetector&quot;;
+     |                                ^
+  4  |  import Backend from &quot;i18next-http-backend&quot;;
+  5  |  import enCommon from &quot;../locales/en/common.json&quot;;
+ ❯ TransformPluginContext._formatLog ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31522:43
+ ❯ TransformPluginContext.error ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31519:14
+ ❯ normalizeUrl ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:29991:18
+ ❯ ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:30049:32
+ ❯ TransformPluginContext.transform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:30017:4
+ ❯ EnvironmentPluginContainer.transform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31320:14
+ ❯ loadAndTransform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:26407:26
+            </failure>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/layout/__tests__/responsive-layout.test.tsx" timestamp="2025-09-07T10:35:04.979Z" hostname="Santoshs-Air.mshome.net" tests="1" failures="1" errors="0" skipped="0" time="0">
+        <testcase classname="src/components/layout/__tests__/responsive-layout.test.tsx" name="src/components/layout/__tests__/responsive-layout.test.tsx" time="0">
+            <failure message="Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?" type="Error">
+Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/santoshrijal/TSA erp /src/config/i18n-config.ts:6:29
+  1  |  import i18n from &quot;i18next&quot;;
+  2  |  import { initReactI18next } from &quot;react-i18next&quot;;
+  3  |  import LanguageDetector from &quot;i18next-browser-languagedetector&quot;;
+     |                                ^
+  4  |  import Backend from &quot;i18next-http-backend&quot;;
+  5  |  import enCommon from &quot;../locales/en/common.json&quot;;
+ ❯ TransformPluginContext._formatLog ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31522:43
+ ❯ TransformPluginContext.error ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31519:14
+ ❯ normalizeUrl ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:29991:18
+ ❯ ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:30049:32
+ ❯ TransformPluginContext.transform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:30017:4
+ ❯ EnvironmentPluginContainer.transform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31320:14
+ ❯ loadAndTransform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:26407:26
+            </failure>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/components/ui/__tests__/touch-friendly-components.test.tsx" timestamp="2025-09-07T10:35:04.981Z" hostname="Santoshs-Air.mshome.net" tests="1" failures="1" errors="0" skipped="0" time="0">
+        <testcase classname="src/components/ui/__tests__/touch-friendly-components.test.tsx" name="src/components/ui/__tests__/touch-friendly-components.test.tsx" time="0">
+            <failure message="Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?" type="Error">
+Error: Failed to resolve import &quot;i18next-browser-languagedetector&quot; from &quot;src/config/i18n-config.ts&quot;. Does the file exist?
+  Plugin: vite:import-analysis
+  File: /Users/santoshrijal/TSA erp /src/config/i18n-config.ts:6:29
+  1  |  import i18n from &quot;i18next&quot;;
+  2  |  import { initReactI18next } from &quot;react-i18next&quot;;
+  3  |  import LanguageDetector from &quot;i18next-browser-languagedetector&quot;;
+     |                                ^
+  4  |  import Backend from &quot;i18next-http-backend&quot;;
+  5  |  import enCommon from &quot;../locales/en/common.json&quot;;
+ ❯ TransformPluginContext._formatLog ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31522:43
+ ❯ TransformPluginContext.error ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31519:14
+ ❯ normalizeUrl ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:29991:18
+ ❯ ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:30049:32
+ ❯ TransformPluginContext.transform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:30017:4
+ ❯ EnvironmentPluginContainer.transform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:31320:14
+ ❯ loadAndTransform ../TSA%20erp%20/node_modules/vite/dist/node/chunks/dep-C6pp_iVS.js:26407:26
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>

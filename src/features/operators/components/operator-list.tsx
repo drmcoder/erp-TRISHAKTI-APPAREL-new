@@ -6,9 +6,9 @@ import {
   PlusIcon,
   UserGroupIcon
 } from '@heroicons/react/24/outline';
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/input';
-import { Badge } from '@/shared/components/ui/badge';
+import { Badge } from '@/shared/components/ui/Badge';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { EmptyState } from '@/shared/components/empty-state';
 import { OperatorCard } from './operator-card';

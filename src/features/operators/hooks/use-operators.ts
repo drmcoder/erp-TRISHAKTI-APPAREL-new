@@ -2,11 +2,11 @@
 import { 
   useQuery, 
   useMutation, 
-  useQueryClient,
-  UseQueryOptions 
+  useQueryClient
 } from '@tanstack/react-query';
+import type { UseQueryOptions } from '@tanstack/react-query';
 import { operatorService } from '../services';
-import { 
+import type { 
   Operator, 
   OperatorSummary, 
   CreateOperatorData, 

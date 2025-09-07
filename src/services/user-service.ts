@@ -1,5 +1,6 @@
-import { BaseService, ServiceResponse } from './base-service';
-import { User } from '@/app/store/auth-store';
+import { BaseService } from './base-service';
+import type { ServiceResponse } from './base-service';
+import type { User } from '@/app/store/auth-store';
 import { Timestamp } from 'firebase/firestore';
 
 export interface UserProfile extends User {

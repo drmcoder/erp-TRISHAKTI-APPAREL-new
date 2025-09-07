@@ -77,8 +77,12 @@ export interface Operator {
 export interface OperatorSummary {
   id: string;
   name: string;
+  username: string;
   employeeId: string;
   primaryMachine: string;
+  machineTypes: string[];
+  skillLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  shift: 'morning' | 'afternoon' | 'night' | 'flexible';
   currentStatus: string;
   efficiency: number;
   qualityScore: number;

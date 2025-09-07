@@ -5,8 +5,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { 
   Menu, 
-  X, 
-  ChevronLeft, 
   Home,
   Users,
   Briefcase,
@@ -16,10 +14,10 @@ import {
   Search,
   User
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/shared/components/ui/Button';
+import { Input } from '@/shared/components/ui/Input';
+import { Badge } from '@/shared/components/ui/Badge';
+import { Sheet, SheetContent, SheetTrigger } from '@/shared/components/ui/sheet';
 import { useSwipeable } from 'react-swipeable';
 import { UI_CONFIG, isMobile, isTablet, getResponsiveValue } from '@/config/ui-config';
 

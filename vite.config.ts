@@ -6,6 +6,15 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
 
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    'process.env.REACT_APP_USE_EMULATORS': JSON.stringify(process.env.REACT_APP_USE_EMULATORS || 'false'),
+    'process.env.VITE_ERROR_REPORTING_ENDPOINT': JSON.stringify(process.env.VITE_ERROR_REPORTING_ENDPOINT || '/api/errors'),
+    'process.env.VITE_PERFORMANCE_ENDPOINT': JSON.stringify(process.env.VITE_PERFORMANCE_ENDPOINT || '/api/performance'),
+    'process.env.VITE_APP_VERSION': JSON.stringify(process.env.VITE_APP_VERSION || '1.0.0'),
+    'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || 'https://api.tsa-erp.com/v1'),
+  },
+
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),

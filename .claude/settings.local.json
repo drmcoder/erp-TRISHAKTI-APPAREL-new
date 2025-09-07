@@ -36,7 +36,10 @@
       "Bash(firebase:*)",
       "Bash(find:*)",
       "Bash(curl:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(npx tsc:*)",
+      "Bash(sed:*)",
+      "WebFetch(domain:localhost)"
     ],
     "deny": [],
     "ask": []

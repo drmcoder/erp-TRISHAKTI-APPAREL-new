@@ -275,36 +275,4 @@ export interface AnalyticsEvent {
   metadata?: Record<string, any>;
 }
 
-// Export all types for easier imports
-export type {
-  ServiceResponse,
-  ServiceMetadata,
-  QueryOptions,
-  WhereClause,
-  QueryBuilder,
-  BatchOperation,
-  BatchResult,
-  TransactionOperation,
-  TransactionResult,
-  SubscriptionOptions,
-  SubscriptionCallback,
-  SubscriptionMetadata,
-  CacheConfig,
-  RetryConfig,
-  ValidationConfig,
-  PerformanceConfig,
-  ServiceConfig,
-  AuditOptions,
-  CompressionOptions,
-  OfflineSyncConfig,
-  OfflineOperation,
-  ConnectionPoolConfig,
-  SearchOptions,
-  IndexConfig,
-  ListenerOptions,
-  ListenerCallback,
-  DocumentChange,
-  MigrationConfig,
-  ServiceMetrics,
-  AnalyticsEvent
-};
+// Note: All types are individually exported where they are defined above

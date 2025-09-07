@@ -123,7 +123,7 @@ export const useOperatorStore = create<OperatorState>()(
             // Update operator in list if exists
             operators: state.operators.map(op => 
               op.id === operatorId 
-                ? { ...op, currentStatus: status.status, currentWork: status.currentWork }
+                ? { ...op, currentStatus: status.status, currentWork: status.currentWork || undefined }
                 : op
             ),
             // Update selected operator if it's the same one

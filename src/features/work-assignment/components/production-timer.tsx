@@ -20,7 +20,7 @@ import { Badge } from '@/shared/components/ui/Badge';
 import { Progress } from '@/shared/components/ui/progress';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
+import type { 
   WorkSession, 
   Break, 
   WorkItem, 

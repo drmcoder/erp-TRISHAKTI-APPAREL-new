@@ -7,7 +7,8 @@ import {
   onValue 
 } from 'firebase/database';
 import { rtdb, RT_PATHS } from '@/config/firebase';
-import { BaseService, ServiceResponse } from './base-service';
+import { BaseService } from './base-service';
+import type { ServiceResponse } from './base-service';
 
 interface WorkAssignmentData {
   workId: string;

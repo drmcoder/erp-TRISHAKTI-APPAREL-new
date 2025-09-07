@@ -20,7 +20,7 @@ vi.mock('@/components/ui/sheet', () => ({
   SheetTrigger: ({ children }: { children: React.ReactNode }) => <div data-testid="sheet-trigger">{children}</div>,
 }));
 
-vi.mock('@/components/ui/button', () => ({
+vi.mock('@/shared/components/ui/Button', () => ({
   Button: ({ children, onClick, ...props }: any) => (
     <button onClick={onClick} {...props}>
       {children}

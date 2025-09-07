@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/shared/components/ui/Button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
-import { Badge } from '@/shared/components/ui/badge';
+import { Badge } from '@/shared/components/ui/Badge';
 import { 
   Globe, 
   Check,
@@ -50,10 +50,11 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   showNativeName = true,
   placement = 'header'
 }) => {
-  const { currentLanguage, changeLanguage, isChanging } = useI18n();
+  const { currentLocale, changeLanguage } = useI18n();
+  const [isChanging, setIsChanging] = React.useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const currentLang = SUPPORTED_LANGUAGES.find(lang => lang.code === currentLanguage) 
+  const currentLang = SUPPORTED_LANGUAGES.find(lang => lang.code === currentLocale) 
     || SUPPORTED_LANGUAGES[0];
 
   const handleLanguageChange = async (languageCode: string) => {
@@ -73,7 +74,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       setIsOpen(false);
     } catch (error) {
       toast.error(
-        currentLanguage === 'en' 
+        currentLocale === 'en' 
           ? 'Failed to change language'
           : 'भाषा परिवर्तन गर्न असफल भयो'
       );
@@ -106,7 +107,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         >
           <div className="space-y-1">
             <div className="text-xs font-medium text-muted-foreground px-2 py-1">
-              {currentLanguage === 'en' ? 'Select Language' : 'भाषा छान्नुहोस्'}
+              {currentLocale === 'en' ? 'Select Language' : 'भाषा छान्नुहोस्'}
             </div>
             {SUPPORTED_LANGUAGES.map((language) => (
               <button
@@ -114,7 +115,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                 onClick={() => handleLanguageChange(language.code)}
                 disabled={isChanging}
                 className={`w-full flex items-center justify-between px-2 py-2 text-sm rounded-md transition-colors ${
-                  currentLanguage === language.code
+                  currentLocale === language.code
                     ? 'bg-primary/10 text-primary'
                     : 'hover:bg-muted'
                 } ${isChanging ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -126,7 +127,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
                     <div className="text-xs text-muted-foreground">{language.name}</div>
                   </div>
                 </div>
-                {currentLanguage === language.code && (
+                {currentLocale === language.code && (
                   <Check className="h-4 w-4 text-primary" />
                 )}
               </button>
@@ -141,8 +142,8 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   if (variant === 'dropdown') {
     return (
       <Select 
-        value={currentLanguage} 
-        onValueChange={handleLanguageChange}
+        value={currentLocale} 
+        onChange={(e) => handleLanguageChange(e.target.value)}
         disabled={isChanging}
       >
         <SelectTrigger className="w-auto min-w-[140px]">
@@ -174,7 +175,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
       <div className="flex items-center space-x-2">
         <Languages className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm font-medium">
-          {currentLanguage === 'en' ? 'Language' : 'भाषा'}
+          {currentLocale === 'en' ? 'Language' : 'भाषा'}
         </span>
       </div>
       
@@ -185,7 +186,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
             onClick={() => handleLanguageChange(language.code)}
             disabled={isChanging}
             className={`w-full flex items-center justify-between p-3 border rounded-lg transition-colors ${
-              currentLanguage === language.code
+              currentLocale === language.code
                 ? 'border-primary bg-primary/5'
                 : 'border-border hover:border-muted-foreground hover:bg-muted/50'
             } ${isChanging ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -199,12 +200,12 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
             </div>
             
             <div className="flex items-center space-x-2">
-              {currentLanguage === language.code && (
+              {currentLocale === language.code && (
                 <Badge variant="secondary" className="text-xs">
-                  {currentLanguage === 'en' ? 'Current' : 'हालको'}
+                  {currentLocale === 'en' ? 'Current' : 'हालको'}
                 </Badge>
               )}
-              {currentLanguage === language.code && (
+              {currentLocale === language.code && (
                 <Check className="h-4 w-4 text-primary" />
               )}
             </div>
@@ -219,7 +220,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
           onClick={() => {
             // Could open language preferences modal
             toast.info(
-              currentLanguage === 'en' 
+              currentLocale === 'en' 
                 ? 'Language preferences coming soon'
                 : 'भाषा प्राथमिकताहरू चाँडै आउँदैछ'
             );
@@ -227,7 +228,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
         >
           <Settings className="h-4 w-4" />
           <span>
-            {currentLanguage === 'en' ? 'Language Preferences' : 'भाषा प्राथमिकताहरू'}
+            {currentLocale === 'en' ? 'Language Preferences' : 'भाषा प्राथमिकताहरू'}
           </span>
         </button>
       </div>
@@ -237,12 +238,13 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
 // Simple flag-only variant for space-constrained areas
 export const LanguageSwitcherCompact: React.FC = () => {
-  const { currentLanguage, changeLanguage, isChanging } = useI18n();
-  const currentLang = SUPPORTED_LANGUAGES.find(lang => lang.code === currentLanguage) 
+  const { currentLocale, changeLanguage } = useI18n();
+  const [isChanging, setIsChanging] = React.useState(false);
+  const currentLang = SUPPORTED_LANGUAGES.find(lang => lang.code === currentLocale) 
     || SUPPORTED_LANGUAGES[0];
 
   const toggleLanguage = () => {
-    const nextLanguage = currentLanguage === 'en' ? 'ne' : 'en';
+    const nextLanguage = currentLocale === 'en' ? 'ne' : 'en';
     changeLanguage(nextLanguage);
   };
 
@@ -254,7 +256,7 @@ export const LanguageSwitcherCompact: React.FC = () => {
       onClick={toggleLanguage}
       disabled={isChanging}
       title={
-        currentLanguage === 'en' 
+        currentLocale === 'en' 
           ? `Switch to Nepali (${SUPPORTED_LANGUAGES[1].nativeName})`
           : `Switch to English (${SUPPORTED_LANGUAGES[0].name})`
       }
@@ -266,8 +268,8 @@ export const LanguageSwitcherCompact: React.FC = () => {
 
 // Hook for getting language-aware text direction
 export const useLanguageDirection = () => {
-  const { currentLanguage } = useI18n();
-  const currentLang = SUPPORTED_LANGUAGES.find(lang => lang.code === currentLanguage);
+  const { currentLocale } = useI18n();
+  const currentLang = SUPPORTED_LANGUAGES.find(lang => lang.code === currentLocale);
   
   return {
     direction: currentLang?.isRTL ? 'rtl' : 'ltr',
@@ -278,15 +280,15 @@ export const useLanguageDirection = () => {
 
 // Language-aware number and date formatting
 export const useLanguageFormatting = () => {
-  const { currentLanguage } = useI18n();
+  const { currentLocale } = useI18n();
   
   const formatNumber = (number: number, options?: Intl.NumberFormatOptions) => {
-    const locale = currentLanguage === 'ne' ? 'ne-NP' : 'en-US';
+    const locale = currentLocale === 'ne' ? 'ne-NP' : 'en-US';
     return new Intl.NumberFormat(locale, options).format(number);
   };
   
   const formatCurrency = (amount: number, currency: string = 'NPR') => {
-    const locale = currentLanguage === 'ne' ? 'ne-NP' : 'en-US';
+    const locale = currentLocale === 'ne' ? 'ne-NP' : 'en-US';
     return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: currency,
@@ -296,12 +298,12 @@ export const useLanguageFormatting = () => {
   };
   
   const formatDate = (date: Date, options?: Intl.DateTimeFormatOptions) => {
-    const locale = currentLanguage === 'ne' ? 'ne-NP' : 'en-US';
+    const locale = currentLocale === 'ne' ? 'ne-NP' : 'en-US';
     return new Intl.DateTimeFormat(locale, options).format(date);
   };
   
   const formatRelativeTime = (date: Date) => {
-    const locale = currentLanguage === 'ne' ? 'ne-NP' : 'en-US';
+    const locale = currentLocale === 'ne' ? 'ne-NP' : 'en-US';
     const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
     const diff = date.getTime() - Date.now();
     const days = Math.round(diff / (1000 * 60 * 60 * 24));
@@ -323,7 +325,7 @@ export const useLanguageFormatting = () => {
     formatCurrency,
     formatDate,
     formatRelativeTime,
-    locale: currentLanguage === 'ne' ? 'ne-NP' : 'en-US'
+    locale: currentLocale === 'ne' ? 'ne-NP' : 'en-US'
   };
 };
 

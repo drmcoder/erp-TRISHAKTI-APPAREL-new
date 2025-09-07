@@ -5,7 +5,7 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Card } from '@/shared/components/ui/card';
-import { Badge } from '@/shared/components/ui/badge';
+import { Badge } from '@/shared/components/ui/Badge';
 import { DraggableAssignmentCard } from './draggable-assignment-card';
 import type { WorkAssignmentSummary } from '../types';
 import { ASSIGNMENT_STATUS } from '../types';

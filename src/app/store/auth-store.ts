@@ -23,6 +23,8 @@ interface AuthState {
   updateUserProfile: (updates: Partial<User>) => void;
   checkSession: () => boolean;
   extendSession: () => void;
+  autoRefreshToken: () => Promise<void>;
+  initializeFromTokens: () => Promise<void>;
 }
 
 // Session duration constants
@@ -210,7 +212,6 @@ export const useAuthStore = create<AuthState>()(
               });
               
               console.log('Session restored from tokens');
-              return true;
             } else {
               // Try to refresh token
               const refreshResult = await TokenService.refreshAccessToken();
@@ -227,7 +228,7 @@ export const useAuthStore = create<AuthState>()(
                   });
                   
                   console.log('Session refreshed from refresh token');
-                  return true;
+                  return;
                 }
               }
               
@@ -240,8 +241,6 @@ export const useAuthStore = create<AuthState>()(
                 state.sessionExpiry = null;
                 state.isLoading = false;
               });
-              
-              return false;
             }
           } catch (error) {
             console.error('Error initializing from tokens:', error);
@@ -253,7 +252,6 @@ export const useAuthStore = create<AuthState>()(
               state.sessionExpiry = null;
               state.isLoading = false;
             });
-            return false;
           }
         },
 

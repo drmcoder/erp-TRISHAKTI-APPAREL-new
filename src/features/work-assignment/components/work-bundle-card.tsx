@@ -11,8 +11,8 @@ import {
   TagIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
+import { Badge } from '@/shared/components/ui/Badge';
+import { Button } from '@/shared/components/ui/Button';
 import { Card } from '@/shared/components/ui/card';
 import type { WorkBundle } from '../types';
 import { WORK_PRIORITIES, ASSIGNMENT_STATUS } from '../types';

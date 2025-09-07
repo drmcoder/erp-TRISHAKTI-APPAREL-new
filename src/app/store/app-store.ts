@@ -4,7 +4,7 @@ import { devtools, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 // Types
-interface SystemSettings {
+export interface SystemSettings {
   theme: 'light' | 'dark' | 'system';
   language: 'en' | 'np';
   dateFormat: 'AD' | 'BS';
@@ -12,7 +12,7 @@ interface SystemSettings {
   timezone: string;
 }
 
-interface NotificationSettings {
+export interface NotificationSettings {
   soundEnabled: boolean;
   pushEnabled: boolean;
   workAssignmentNotifications: boolean;
@@ -20,7 +20,7 @@ interface NotificationSettings {
   paymentNotifications: boolean;
 }
 
-interface UIState {
+export interface UIState {
   sidebarCollapsed: boolean;
   currentPage: string;
   breadcrumbs: Array<{ label: string; href?: string }>;

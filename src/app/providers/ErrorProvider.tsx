@@ -2,7 +2,6 @@ import React, { createContext, useContext, useCallback } from 'react';
 import { ErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { useUIStore } from '@/app/store/ui-store';
 import { AppError, logError, createAppError, ErrorCodes } from '@/shared/utils/error-utils';
-import type { ErrorCode } from '@/shared/utils/error-utils';
 
 interface ErrorContextValue {
   reportError: (error: Error | string, context?: any) => void;
@@ -91,10 +90,10 @@ export const ErrorProvider: React.FC<ErrorProviderProps> = ({
       <ErrorBoundary 
         onError={handleBoundaryError}
         fallback={fallback ? (
-          <fallback 
-            error={new Error('Component error')} 
-            retry={() => window.location.reload()} 
-          />
+          React.createElement(fallback, {
+            error: new Error('Component error'),
+            retry: () => window.location.reload()
+          })
         ) : undefined}
       >
         {children}

@@ -1,7 +1,8 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCcw, Home, Bug, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { Component } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
+import { AlertTriangle, RefreshCcw, Home, Bug } from 'lucide-react';
+import { Button } from '@/shared/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/Card';
 import { errorReportingService } from '@/services/error-reporting-service';
 
 interface Props {
@@ -176,7 +177,7 @@ Please describe what you were doing when this error occurred:
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col gap-3">
-                <Button onClick={this.handleRetry} variant="default" className="w-full">
+                <Button onClick={this.handleRetry} variant="primary" className="w-full">
                   <RefreshCcw className="w-4 h-4 mr-2" />
                   Try Again {this.retryCount > 0 && `(${this.maxRetries - this.retryCount} remaining)`}
                 </Button>

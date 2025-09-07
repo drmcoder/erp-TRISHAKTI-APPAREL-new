@@ -7,8 +7,8 @@ import {
   ClockIcon,
   CheckBadgeIcon
 } from '@heroicons/react/24/outline';
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
+import { Badge } from '@/shared/components/ui/Badge';
+import { Button } from '@/shared/components/ui/Button';
 import { Card } from '@/shared/components/ui/card';
 import type { OperatorSummary } from '../types';
 import { STATUS_CONFIG } from '../types';

@@ -457,43 +457,4 @@ export interface PerformanceMetric extends BaseEntity {
   metadata?: Record<string, any>;
 }
 
-// Export all types for easier imports
-export type {
-  BaseEntity,
-  User,
-  Operator,
-  Supervisor,
-  Management,
-  Bundle,
-  BundleSize,
-  WorkAssignment,
-  WorkItem,
-  WorkItemDefect,
-  WorkCompletion,
-  QualityIssue,
-  ProductionStats,
-  OperationStat,
-  Notification,
-  SystemSettings,
-  ValidationRule,
-  OperatorWallet,
-  WalletTransaction,
-  DamageReport,
-  ReworkDetails,
-  PaymentImpact,
-  DamageTimeline,
-  AuditLog,
-  AuditChange,
-  LineStatus,
-  SizeConfig,
-  MachineConfig,
-  MaintenanceSchedule,
-  ArticleTemplate,
-  TemplateOperation,
-  QualityCheckPoint,
-  RealtimeData,
-  OperatorStatus,
-  DataMigration,
-  MigrationError,
-  PerformanceMetric
-};
+// Note: All types are individually exported where they are defined above

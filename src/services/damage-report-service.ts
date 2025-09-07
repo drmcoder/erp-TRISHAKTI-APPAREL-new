@@ -1,5 +1,6 @@
 // Damage Report Service with automatic bundle payment holds
-import { BaseService, ServiceResponse, WhereClause } from './base-service';
+import { BaseService } from './base-service';
+import type { ServiceResponse, WhereClause } from './base-service';
 import { OperatorWalletService } from './operator-wallet-service';
 import { 
   doc, 

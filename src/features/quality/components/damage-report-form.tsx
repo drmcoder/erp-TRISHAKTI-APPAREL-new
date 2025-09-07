@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from '@/shared/components/ui/button';
+import { Button } from '@/shared/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';

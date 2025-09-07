@@ -16,8 +16,8 @@ import {
   CurrencyRupeeIcon
 } from '@heroicons/react/24/outline';
 import { Card } from '@/shared/components/ui/card';
-import { Badge } from '@/shared/components/ui/badge';
-import { Button } from '@/shared/components/ui/button';
+import { Badge } from '@/shared/components/ui/Badge';
+import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/input';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { EmptyState } from '@/shared/components/empty-state';
@@ -27,8 +27,10 @@ import {
   useCreateAssignmentRequest,
   useOperatorAssignments
 } from '../hooks/use-work-assignments';
+import type {
+  WorkItem
+} from '../types';
 import {
-  WorkItem,
   WORK_PRIORITIES,
   MACHINE_OPERATIONS
 } from '../types';

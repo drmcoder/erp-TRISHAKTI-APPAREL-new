@@ -1,4 +1,5 @@
-import { render, RenderOptions } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import type { RenderOptions } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
@@ -38,7 +39,7 @@ const AllTheProviders = ({ children }: { children: ReactNode }) => {
       queries: {
         retry: false,
         staleTime: 0,
-        cacheTime: 0,
+        gcTime: 0,
       },
       mutations: {
         retry: false,

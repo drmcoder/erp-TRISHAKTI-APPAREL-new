@@ -25,7 +25,7 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { Separator } from '@/shared/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { 
+import type { 
   Break, 
   BreakCompliance, 
   WorkSession,

@@ -1,15 +1,16 @@
 // Operator Service with CRUD operations and real-time status tracking
-import { BaseService, ServiceResponse, WhereClause } from './base-service';
-import { 
+import { BaseService } from './base-service';
+import type { ServiceResponse, WhereClause } from './base-service';
+import type { 
   Operator, 
   OperatorSummary, 
   CreateOperatorData, 
   UpdateOperatorData,
   OperatorStatus,
   OperatorActivity,
-  OperatorStatistics,
-  MACHINE_TYPES 
+  OperatorStatistics
 } from '@/types/operator-types';
+import { MACHINE_TYPES } from '@/types/operator-types';
 import { 
   doc, 
   writeBatch, 

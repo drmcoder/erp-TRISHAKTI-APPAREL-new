@@ -2,7 +2,8 @@
 // This is the main service layer that applications should use
 
 import { firebaseIntegration } from './firebase-integration';
-import { workflowEngine, WorkflowDefinition } from './workflow-engine';
+import { workflowEngine } from './workflow-engine';
+import type { WorkflowDefinition } from './workflow-engine';
 import businessLogic from '@/lib/businessLogic';
 import { operatorBusinessLogic } from '@/features/operators/business/operator-business-logic';
 import { supervisorBusinessLogic } from '@/features/supervisors/business/supervisor-business-logic';

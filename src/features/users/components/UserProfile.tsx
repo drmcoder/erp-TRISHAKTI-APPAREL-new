@@ -10,7 +10,8 @@ import {
   UserInfo, PermissionGate
 } from '@/shared/components/ui';
 import { usePermissions } from '@/app/hooks/usePermissions';
-import { UserService, UserProfile as UserProfileType } from '@/services/user-service';
+import { UserService } from '@/services/user-service';
+import type { UserProfile as UserProfileType } from '@/services/user-service';
 import { cn } from '@/shared/utils';
 
 interface UserProfileProps {

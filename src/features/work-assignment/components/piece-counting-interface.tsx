@@ -16,11 +16,11 @@ import {
   Award,
   Save
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/shared/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/Card';
+import { Badge } from '@/shared/components/ui/Badge';
 import { Progress } from '@/components/ui/progress';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/shared/components/ui/Input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { useMutation, useQueryClient } from '@tanstack/react-query';

@@ -61,21 +61,6 @@ const createQueryClient = () => {
         // Error handling
         throwOnError: false,
       }
-    },
-    
-    // Global error handler
-    // TODO: Integrate with error tracking service
-    onError: (error) => {
-      console.error('React Query Error:', error);
-    },
-    
-    // Global mutation error handler
-    onMutationError: (error, variables, context, mutation) => {
-      console.error('React Query Mutation Error:', {
-        error,
-        variables,
-        mutation: mutation.options.mutationKey
-      });
     }
   });
 };
@@ -104,8 +89,6 @@ export const QueryProvider: React.FC<QueryProviderProps> = ({ children }) => {
       {import.meta.env.DEV && (
         <ReactQueryDevtools 
           initialIsOpen={false} 
-          position="bottom-right"
-          buttonPosition="bottom-right"
         />
       )}
     </QueryClientProvider>

@@ -4,7 +4,7 @@ import { devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 // Types
-interface Notification {
+export interface Notification {
   id: string;
   type: 'info' | 'success' | 'warning' | 'error' | 'work_assignment' | 'quality_alert' | 'payment';
   title: string;

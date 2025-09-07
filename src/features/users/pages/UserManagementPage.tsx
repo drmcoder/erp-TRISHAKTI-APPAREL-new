@@ -8,7 +8,7 @@ import {
 import { 
   UserList, UserForm, UserProfile, UserActivityLog 
 } from '@/features/users/components';
-import { UserProfile as UserProfileType } from '@/services/user-service';
+import type { UserProfile as UserProfileType } from '@/services/user-service';
 
 type TabValue = 'list' | 'activity' | 'stats' | 'profile';
 

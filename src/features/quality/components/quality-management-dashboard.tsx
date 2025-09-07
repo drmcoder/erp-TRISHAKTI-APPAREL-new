@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Badge } from '@/shared/components/ui/badge';
+import { Button } from '@/shared/components/ui/Button';
+import { Badge } from '@/shared/components/ui/Badge';
 import { 
   ShieldCheckIcon,
   ExclamationTriangleIcon,

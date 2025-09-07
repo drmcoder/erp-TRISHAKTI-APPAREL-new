@@ -1,12 +1,13 @@
 // React Query integration for service layer
+import React from 'react';
 import { 
   useQuery, 
   useMutation, 
-  useQueryClient,
-  UseQueryOptions,
-  UseMutationOptions
+  useQueryClient
 } from '@tanstack/react-query';
-import { BaseService, ServiceResponse } from '@/services/base-service';
+import type { UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
+import { BaseService } from '@/services/base-service';
+import type { ServiceResponse } from '@/services/base-service';
 import { WorkAssignmentService } from '@/services/work-assignment-service';
 import { OperatorWalletService } from '@/services/operator-wallet-service';
 import { DamageReportService } from '@/services/damage-report-service';

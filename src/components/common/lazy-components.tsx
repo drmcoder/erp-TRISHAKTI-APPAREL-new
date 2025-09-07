@@ -1,11 +1,12 @@
 // Lazy Loading Components
 // Code splitting and lazy loading implementation with performance optimizations
 
-import React, { Suspense, lazy, ComponentType, LazyExoticComponent } from 'react';
+import React, { Suspense, lazy } from 'react';
+import type { ComponentType, LazyExoticComponent } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/shared/components/ui/Button';
+import { Card, CardContent } from '@/shared/components/ui/Card';
 import { cn } from '@/lib/utils';
 
 // Loading skeleton components
@@ -141,7 +142,7 @@ export const LazyWrapper: React.FC<{
 // HOC for lazy loading with retry logic
 export function withLazyLoading<T extends object>(
   importFunc: () => Promise<{ default: ComponentType<T> }>,
-  fallbackComponent?: ComponentType,
+  _fallbackComponent?: ComponentType,
   retries: number = 3
 ): LazyExoticComponent<ComponentType<T>> {
   return lazy(async () => {
@@ -226,7 +227,7 @@ export const LazyContainer: React.FC<{
   fallback?: React.ReactNode;
   className?: string;
   once?: boolean;
-}> = ({ children, fallback, className, once = true }) => {
+}> = ({ children, fallback, className }) => {
   const [shouldRender, setShouldRender] = React.useState(false);
   
   const { ref } = useIntersectionObserver(() => {
@@ -260,7 +261,12 @@ export const HeavyComponentLoader: React.FC<{
     if (preload && Component) {
       // Preload the component
       const preloadTimer = setTimeout(() => {
-        Component._payload?._result || Component._init?.(Component._payload);
+        // Force component preloading for LazyExoticComponent
+        try {
+          (Component as any)._init?.((Component as any)._payload);
+        } catch {
+          // Ignore preload errors
+        }
       }, 100);
       
       return () => clearTimeout(preloadTimer);

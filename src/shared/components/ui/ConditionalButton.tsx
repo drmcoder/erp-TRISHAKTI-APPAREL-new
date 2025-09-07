@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, ButtonProps } from '@/shared/components/ui/Button';
+import { Button } from '@/shared/components/ui/Button';
+import type { ButtonProps } from '@/shared/components/ui/Button';
 import { usePermissions } from '@/app/hooks/usePermissions';
 
 interface ConditionalButtonProps extends Omit<ButtonProps, 'disabled'> {

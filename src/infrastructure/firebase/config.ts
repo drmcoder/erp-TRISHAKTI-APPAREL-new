@@ -1,9 +1,14 @@
 // src/infrastructure/firebase/config.ts
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase/auth';
-import { getDatabase, Database } from 'firebase/database';
-import { getAnalytics, Analytics } from 'firebase/analytics';
+import { initializeApp } from 'firebase/app';
+import type { FirebaseApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import type { Firestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import type { Auth } from 'firebase/auth';
+import { getDatabase } from 'firebase/database';
+import type { Database } from 'firebase/database';
+import { getAnalytics } from 'firebase/analytics';
+import type { Analytics } from 'firebase/analytics';
 
 // Firebase configuration
 const firebaseConfig = {
