@@ -16,8 +16,8 @@ import { Input } from '@/shared/components/ui/input';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
-import type { CreateOperatorData, UpdateOperatorData } from '../types';
-import { MACHINE_TYPES, SKILL_LEVELS } from '../types';
+import type { CreateOperatorData, UpdateOperatorData } from '@/types/operator-types';
+import { MACHINE_TYPES, SKILL_LEVELS } from '@/types/operator-types';
 
 // Form validation schema
 const operatorSchema = z.object({

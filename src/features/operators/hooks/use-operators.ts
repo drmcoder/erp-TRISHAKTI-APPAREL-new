@@ -12,7 +12,7 @@ import type {
   CreateOperatorData, 
   UpdateOperatorData,
   OperatorStatus 
-} from '../types';
+} from '@/types/operator-types';
 
 // Query keys factory
 export const operatorQueryKeys = {

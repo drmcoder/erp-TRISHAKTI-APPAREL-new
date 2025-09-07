@@ -1,7 +1,7 @@
 // Operator utility functions
 
-import type { Operator, OperatorSummary } from '../types';
-import { MACHINE_TYPES, SKILL_LEVELS, STATUS_CONFIG } from '../types';
+import type { Operator, OperatorSummary } from '@/types/operator-types';
+import { MACHINE_TYPES, SKILL_LEVELS, STATUS_CONFIG } from '@/types/operator-types';
 
 // Generate operator display name
 export function getOperatorDisplayName(operator: Operator | OperatorSummary): string {

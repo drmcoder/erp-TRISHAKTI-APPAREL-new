@@ -13,7 +13,7 @@ import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { EmptyState } from '@/shared/components/empty-state';
 import { OperatorCard } from './operator-card';
 import { useOperators } from '../hooks';
-import { MACHINE_TYPES, SKILL_LEVELS, STATUS_CONFIG } from '../types';
+import { MACHINE_TYPES, SKILL_LEVELS, STATUS_CONFIG } from '@/types/operator-types';
 
 interface OperatorListProps {
   onCreateNew?: () => void;

@@ -20,7 +20,7 @@ import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { useOperatorWithStatus } from '../hooks';
-import { STATUS_CONFIG, MACHINE_TYPES, SKILL_LEVELS } from '../types';
+import { STATUS_CONFIG, MACHINE_TYPES, SKILL_LEVELS } from '@/types/operator-types';
 
 export const OperatorDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();

@@ -10,8 +10,8 @@ import {
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { Card } from '@/shared/components/ui/card';
-import type { OperatorSummary } from '../types';
-import { STATUS_CONFIG } from '../types';
+import type { OperatorSummary } from '@/types/operator-types';
+import { STATUS_CONFIG } from '@/types/operator-types';
 
 interface OperatorCardProps {
   operator: OperatorSummary;
