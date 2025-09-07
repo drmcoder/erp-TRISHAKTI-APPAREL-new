@@ -51,7 +51,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   placement = 'header'
 }) => {
   const { currentLocale, changeLanguage } = useI18n();
-  const [isChanging, setIsChanging] = React.useState(false);
+  const [isChanging] = React.useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const currentLang = SUPPORTED_LANGUAGES.find(lang => lang.code === currentLocale) 
@@ -239,7 +239,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 // Simple flag-only variant for space-constrained areas
 export const LanguageSwitcherCompact: React.FC = () => {
   const { currentLocale, changeLanguage } = useI18n();
-  const [isChanging, setIsChanging] = React.useState(false);
+  const [isChanging] = React.useState(false);
   const currentLang = SUPPORTED_LANGUAGES.find(lang => lang.code === currentLocale) 
     || SUPPORTED_LANGUAGES[0];
 

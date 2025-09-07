@@ -213,9 +213,16 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
           onCancel={() => setCurrentView('dashboard')}
         />;
       case 'templates':
-        return <ArticleTemplateManager />;
+        return <ArticleTemplateManager 
+          onSave={(template) => console.log('Template saved:', template)}
+          onCancel={() => setCurrentView('dashboard')}
+        />;
       case 'workflow':
-        return <WorkflowSequencer />;
+        return <WorkflowSequencer 
+          operations={[]}
+          onExecutePlan={(plan) => console.log('Executing plan:', plan)}
+          onUpdateOperationStatus={(operationId, status) => console.log('Operation status updated:', operationId, status)}
+        />;
       default:
         return <OperatorDashboard operatorId={userId} />;
     }

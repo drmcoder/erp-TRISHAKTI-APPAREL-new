@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@/test/test-utils';
+import { render, screen, fireEvent } from '@/test/test-utils';
 import { ResponsiveLayout } from '../responsive-layout';
 
 // Mock react-swipeable
@@ -67,6 +67,7 @@ describe('ResponsiveLayout', () => {
   const defaultProps = {
     user: mockUser,
     notifications: mockNotifications,
+    currentPath: "/dashboard",
     unreadCount: 1,
     onMarkNotificationRead: vi.fn(),
     onDeleteNotification: vi.fn(),
