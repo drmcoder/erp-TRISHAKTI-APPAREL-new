@@ -105,44 +105,4 @@ export interface OperatorSummary {
   avatar?: Operator['avatar'];
 }
 
-// Machine types and skill levels
-export const MACHINE_TYPES = [
-  {
-    id: 'overlock',
-    name: 'Overlock Machine',
-    nameNepali: 'ओभरलक मेसिन',
-    category: 'sewing',
-    skillRequired: 'beginner',
-    hourlyRate: 120
-  },
-  {
-    id: 'single_needle',
-    name: 'Single Needle',
-    nameNepali: 'एकल सुई',
-    category: 'sewing',
-    skillRequired: 'intermediate',
-    hourlyRate: 140
-  },
-  {
-    id: 'buttonhole',
-    name: 'Buttonhole Machine',
-    nameNepali: 'बटनहोल मेसिन',
-    category: 'finishing',
-    skillRequired: 'advanced',
-    hourlyRate: 160
-  }
-] as const;
-
-export const SKILL_LEVELS = [
-  { value: 'beginner', label: 'Beginner', labelNepali: 'नयाँ' },
-  { value: 'intermediate', label: 'Intermediate', labelNepali: 'मध्यम' },
-  { value: 'advanced', label: 'Advanced', labelNepali: 'उच्च' },
-  { value: 'expert', label: 'Expert', labelNepali: 'विशेषज्ञ' }
-] as const;
-
-export const STATUS_CONFIG = {
-  available: { color: 'green', label: 'Available', labelNepali: 'उपलब्ध' },
-  busy: { color: 'yellow', label: 'Busy', labelNepali: 'व्यस्त' },
-  on_break: { color: 'blue', label: 'On Break', labelNepali: 'विश्राममा' },
-  offline: { color: 'gray', label: 'Offline', labelNepali: 'अफलाइन' }
-} as const;
+// Constants are imported directly from @/types/operator-types to avoid re-export ambiguity

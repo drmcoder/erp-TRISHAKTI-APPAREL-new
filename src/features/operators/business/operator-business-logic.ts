@@ -1,15 +1,22 @@
 // Business Logic Layer for Operator Management
 // Handles complex business rules, validations, and workflows
 
-import { 
+// Direct imports to resolve module resolution issues
+import type { 
   Operator, 
   OperatorSummary, 
-  OperatorStatus, 
+  OperatorStatus
+} from '@/types/operator-types';
+
+import type { 
   CreateOperatorData, 
-  UpdateOperatorData,
+  UpdateOperatorData
+} from '../types/operator-interfaces';
+
+import { 
   MACHINE_TYPES,
   SKILL_LEVELS 
-} from '../types';
+} from '@/types/operator-types';
 import { operatorService } from '../services';
 
 export interface BusinessRuleResult {

@@ -30,7 +30,7 @@ import {
   Transaction,
   WriteBatch,
 } from 'firebase/firestore';
-import { db } from '../../config/firebase';
+import { db } from '@/config/firebase';
 import {
   ServiceResponse,
   ServiceMetadata,
@@ -51,9 +51,9 @@ import {
   AuditOptions,
   OfflineOperation,
   ServiceMetrics,
-  AnalyticsEvent,
-} from '../../types/service-types';
-import type { BaseEntity, AuditLog } from '../../types/entities';
+} from '@/types/service-types';
+import type { BaseEntity, AuditLog } from '@/types/entities';
+import type { AnalyticsEvent } from '@/types/service-types';
 
 // Enhanced Base Firebase Service with comprehensive features
 export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {
