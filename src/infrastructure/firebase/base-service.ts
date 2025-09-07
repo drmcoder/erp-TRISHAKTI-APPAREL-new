@@ -48,12 +48,11 @@ import {
   RetryConfig,
   ValidationConfig,
   PerformanceConfig,
-  AuditOptions,
   OfflineOperation,
   ServiceMetrics,
 } from '@/types/service-types';
 import type { BaseEntity, AuditLog } from '@/types/entities';
-import type { AnalyticsEvent } from '@/types/service-types';
+import type { AnalyticsEvent, AuditOptions } from '@/types/service-types';
 
 // Enhanced Base Firebase Service with comprehensive features
 export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {
