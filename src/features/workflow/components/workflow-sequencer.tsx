@@ -2,7 +2,7 @@
 // Handles dependency-based operation sequencing with parallel/sequential logic
 
 import React, { useState, useMemo } from 'react';
-import { Card } from '@/shared/components/ui/card';
+import { Card } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
 import {

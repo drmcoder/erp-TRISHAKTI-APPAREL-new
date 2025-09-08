@@ -16,7 +16,7 @@ import {
   CurrencyRupeeIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/shared/components/ui/Button';
-import { Card } from '@/shared/components/ui/card';
+import { Card } from '@/shared/components/ui/Card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { useOperatorWithStatus } from '../hooks';

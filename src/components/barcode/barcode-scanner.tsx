@@ -2,7 +2,7 @@
 // Integrated barcode scanning with camera and manual entry
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
 import {
@@ -13,7 +13,8 @@ import {
   QrCodeIcon,
   BoltIcon
 } from '@heroicons/react/24/outline';
-import { barcodeService, ScanResult } from '../../services/core/barcode-service';
+import { barcodeService } from '../../services/core/barcode-service';
+import type { ScanResult } from '../../services/core/barcode-service';
 
 interface BarcodeScannerProps {
   onScanSuccess: (result: ScanResult) => void;
@@ -163,7 +164,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
             <div><strong>Bundle ID:</strong> {scanResult.data.bundleId}</div>
             <div><strong>Bundle Number:</strong> {scanResult.data.bundleNumber}</div>
             <div><strong>Lot Number:</strong> {scanResult.data.lotNumber}</div>
-            <div><strong>Type:</strong> <Badge variant="outline">{scanResult.data.type}</Badge></div>
+            <div><strong>Type:</strong> <Badge variant="secondary" outline>{scanResult.data.type}</Badge></div>
             {scanResult.data.additionalInfo?.manualEntry && (
               <div className="text-blue-600">✏️ Manual Entry</div>
             )}
@@ -187,7 +188,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           </CardTitle>
           {onClose && (
             <Button
-              variant="outline"
+              variant="secondary" outline
               size="sm"
               onClick={onClose}
               className="h-8 w-8 p-0"
@@ -254,7 +255,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           ) : (
             <Button 
               onClick={stopScanning}
-              variant="outline"
+              variant="secondary" outline
               className="flex-1"
             >
               <XMarkIcon className="h-4 w-4 mr-2" />
@@ -264,7 +265,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           
           <Button
             onClick={switchCamera}
-            variant="outline"
+            variant="secondary" outline
             size="sm"
             disabled={!isScanning}
             className="px-3"

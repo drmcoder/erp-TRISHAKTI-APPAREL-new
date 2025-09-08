@@ -14,7 +14,7 @@ import {
   StarIcon,
   CpuChipIcon
 } from '@heroicons/react/24/outline';
-import { Card } from '@/shared/components/ui/card';
+import { Card } from '@/shared/components/ui/Card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';

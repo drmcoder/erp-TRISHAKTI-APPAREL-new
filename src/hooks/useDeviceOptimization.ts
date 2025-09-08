@@ -9,7 +9,7 @@ import {
   OptimizationSettings,
   DeviceType,
   OrientationType
-} from '../services/device-optimization-service';
+} from '../services/device-optimization-service-simple';
 
 export interface UseDeviceOptimizationOptions {
   enableAutoOptimization?: boolean;

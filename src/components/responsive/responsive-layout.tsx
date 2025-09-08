@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { useDeviceOptimization, useMobileOptimization, useTabletOptimization, useTVOptimization } from '../../hooks/useDeviceOptimization';
-import { Card } from '@/shared/components/ui/card';
+import { Card } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { 
   Bars3Icon, 

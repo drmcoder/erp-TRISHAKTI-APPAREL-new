@@ -12,6 +12,7 @@ import { EarningsDashboard } from './features/earnings/components/earnings-dashb
 import { OperatorManagementDashboard } from './features/operators/components/operator-management-dashboard';
 import { SelfAssignmentInterface } from './features/work-assignment/components/self-assignment-interface';
 import { ProductionTimer } from './features/work-assignment/components/production-timer';
+import type { WorkItem } from './features/work-assignment/types';
 import { EnhancedWIPEntryForm } from './features/wip/components/enhanced-wip-entry-form';
 // import { templateIntegrationService } from './services/template-integration-service'; // Disabled for demo
 import { ArticleTemplateManager } from './features/templates/components/article-template-manager';
@@ -25,7 +26,8 @@ import { CompleteWIPEntryWorkflow } from './components/wip/complete-wip-entry-wo
 import { BarcodeScanner } from './components/barcode/barcode-scanner';
 import { BundleLabelGenerator } from './components/barcode/bundle-label-generator';
 import { LiveProductionDashboard } from './components/dashboard/live-production-dashboard';
-import { ResponsiveLayout, MobileOnly, TabletOnly, DesktopOnly, TVOnly } from './components/responsive/responsive-layout';
+// Responsive layout components available if needed
+// import { ResponsiveLayout, MobileOnly, TabletOnly, DesktopOnly, TVOnly } from './components/responsive/responsive-layout';
 
 // TSA Production System Components
 import CuttingDropletManager from './components/management/CuttingDropletManager';
@@ -143,7 +145,7 @@ const LoginPage = ({ onLogin }: { onLogin: (username: string) => void }) => {
 };
 
 // Production Dashboard Component with Role-Based Routing
-const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onLogout: () => void }) => {
+const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
   const [currentView, setCurrentView] = useState('dashboard');
   
   // Sample IDs for demo - in production these would come from authentication
@@ -167,7 +169,9 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
             return <OperatorDashboard operatorId={userId} />;
           case 'supervisor':
             return <SupervisorDashboard supervisorId={userId} />;
-          case 'manager':
+          case 'management': // Fixed: use 'management' instead of 'manager'
+            return <SupervisorDashboard supervisorId={userId} />;
+          case 'admin':
             return <SupervisorDashboard supervisorId={userId} />;
           default:
             return <OperatorDashboard operatorId={userId} />;
@@ -211,12 +215,20 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
             workItem={{
               id: "sample-work-item-001",
               bundleId: "bundle-001",
-              description: "Sample Production Task",
-              targetQuantity: 50,
-              estimatedTime: 120, // 2 hours in minutes
-              priority: "medium",
+              workItemNumber: "WI-001",
+              machineType: "sewing",
+              operation: "Sample Production Task",
+              operationCode: "OP-001",
+              skillLevelRequired: "intermediate",
+              targetPieces: 50,
+              completedPieces: 0,
+              rejectedPieces: 0,
+              reworkPieces: 0,
+              assignedOperatorId: userId,
+              assignmentMethod: "supervisor_assigned",
+              estimatedDuration: 120, // 2 hours in minutes
               status: "assigned"
-            } as any}
+            } as WorkItem}
           />
         </div>;
       case 'wip-entry':
@@ -370,11 +382,17 @@ function App() {
 
   // Add keyboard shortcut for force reload (Ctrl+Shift+R or Cmd+Shift+R)
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = async (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'R') {
         event.preventDefault();
-        const { CacheManager } = require('./utils/cache-manager');
-        CacheManager.forceReload();
+        try {
+          const { CacheManager } = await import('./utils/cache-manager');
+          CacheManager.forceReload();
+        } catch (error) {
+          console.error('Failed to load cache manager:', error);
+          // Fallback: Simple page reload
+          window.location.reload();
+        }
       }
     };
 
@@ -383,20 +401,22 @@ function App() {
   }, []);
 
   const handleLogin = (username: string) => {
-    // Determine user role based on username/email
-    let role = 'operator';
+    // Determine user role based on username/email - ensure consistent role types
+    let role: 'operator' | 'supervisor' | 'management' | 'admin' = 'operator';
     if (username === 'sup' || username === 'supervisor') role = 'supervisor';
-    if (username === 'manager') role = 'manager';
+    if (username === 'manager') role = 'management'; // Fixed: use 'management' instead of 'manager'
+    if (username === 'admin') role = 'admin';
     if (username === 'operator') role = 'operator';
     
     setUserRole(role);
     setIsAuthenticated(true);
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUserRole('');
-  };
+  // Logout handler is defined for future use
+  // const handleLogout = () => {
+  //   setIsAuthenticated(false);
+  //   setUserRole('');
+  // };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -404,7 +424,7 @@ function App() {
         {!isAuthenticated ? (
           <LoginPage onLogin={handleLogin} />
         ) : (
-          <Dashboard userRole={userRole} onLogout={handleLogout} />
+          <Dashboard userRole={userRole} />
         )}
       </BrowserRouter>
     </QueryClientProvider>

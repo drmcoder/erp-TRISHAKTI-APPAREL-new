@@ -2,7 +2,7 @@
 // Final preview and production formula calculation
 
 import React, { useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
 import { useDeviceOptimization } from '../../hooks/useDeviceOptimization';

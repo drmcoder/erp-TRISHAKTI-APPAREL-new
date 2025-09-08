@@ -53,7 +53,10 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(tail:*)",
       "Bash(done)",
-      "Bash(npm restart)"
+      "Bash(npm restart)",
+      "Bash(test:*)",
+      "Bash(for component in \"features/work-assignment/components/operator-work-dashboard\" \"features/quality/components/quality-management-dashboard\" \"features/workflow/components/workflow-sequencer\")",
+      "Bash(do echo:*)"
     ],
     "deny": [],
     "ask": []

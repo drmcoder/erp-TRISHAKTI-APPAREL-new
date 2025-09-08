@@ -2,18 +2,18 @@
 // Generate and print bundle labels with barcodes and QR codes
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
 import {
   PrinterIcon,
   QrCodeIcon,
-  DownloadIcon,
+  ArrowDownTrayIcon,
   CogIcon,
-  EyeIcon,
-  DocumentDuplicateIcon
+  EyeIcon
 } from '@heroicons/react/24/outline';
-import { barcodeService, BundleLabel, PrinterConfig } from '../../services/core/barcode-service';
+import { barcodeService } from '../../services/core/barcode-service';
+import type { BundleLabel, PrinterConfig } from '../../services/core/barcode-service';
 
 interface BundleLabelGeneratorProps {
   bundleData?: {
@@ -457,7 +457,7 @@ export const BundleLabelGenerator: React.FC<BundleLabelGeneratorProps> = ({
                   size="sm"
                   variant="outline"
                 >
-                  <DownloadIcon className="h-4 w-4 mr-1" />
+                  <ArrowDownTrayIcon className="h-4 w-4 mr-1" />
                   Download
                 </Button>
               </div>

@@ -9,7 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
-import { Card } from '@/shared/components/ui/card';
+import { Card } from '@/shared/components/ui/Card';
 import type { OperatorSummary } from '@/types/operator-types';
 import { STATUS_CONFIG } from '@/types/operator-types';
 
