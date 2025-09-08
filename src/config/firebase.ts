@@ -5,16 +5,28 @@ import { getDatabase, connectDatabaseEmulator } from "firebase/database";
 import { getMessaging, isSupported } from "firebase/messaging";
 import { getStorage } from "firebase/storage";
 
-// NEW Firebase configuration for ERP-FOR-TSA (as per REBUILD_BLUEPRINT.md)
+// Import environment configuration
+import { ENV_CONFIG, validateEnvironmentConfig } from './environment';
+
+// Validate environment configuration on startup
+const configValidation = validateEnvironmentConfig();
+if (!configValidation.valid) {
+  console.error('❌ Environment Configuration Errors:', configValidation.errors);
+  if (ENV_CONFIG.isProduction) {
+    throw new Error(`Invalid production configuration: ${configValidation.errors.join(', ')}`);
+  }
+}
+
+// Firebase configuration using centralized environment service
 const firebaseConfig = {
-  apiKey: "AIzaSyB8Z4GdoLZsBW6bfmAh_BSTftpTRUXPZMw",
-  authDomain: "erp-for-tsa.firebaseapp.com",
-  databaseURL: "https://erp-for-tsa-default-rtdb.firebaseio.com",
-  projectId: "erp-for-tsa",
-  storageBucket: "erp-for-tsa.firebasestorage.app",
-  messagingSenderId: "271232983905",
-  appId: "1:271232983905:web:7d06c8f5ec269824759b20",
-  measurementId: "G-6CYWPS4N0G"
+  apiKey: ENV_CONFIG.firebase.apiKey,
+  authDomain: ENV_CONFIG.firebase.authDomain,
+  databaseURL: ENV_CONFIG.firebase.databaseURL,
+  projectId: ENV_CONFIG.firebase.projectId,
+  storageBucket: ENV_CONFIG.firebase.storageBucket,
+  messagingSenderId: ENV_CONFIG.firebase.messagingSenderId,
+  appId: ENV_CONFIG.firebase.appId,
+  measurementId: ENV_CONFIG.firebase.measurementId
 };
 
 // Initialize Firebase
@@ -96,18 +108,30 @@ export const REALTIME_CONFIG = {
   heartbeatInterval: 30000
 };
 
-// Development mode emulators
-if (process.env.NODE_ENV === 'development' && process.env.REACT_APP_USE_EMULATORS === 'true') {
-  // Connect to Firestore emulator
-  connectFirestoreEmulator(db, 'localhost', 8080);
-  
-  // Connect to Auth emulator
-  connectAuthEmulator(auth, 'http://localhost:9099');
-  
-  // Connect to Database emulator
-  connectDatabaseEmulator(rtdb, 'localhost', 9000);
-  
-  console.log('Connected to Firebase emulators');
+// Firebase Emulators for Development
+if (ENV_CONFIG.features.useFirebaseEmulators && ENV_CONFIG.isDevelopment) {
+  try {
+    // Connect to Firestore emulator
+    connectFirestoreEmulator(db, 'localhost', 8080);
+    console.log('🔧 Connected to Firestore emulator on port 8080');
+    
+    // Connect to Auth emulator
+    connectAuthEmulator(auth, 'http://localhost:9099');
+    console.log('🔧 Connected to Auth emulator on port 9099');
+    
+    // Connect to Database emulator
+    connectDatabaseEmulator(rtdb, 'localhost', 9000);
+    console.log('🔧 Connected to Database emulator on port 9000');
+    
+    console.log('✅ Firebase emulators connected successfully');
+  } catch (error) {
+    console.warn('⚠️ Failed to connect to Firebase emulators:', error);
+    console.log('📝 Make sure Firebase emulators are running: firebase emulators:start');
+  }
+} else if (ENV_CONFIG.isDevelopment) {
+  console.log('🌐 Using live Firebase services in development mode');
+} else {
+  console.log('🚀 Using live Firebase services in production mode');
 }
 
 export default app;

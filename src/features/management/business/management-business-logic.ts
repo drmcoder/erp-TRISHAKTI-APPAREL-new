@@ -1,7 +1,7 @@
 // Business Logic Layer for Management/Admin Operations
 // Handles strategic decisions, resource allocation, performance analysis, and system-wide optimizations
 
-import { 
+import type { 
   Supervisor, 
   Operator, 
   Bundle,
@@ -9,9 +9,7 @@ import {
   ProductionLine,
   ManagementUser 
 } from '../../../types/entities';
-import { supervisorService } from '../../../services/entities/supervisor-service';
-import { operatorService } from '../../../services/entities/operator-service';
-import { bundleService } from '../../../services/entities/bundle-service';
+import { supervisorService, operatorService, bundleService } from '../../../services/entities';
 
 export interface ManagementBusinessRuleResult {
   isValid: boolean;
@@ -81,7 +79,7 @@ export class ManagementBusinessLogic {
     }[]
   ): ResourceAllocationDecision {
     const riskFactors: string[] = [];
-    const optimizedDistribution: any[] = [];
+    const optimizedDistribution: Array<{lineId: string; operatorIds: string[]; bundleIds: string[]; efficiency: number}> = [];
     let totalExpectedROI = 0;
 
     // Sort bundles by profitability and urgency
@@ -331,7 +329,7 @@ export class ManagementBusinessLogic {
     }
   ): CompanyPerformanceAnalysis {
     const recommendedActions: string[] = [];
-    const criticalMetrics: any[] = [];
+    const criticalMetrics: Array<{metric: string; value: number; threshold: number; status: 'critical' | 'warning' | 'normal'}> = [];
 
     // Financial Health Score (0-100)
     const profitabilityScore = Math.min(financialData.profitMargin * 100, 100);
@@ -449,7 +447,7 @@ export class ManagementBusinessLogic {
   ): {
     recommendation: 'approve' | 'reject' | 'modify' | 'postpone';
     reasoning: string[];
-    modifiedProposal?: any;
+    modifiedProposal?: ResourceAllocationDecision;
     alternativeOptions: string[];
     riskMitigation: string[];
   } {
@@ -549,7 +547,7 @@ export class ManagementBusinessLogic {
   }
 
   // Helper Methods
-  private static calculateBundlePriority(bundle: Bundle, marketDemand: any[]): number {
+  private static calculateBundlePriority(bundle: Bundle, marketDemand: Array<{product: string; demand: number; trend: string}>): number {
     const demandMatch = marketDemand.find(d => d.articleTypes.includes(bundle.articleNumber));
     const urgencyScore = bundle.priority === 'urgent' ? 1.0 : 
                         bundle.priority === 'high' ? 0.8 : 
@@ -568,9 +566,9 @@ export class ManagementBusinessLogic {
     }, {} as Record<string, Operator[]>);
   }
 
-  private static calculateTrendScore(trends: any): number {
+  private static calculateTrendScore(trends: Record<string, unknown>): number {
     let score = 0;
-    Object.values(trends).forEach((trend: any) => {
+    Object.values(trends).forEach((trend: unknown) => {
       if (trend === 'up') score += 10;
       else if (trend === 'down') score -= 5;
       // 'stable' adds 0

@@ -57,11 +57,14 @@ import type {
 } from '../../types/service-types';
 import type { BaseEntity, AuditLog } from '../../types/entities';
 
+// Re-export types for convenience
+export type { ServiceResponse } from '../../types/service-types';
+
 // Enhanced Base Firebase Service with comprehensive features
 export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {
   protected collectionName: string;
   protected config: ServiceConfig;
-  protected cache: Map<string, { data: any; timestamp: number; ttl: number }>;
+  protected cache: Map<string, { data: unknown; timestamp: number; ttl: number }>;
   protected offlineQueue: OfflineOperation<T>[];
   protected metrics: ServiceMetrics;
   protected listeners: Map<string, Unsubscribe>;
@@ -148,7 +151,7 @@ export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {
       return operation();
     }
 
-    let lastError: any;
+    let lastError: Error;
     let delay = this.config.retry.baseDelay;
 
     for (let attempt = 1; attempt <= this.config.retry.maxAttempts; attempt++) {
@@ -221,7 +224,7 @@ export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {
   }
 
   // Cache management
-  protected getCacheKey(operation: string, params: any): string {
+  protected getCacheKey(operation: string, params: unknown): string {
     return `${this.collectionName}:${operation}:${JSON.stringify(params)}`;
   }
 
@@ -273,7 +276,7 @@ export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {
   }
 
   // Data validation
-  protected validateData(data: any): { valid: boolean; errors: string[] } {
+  protected validateData(data: unknown): { valid: boolean; errors: string[] } {
     if (!this.config.validation.enabled) {
       return { valid: true, errors: [] };
     }
@@ -291,13 +294,13 @@ export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {
     return { valid: errors.length === 0, errors };
   }
 
-  protected abstract validate?(data: any): { valid: boolean; errors: string[] };
+  protected abstract validate?(data: unknown): { valid: boolean; errors: string[] };
 
   // Audit logging
   protected async logAudit(
     action: string,
     entityId: string,
-    changes?: any,
+    changes?: Record<string, unknown>,
     userId?: string
   ): Promise<void> {
     if (!this.shouldAudit()) return;
@@ -623,8 +626,8 @@ export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {
   }
 
   // Helper method for calculating changes
-  private calculateChanges(oldData: T, newData: any): any {
-    const changes: any = {};
+  private calculateChanges(oldData: T, newData: Record<string, unknown>): Record<string, unknown> {
+    const changes: Record<string, unknown> = {};
     
     for (const key in newData) {
       if (oldData[key as keyof T] !== newData[key]) {
@@ -713,7 +716,7 @@ export abstract class EnhancedBaseFirebaseService<T extends BaseEntity> {
   async getWhere(
     field: keyof T,
     operator: WhereFilterOp,
-    value: any,
+    value: unknown,
     options: Omit<QueryOptions, 'where'> = {}
   ): Promise<ServiceResponse<T[]>> {
     const whereClause: WhereClause = { field: field as string, operator, value };

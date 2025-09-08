@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { PWAService } from '../pwa-service';
+import { pwaService } from '../pwa-service';
 
 // Mock service worker registration
 const mockRegistration = {
@@ -58,7 +58,8 @@ describe('PWAService', () => {
       writable: true
     });
 
-    pwaService = new PWAService();
+    // Use the singleton instance (already imported above)
+    // pwaService is the singleton instance from the import
   });
 
   afterEach(() => {
@@ -110,8 +111,8 @@ describe('PWAService', () => {
         writable: true
       });
 
-      const pwaServiceNoSW = new PWAService();
-      const registration = await pwaServiceNoSW.registerServiceWorker();
+      // Use the same singleton instance for this test
+      const registration = await pwaService.registerServiceWorker();
 
       expect(registration).toBeNull();
     });

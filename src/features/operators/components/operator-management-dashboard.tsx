@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
-import { Input } from '@/shared/components/ui/input';
+import { Input } from '@/shared/components/ui/Input';
 import { 
   UserGroupIcon,
   MagnifyingGlassIcon,

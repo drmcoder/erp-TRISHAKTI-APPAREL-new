@@ -12,7 +12,7 @@ import {
   FaceSmileIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/shared/components/ui/Button';
-import { Input } from '@/shared/components/ui/input';
+import { Input } from '@/shared/components/ui/Input';
 import { Card } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';

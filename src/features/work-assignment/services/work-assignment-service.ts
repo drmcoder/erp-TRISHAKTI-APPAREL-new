@@ -2,6 +2,7 @@
 // Handles all CRUD operations and business logic for work assignments
 
 import { BaseService } from '@/shared/services/base-service';
+import { notificationService } from '@/services/notification-service';
 import {
   WorkBundle,
   WorkItem,
@@ -286,6 +287,39 @@ export class WorkAssignmentService extends BaseService {
         assignmentMethod: assignmentData.assignmentMethod
       });
 
+      // Send realtime notification to the operator
+      try {
+        const workItemDetails = await this.getWorkItemDetails(assignmentData.workItemId);
+        const supervisorName = await this.getSupervisorName(assignment.assignedBy);
+        
+        await notificationService.sendNotification({
+          type: 'assignment',
+          title: 'New Work Assignment',
+          message: `You have been assigned ${workItemDetails?.workItemNumber || 'work item'} by ${supervisorName || 'supervisor'}`,
+          userId: assignmentData.operatorId,
+          priority: 'medium',
+          category: 'work-assignment',
+          data: {
+            assignmentId: assignment.id,
+            workItemId: assignmentData.workItemId,
+            workItemNumber: workItemDetails?.workItemNumber,
+            targetPieces: assignment.targetPieces,
+            assignedBy: supervisorName,
+            assignedAt: assignment.assignedAt
+          },
+          actions: [
+            {
+              id: 'view-assignment',
+              title: 'View Assignment',
+              action: `navigate:/work-assignment/${assignment.id}`
+            }
+          ]
+        });
+      } catch (notificationError) {
+        console.error('Failed to send assignment notification:', notificationError);
+        // Don't fail the assignment if notification fails
+      }
+
       return { success: true, data: assignment };
     } catch (error) {
       console.error('Error assigning work:', error);
@@ -547,6 +581,30 @@ export class WorkAssignmentService extends BaseService {
     if (!data.ratePerPiece || data.ratePerPiece <= 0) errors.push('Rate per piece must be greater than 0');
 
     return { isValid: errors.length === 0, errors };
+  }
+
+  private async getWorkItemDetails(workItemId: string): Promise<any> {
+    try {
+      // Mock data for now - in real implementation, this would query the database
+      return {
+        workItemNumber: `WI-${workItemId.slice(-6).toUpperCase()}`,
+        description: 'Work item details',
+        priority: 'normal'
+      };
+    } catch (error) {
+      console.error('Error fetching work item details:', error);
+      return null;
+    }
+  }
+
+  private async getSupervisorName(supervisorId: string): Promise<string> {
+    try {
+      // Mock data for now - in real implementation, this would query the user/supervisor database
+      return `Supervisor-${supervisorId.slice(-4).toUpperCase()}`;
+    } catch (error) {
+      console.error('Error fetching supervisor name:', error);
+      return 'Supervisor';
+    }
   }
 
   private async validateAssignment(data: AssignWorkData): Promise<{ isValid: boolean; errors: string[] }> {

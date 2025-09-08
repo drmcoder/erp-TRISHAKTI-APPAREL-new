@@ -2,9 +2,9 @@
 import { 
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
-  User as FirebaseUser
+  onAuthStateChanged
 } from 'firebase/auth';
+import type { User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, COLLECTIONS } from '@/infrastructure/firebase/config';
 
@@ -285,6 +285,9 @@ export class AuthService {
     return onAuthStateChanged(auth, callback);
   }
 }
+
+// Export singleton instance
+export const authService = new AuthService();
 
 // Export types
 export type { User, LoginCredentials, AuthServiceResponse };

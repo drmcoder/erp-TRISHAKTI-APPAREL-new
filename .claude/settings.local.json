@@ -40,7 +40,20 @@
       "Bash(npx tsc:*)",
       "Bash(sed:*)",
       "WebFetch(domain:localhost)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(cat:*)",
+      "Bash(java:*)",
+      "Bash(brew install:*)",
+      "Read(//Library/Java/JavaVirtualMachines/**)",
+      "Bash(./scripts/deploy-firebase-rules.sh:*)",
+      "Bash(./scripts/test-production-ready.sh:*)",
+      "WebSearch",
+      "Bash(npm ls:*)",
+      "Bash(for file in src/services/*-service.ts)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(tail:*)",
+      "Bash(done)",
+      "Bash(npm restart)"
     ],
     "deny": [],
     "ask": []

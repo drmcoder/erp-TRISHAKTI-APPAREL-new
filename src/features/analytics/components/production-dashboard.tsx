@@ -100,8 +100,8 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
 
       setMetrics(metricsData);
       setTrendData(trends);
-      setOperatorPerformance(operators);
-      setWorkTypeAnalysis(workTypes);
+      setOperatorPerformance(Array.isArray(operators) ? operators : []);
+      setWorkTypeAnalysis(Array.isArray(workTypes) ? workTypes : []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       toast.error('Failed to load dashboard data');
@@ -170,17 +170,12 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
           <p className="text-muted-foreground">Comprehensive production analytics and performance metrics</p>
         </div>
         <div className="flex space-x-2">
-          <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="week">This Week</SelectItem>
-              <SelectItem value="month">This Month</SelectItem>
-              <SelectItem value="quarter">This Quarter</SelectItem>
-              <SelectItem value="year">This Year</SelectItem>
-            </SelectContent>
+          <Select value={selectedPeriod} onValueChange={setSelectedPeriod} className="w-40">
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="quarter">This Quarter</option>
+            <option value="year">This Year</option>
           </Select>
           <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
@@ -201,10 +196,10 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalProduction.toLocaleString()}</div>
+            <div className="text-2xl font-bold">{metrics?.totalProduction?.toLocaleString() || '0'}</div>
             <div className="flex items-center text-xs text-muted-foreground">
               <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-              {metrics.dailyAverage.toFixed(0)} pieces/day avg
+              {metrics?.dailyAverage?.toFixed(0) || '0'} pieces/day avg
             </div>
           </CardContent>
         </Card>
@@ -215,12 +210,12 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.efficiency.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{metrics?.efficiency?.toFixed(1) || '0'}%</div>
             <div className={`flex items-center text-xs ${
-              metrics.efficiency >= 80 ? 'text-green-600' : 
-              metrics.efficiency >= 60 ? 'text-yellow-600' : 'text-red-600'
+              (metrics?.efficiency ?? 0) >= 80 ? 'text-green-600' : 
+              (metrics?.efficiency ?? 0) >= 60 ? 'text-yellow-600' : 'text-red-600'
             }`}>
-              {metrics.efficiency >= 80 ? (
+              {(metrics?.efficiency ?? 0) >= 80 ? (
                 <CheckCircle2 className="h-3 w-3 mr-1" />
               ) : (
                 <AlertTriangle className="h-3 w-3 mr-1" />
@@ -236,12 +231,12 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.qualityScore.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{metrics?.qualityScore?.toFixed(1) || '0'}%</div>
             <div className={`flex items-center text-xs ${
-              metrics.qualityScore >= 90 ? 'text-green-600' : 
-              metrics.qualityScore >= 80 ? 'text-yellow-600' : 'text-red-600'
+              (metrics?.qualityScore ?? 0) >= 90 ? 'text-green-600' : 
+              (metrics?.qualityScore ?? 0) >= 80 ? 'text-yellow-600' : 'text-red-600'
             }`}>
-              Damage Rate: {metrics.damageRate.toFixed(1)}%
+              Damage Rate: {metrics?.damageRate?.toFixed(1) || '0'}%
             </div>
           </CardContent>
         </Card>
@@ -252,9 +247,9 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.activeOperators}</div>
+            <div className="text-2xl font-bold">{metrics?.activeOperators || '0'}</div>
             <div className="flex items-center text-xs text-muted-foreground">
-              {metrics.completedBundles} bundles completed
+              {metrics?.completedBundles || '0'} bundles completed
             </div>
           </CardContent>
         </Card>
@@ -265,9 +260,9 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.onTimeDelivery.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{metrics?.onTimeDelivery?.toFixed(1) || '0'}%</div>
             <div className="flex items-center text-xs text-muted-foreground">
-              {metrics.pendingWork} pending
+              {metrics?.pendingWork || '0'} pending
             </div>
           </CardContent>
         </Card>
@@ -285,7 +280,7 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
         <CardContent>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData}>
+              <LineChart data={Array.isArray(trendData) ? trendData : []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
@@ -329,7 +324,7 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {operatorPerformance.slice(0, 5).map((operator, index) => (
+              {Array.isArray(operatorPerformance) && operatorPerformance.length > 0 ? operatorPerformance.slice(0, 5).map((operator, index) => (
                 <div key={operator.operatorId} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex items-center space-x-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
@@ -355,7 +350,12 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center text-muted-foreground py-8">
+                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No operator performance data available</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -374,7 +374,7 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={workTypeAnalysis}
+                    data={Array.isArray(workTypeAnalysis) ? workTypeAnalysis : []}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -382,7 +382,7 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
                     paddingAngle={2}
                     dataKey="count"
                   >
-                    {workTypeAnalysis.map((entry, index) => (
+                    {(workTypeAnalysis || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -391,7 +391,7 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
               </ResponsiveContainer>
             </div>
             <div className="space-y-2">
-              {workTypeAnalysis.map((workType, index) => (
+              {(workTypeAnalysis || []).map((workType, index) => (
                 <div key={workType.workType} className="flex items-center justify-between text-sm">
                   <div className="flex items-center space-x-2">
                     <div 
@@ -421,24 +421,24 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
           <CardContent className="space-y-4">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Overall Quality Score</span>
-              <span className="font-semibold">{metrics.qualityScore.toFixed(1)}%</span>
+              <span className="font-semibold">{metrics?.qualityScore?.toFixed(1) || '0'}%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Damage Rate</span>
               <span className={`font-semibold ${
-                metrics.damageRate <= 2 ? 'text-green-600' :
-                metrics.damageRate <= 5 ? 'text-yellow-600' : 'text-red-600'
+                (metrics?.damageRate ?? 0) <= 2 ? 'text-green-600' :
+                (metrics?.damageRate ?? 0) <= 5 ? 'text-yellow-600' : 'text-red-600'
               }`}>
-                {metrics.damageRate.toFixed(1)}%
+                {metrics?.damageRate?.toFixed(1) || '0'}%
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Rework Percentage</span>
               <span className={`font-semibold ${
-                metrics.reworkPercentage <= 3 ? 'text-green-600' :
-                metrics.reworkPercentage <= 7 ? 'text-yellow-600' : 'text-red-600'
+                (metrics?.reworkPercentage ?? 0) <= 3 ? 'text-green-600' :
+                (metrics?.reworkPercentage ?? 0) <= 7 ? 'text-yellow-600' : 'text-red-600'
               }`}>
-                {metrics.reworkPercentage.toFixed(1)}%
+                {metrics?.reworkPercentage?.toFixed(1) || '0'}%
               </span>
             </div>
             <div className="pt-2 border-t">
@@ -468,27 +468,27 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
           <CardContent className="space-y-4">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Overall Efficiency</span>
-              <span className="font-semibold">{metrics.efficiency.toFixed(1)}%</span>
+              <span className="font-semibold">{metrics?.efficiency?.toFixed(1) || '0'}%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">On-Time Delivery</span>
-              <span className="font-semibold">{metrics.onTimeDelivery.toFixed(1)}%</span>
+              <span className="font-semibold">{metrics?.onTimeDelivery?.toFixed(1) || '0'}%</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Average Daily Output</span>
-              <span className="font-semibold">{metrics.dailyAverage.toFixed(0)} pieces</span>
+              <span className="font-semibold">{metrics?.dailyAverage?.toFixed(0) || '0'} pieces</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Completed Bundles</span>
-              <span className="font-semibold">{metrics.completedBundles}</span>
+              <span className="font-semibold">{metrics?.completedBundles || '0'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Pending Work</span>
               <span className={`font-semibold ${
-                metrics.pendingWork <= 10 ? 'text-green-600' :
-                metrics.pendingWork <= 25 ? 'text-yellow-600' : 'text-red-600'
+                (metrics?.pendingWork ?? 0) <= 10 ? 'text-green-600' :
+                (metrics?.pendingWork ?? 0) <= 25 ? 'text-yellow-600' : 'text-red-600'
               }`}>
-                {metrics.pendingWork}
+                {metrics?.pendingWork || '0'}
               </span>
             </div>
           </CardContent>
@@ -499,7 +499,7 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
             <CardTitle className="text-lg">Alerts & Insights</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {metrics.efficiency < 70 && (
+            {(metrics?.efficiency ?? 0) < 70 && (
               <div className="flex items-start space-x-2 p-3 bg-red-50 rounded-lg">
                 <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5" />
                 <div>
@@ -509,7 +509,7 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
               </div>
             )}
             
-            {metrics.damageRate > 5 && (
+            {(metrics?.damageRate ?? 0) > 5 && (
               <div className="flex items-start space-x-2 p-3 bg-yellow-50 rounded-lg">
                 <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5" />
                 <div>
@@ -519,7 +519,7 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
               </div>
             )}
             
-            {metrics.onTimeDelivery >= 95 && (
+            {(metrics?.onTimeDelivery ?? 0) >= 95 && (
               <div className="flex items-start space-x-2 p-3 bg-green-50 rounded-lg">
                 <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
                 <div>
@@ -529,7 +529,7 @@ export const ProductionDashboard: React.FC<ProductionDashboardProps> = ({ timeRa
               </div>
             )}
             
-            {metrics.pendingWork <= 5 && (
+            {(metrics?.pendingWork ?? 0) <= 5 && (
               <div className="flex items-start space-x-2 p-3 bg-blue-50 rounded-lg">
                 <CheckCircle2 className="h-4 w-4 text-blue-500 mt-0.5" />
                 <div>

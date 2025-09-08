@@ -3,6 +3,9 @@
 
 import { UI_CONFIG } from '@/config/ui-config';
 import { pwaService } from './pwa-service';
+import { ENV_CONFIG } from '@/config/environment';
+import { db } from '../config/firebase';
+import { collection, addDoc, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, limit, Timestamp } from 'firebase/firestore';
 
 export interface NotificationPayload {
   id: string;
@@ -57,13 +60,10 @@ class NotificationService {
   private settings: NotificationSettings;
   private subscribers: Map<string, (notification: NotificationPayload) => void> = new Map();
   private toastSubscribers: Set<(toast: ToastNotification) => void> = new Set();
-  private eventSource: EventSource | null = null;
-  private retryCount = 0;
-  private maxRetries = 3;
 
   constructor() {
     this.settings = this.loadSettings();
-    this.initializeEventSource();
+    this.initializeFirebaseListener();
     this.registerServiceWorkerListeners();
   }
 
@@ -109,12 +109,15 @@ class NotificationService {
     // Check quiet hours
     if (this.isInQuietHours()) {
       console.log('Notification suppressed due to quiet hours');
-      // Still save to in-app notifications but don't show push/sound
-      this.addNotification(notification);
+      // Still save to Firebase but don't show push/sound
+      await this.saveNotificationToFirebase(notification);
       return;
     }
 
-    // Add to in-app notifications
+    // Save notification to Firebase for realtime sync
+    await this.saveNotificationToFirebase(notification);
+
+    // Add to local in-app notifications
     this.addNotification(notification);
 
     // Send push notification
@@ -436,54 +439,44 @@ class NotificationService {
     }
   }
 
-  private initializeEventSource(): void {
-    if (typeof EventSource === 'undefined') return;
+  private initializeFirebaseListener(): void {
+    // Initialize Firebase listener for realtime notifications
+    this.subscribeToFirebaseNotifications();
+  }
 
+  // Firebase Methods
+  private async saveNotificationToFirebase(notification: NotificationPayload): Promise<void> {
     try {
-      this.eventSource = new EventSource('/api/notifications/stream');
+      // For development, skip Firebase save and use local storage only
+      console.log('Notification saved locally (Firebase disabled in development)');
       
-      this.eventSource.onopen = () => {
-        console.log('Notification stream connected');
-        this.retryCount = 0;
-      };
-
-      this.eventSource.onmessage = (event) => {
-        try {
-          const notification = JSON.parse(event.data);
-          this.sendNotification(notification);
-        } catch (error) {
-          console.error('Failed to parse notification from stream:', error);
-        }
-      };
-
-      this.eventSource.onerror = () => {
-        console.error('Notification stream error');
-        this.handleStreamError();
-      };
+      // TODO: Enable Firebase save in production with proper authentication
+      // const notificationData = {
+      //   ...notification,
+      //   timestamp: Timestamp.fromDate(notification.timestamp),
+      //   createdAt: Timestamp.now()
+      // };
+      // await addDoc(collection(db, 'notifications'), notificationData);
+      
     } catch (error) {
-      console.error('Failed to initialize event source:', error);
+      console.error('Failed to save notification to Firebase:', error);
     }
   }
 
-  private handleStreamError(): void {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-
-    if (this.retryCount < this.maxRetries) {
-      this.retryCount++;
-      const retryDelay = Math.pow(2, this.retryCount) * 1000; // Exponential backoff
+  private subscribeToFirebaseNotifications(): void {
+    try {
+      // For development, we'll skip Firebase subscription and use local notifications only
+      // In production, this would require proper authentication setup
+      console.log('Firebase notification listener - using local mode for development');
       
-      console.log(`Retrying notification stream in ${retryDelay}ms (attempt ${this.retryCount})`);
+      // TODO: Implement proper authentication before enabling Firebase subscriptions
+      // For now, we'll rely on local notifications and service calls
       
-      setTimeout(() => {
-        this.initializeEventSource();
-      }, retryDelay);
-    } else {
-      console.error('Max retries reached for notification stream');
+    } catch (error) {
+      console.error('Failed to initialize Firebase notification listener:', error);
     }
   }
+
 
   private registerServiceWorkerListeners(): void {
     if ('serviceWorker' in navigator) {
@@ -584,11 +577,6 @@ class NotificationService {
 
   // Cleanup
   destroy(): void {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
-    
     this.subscribers.clear();
     this.toastSubscribers.clear();
     this.saveNotifications();

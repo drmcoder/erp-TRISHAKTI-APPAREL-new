@@ -1,6 +1,8 @@
 // Error Reporting and Monitoring Service
 // Comprehensive error tracking and performance monitoring system
 
+import { ENV_CONFIG } from '../config/environment';
+
 interface ErrorContext {
   user?: {
     id: string;
@@ -48,9 +50,22 @@ class ErrorReportingService {
   private isOnline = true;
   private maxQueueSize = 100;
   private flushInterval = 10000; // 10 seconds
+  private errorEndpointAvailable = true; // Track if endpoint is available
+  private performanceEndpointAvailable = true; // Track if endpoint is available
 
   constructor() {
     this.sessionId = this.generateSessionId();
+    
+    // In development, disable remote error reporting endpoints by default
+    // to avoid 404 errors when no backend API is available
+    if (ENV_CONFIG.environment === 'development') {
+      this.errorEndpointAvailable = false;
+      this.performanceEndpointAvailable = false;
+      if (ENV_CONFIG.logging.debugMode) {
+        console.log('🔧 Development mode: Error reporting endpoints disabled');
+      }
+    }
+    
     this.setupGlobalErrorHandlers();
     this.setupPerformanceMonitoring();
     this.setupNetworkStatusListener();
@@ -440,42 +455,82 @@ class ErrorReportingService {
   }
 
   private async flushErrors(): Promise<void> {
-    if (this.errorQueue.length === 0 || !this.isOnline) return;
+    if (this.errorQueue.length === 0 || !this.isOnline || !this.errorEndpointAvailable) return;
 
     const errors = this.errorQueue.splice(0, this.maxQueueSize);
 
     try {
-      await fetch(this.apiEndpoint, {
+      const response = await fetch(this.apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ errors }),
       });
+
+      // If endpoint doesn't exist, disable future attempts
+      if (response.status === 404) {
+        this.errorEndpointAvailable = false;
+        if (ENV_CONFIG.logging.debugMode) {
+          console.log('Error reporting endpoint not available - future attempts disabled');
+        }
+        return; // Don't re-queue
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
     } catch (error) {
-      // Re-queue errors if sending fails
-      this.errorQueue.unshift(...errors);
-      console.error('Failed to send error reports:', error);
+      // Only re-queue on network errors, not 404s
+      if (error instanceof TypeError || (error as any)?.message?.includes('fetch')) {
+        this.errorQueue.unshift(...errors);
+        console.error('Failed to send error reports (network error):', error);
+      } else {
+        this.errorEndpointAvailable = false;
+        if (ENV_CONFIG.logging.debugMode) {
+          console.log('Error reporting endpoint unavailable - future attempts disabled');
+        }
+      }
     }
   }
 
   private async flushPerformanceMetrics(): Promise<void> {
-    if (this.performanceQueue.length === 0 || !this.isOnline) return;
+    if (this.performanceQueue.length === 0 || !this.isOnline || !this.performanceEndpointAvailable) return;
 
     const metrics = this.performanceQueue.splice(0, this.maxQueueSize);
 
     try {
-      await fetch(this.performanceEndpoint, {
+      const response = await fetch(this.performanceEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ metrics }),
       });
+
+      // If endpoint doesn't exist, disable future attempts
+      if (response.status === 404) {
+        this.performanceEndpointAvailable = false;
+        if (ENV_CONFIG.logging.debugMode) {
+          console.log('Performance monitoring endpoint not available - future attempts disabled');
+        }
+        return; // Don't re-queue
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
     } catch (error) {
-      // Re-queue metrics if sending fails
-      this.performanceQueue.unshift(...metrics);
-      console.error('Failed to send performance metrics:', error);
+      // Only re-queue on network errors, not 404s
+      if (error instanceof TypeError || (error as any)?.message?.includes('fetch')) {
+        this.performanceQueue.unshift(...metrics);
+        console.error('Failed to send performance metrics (network error):', error);
+      } else {
+        this.performanceEndpointAvailable = false;
+        if (ENV_CONFIG.logging.debugMode) {
+          console.log('Performance monitoring endpoint unavailable - future attempts disabled');
+        }
+      }
     }
   }
 
@@ -483,15 +538,27 @@ class ErrorReportingService {
     if (!this.isOnline) return;
 
     try {
-      await fetch('/api/analytics/actions', {
+      const response = await fetch('/api/analytics/actions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(action),
       });
+
+      // If endpoint doesn't exist, just log locally
+      if (response.status === 404 && ENV_CONFIG.logging.debugMode) {
+        console.log('User action tracking endpoint not available - action logged locally');
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
     } catch (error) {
-      console.error('Failed to send user action:', error);
+      if (ENV_CONFIG.logging.debugMode) {
+        console.log('User action tracking endpoint unavailable:', error);
+      }
     }
   }
 

@@ -54,8 +54,30 @@ class PWAService {
   // Initialize service worker and event listeners
   async initialize(): Promise<void> {
     try {
-      // Register service worker
+      // Register service worker - Skip in development to avoid cache issues
       if ('serviceWorker' in navigator) {
+        const isDev = window.location.hostname === 'localhost' || window.location.port === '3000';
+        
+        if (isDev) {
+          console.log('Development mode: Skipping Service Worker registration to avoid cache issues');
+          // Unregister any existing service workers in development
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            console.log('Unregistering existing service worker:', registration.scope);
+            await registration.unregister();
+          }
+          
+          // Clear all caches
+          if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            for (const cacheName of cacheNames) {
+              console.log('Clearing cache:', cacheName);
+              await caches.delete(cacheName);
+            }
+          }
+          return;
+        }
+        
         this.swRegistration = await navigator.serviceWorker.register('/sw.js', {
           scope: '/'
         });

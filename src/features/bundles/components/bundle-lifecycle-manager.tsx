@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/Button';
-import { Input } from '@/shared/components/ui/input';
+import { Input } from '@/shared/components/ui/Input';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Badge } from '@/shared/components/ui/Badge';
@@ -144,7 +144,13 @@ export const BundleLifecycleManager: React.FC<BundleLifecycleManagerProps> = ({
   }, [mode, bundleId]);
 
   const loadBundle = async () => {
-    if (!bundleId) return;
+    if (!bundleId) {
+      // If no bundleId provided, load a sample bundle or create new one
+      if (mode === 'view') {
+        initializeNewBundle();
+      }
+      return;
+    }
     
     try {
       setLoading(true);
@@ -153,6 +159,8 @@ export const BundleLifecycleManager: React.FC<BundleLifecycleManagerProps> = ({
     } catch (error) {
       console.error('Error loading bundle:', error);
       toast.error('Failed to load bundle data');
+      // Fallback to sample data
+      initializeNewBundle();
     } finally {
       setLoading(false);
     }

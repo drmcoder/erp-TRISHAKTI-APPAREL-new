@@ -12,7 +12,13 @@ import {
   ChartBarIcon,
   CogIcon,
   BellIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  QrCodeIcon,
+  TvIcon,
+  ComputerDesktopIcon,
+  DocumentTextIcon,
+  PlayIcon,
+  TagIcon
 } from '@heroicons/react/24/outline';
 import { cn } from '../../lib/utils';
 
@@ -30,31 +36,55 @@ interface MobileFriendlyLayoutProps {
 const navigationItems = {
   operator: [
     { icon: HomeIcon, label: 'Dashboard', href: '/operator', id: 'dashboard' },
-    { icon: ClipboardDocumentListIcon, label: 'My Work', href: '/operator/work', id: 'work' },
-    { icon: ChartBarIcon, label: 'Earnings', href: '/operator/earnings', id: 'earnings' },
+    { icon: ClipboardDocumentListIcon, label: 'Self Assignment', href: '/operator/self-assign', id: 'self-assignment' },
+    { icon: PlayIcon, label: 'Production Timer', href: '/operator/timer', id: 'timer' },
+    { icon: QrCodeIcon, label: 'Barcode Scanner', href: '/operator/scanner', id: 'barcode-scanner' },
+    { icon: ChartBarIcon, label: 'My Earnings', href: '/operator/earnings', id: 'earnings' },
     { icon: UserCircleIcon, label: 'Profile', href: '/operator/profile', id: 'profile' }
   ],
   supervisor: [
     { icon: HomeIcon, label: 'Dashboard', href: '/supervisor', id: 'dashboard' },
-    { icon: CubeIcon, label: 'Bundles', href: '/supervisor/bundles', id: 'bundles' },
-    { icon: UserGroupIcon, label: 'Operators', href: '/supervisor/operators', id: 'operators' },
+    { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/supervisor/complete-wip', id: 'complete-wip-entry' },
+    { icon: ClipboardDocumentListIcon, label: 'Enhanced WIP', href: '/supervisor/wip', id: 'wip-entry' },
+    { icon: CubeIcon, label: 'Multi-Roll WIP', href: '/supervisor/multi-roll-wip', id: 'multi-roll-wip' },
+    { icon: UserGroupIcon, label: 'Work Assignment', href: '/supervisor/assignments', id: 'work-assignment' },
+    { icon: CubeIcon, label: 'Bundle Management', href: '/supervisor/bundles', id: 'bundles' },
+    { icon: UserGroupIcon, label: 'Operator Management', href: '/supervisor/operators', id: 'operators' },
+    { icon: ComputerDesktopIcon, label: 'Live Dashboard', href: '/supervisor/live', id: 'live-dashboard' },
+    { icon: QrCodeIcon, label: 'Barcode Scanner', href: '/supervisor/scanner', id: 'barcode-scanner' },
+    { icon: TagIcon, label: 'Label Generator', href: '/supervisor/labels', id: 'label-generator' },
     { icon: ChartBarIcon, label: 'Analytics', href: '/supervisor/analytics', id: 'analytics' },
-    { icon: CogIcon, label: 'Quality', href: '/supervisor/quality', id: 'quality' }
+    { icon: CogIcon, label: 'Quality Control', href: '/supervisor/quality', id: 'quality' },
+    { icon: DocumentTextIcon, label: 'Templates', href: '/supervisor/templates', id: 'templates' }
   ],
   management: [
     { icon: HomeIcon, label: 'Dashboard', href: '/management', id: 'dashboard' },
-    { icon: ClipboardDocumentListIcon, label: 'WIP Entry', href: '/management/wip', id: 'wip' },
-    { icon: CubeIcon, label: 'Production', href: '/management/production', id: 'production' },
+    { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/management/complete-wip', id: 'complete-wip-entry' },
+    { icon: ClipboardDocumentListIcon, label: 'Enhanced WIP', href: '/management/wip', id: 'wip-entry' },
+    { icon: CubeIcon, label: 'Multi-Roll WIP', href: '/management/multi-roll-wip', id: 'multi-roll-wip' },
+    { icon: CubeIcon, label: 'Production Lots', href: '/management/production-lots', id: 'production-lots' },
+    { icon: CubeIcon, label: 'Cutting Droplet', href: '/management/cutting', id: 'cutting-droplet' },
+    { icon: CogIcon, label: 'Pricing Manager', href: '/management/pricing', id: 'pricing-manager' },
+    { icon: ComputerDesktopIcon, label: 'Live Dashboard', href: '/management/live', id: 'live-dashboard' },
+    { icon: TvIcon, label: 'TV Dashboard', href: '/management/tv', id: 'tv-dashboard' },
     { icon: ChartBarIcon, label: 'Analytics', href: '/management/analytics', id: 'analytics' },
-    { icon: UserGroupIcon, label: 'Users', href: '/management/users', id: 'users' },
-    { icon: CogIcon, label: 'Templates', href: '/management/templates', id: 'templates' }
+    { icon: UserGroupIcon, label: 'Users', href: '/management/users', id: 'operators' },
+    { icon: DocumentTextIcon, label: 'Templates', href: '/management/templates', id: 'templates' }
   ],
   admin: [
     { icon: HomeIcon, label: 'Dashboard', href: '/admin', id: 'dashboard' },
-    { icon: ClipboardDocumentListIcon, label: 'WIP Entry', href: '/admin/wip', id: 'wip' },
-    { icon: CubeIcon, label: 'Production', href: '/admin/production', id: 'production' },
+    { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/admin/complete-wip', id: 'complete-wip-entry' },
+    { icon: ClipboardDocumentListIcon, label: 'Enhanced WIP', href: '/admin/wip', id: 'wip-entry' },
+    { icon: CubeIcon, label: 'Multi-Roll WIP', href: '/admin/multi-roll-wip', id: 'multi-roll-wip' },
+    { icon: CubeIcon, label: 'Enhanced Operator', href: '/admin/enhanced-operator', id: 'enhanced-operator' },
+    { icon: UserCircleIcon, label: 'Piece Tracker', href: '/admin/piece-tracker', id: 'piece-tracker' },
+    { icon: CubeIcon, label: 'Bundle Assignment', href: '/admin/bundle-assignment', id: 'bundle-assignment' },
+    { icon: ComputerDesktopIcon, label: 'Live Dashboard', href: '/admin/live', id: 'live-dashboard' },
+    { icon: TvIcon, label: 'TV Dashboard', href: '/admin/tv', id: 'tv-dashboard' },
+    { icon: QrCodeIcon, label: 'Barcode Scanner', href: '/admin/scanner', id: 'barcode-scanner' },
+    { icon: TagIcon, label: 'Label Generator', href: '/admin/labels', id: 'label-generator' },
     { icon: ChartBarIcon, label: 'Analytics', href: '/admin/analytics', id: 'analytics' },
-    { icon: UserGroupIcon, label: 'Users', href: '/admin/users', id: 'users' },
+    { icon: UserGroupIcon, label: 'Users', href: '/admin/users', id: 'operators' },
     { icon: CogIcon, label: 'Settings', href: '/admin/settings', id: 'settings' }
   ]
 };

@@ -1,0 +1,254 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if it's development mode
+    function isDevelopment() {
+      // In development, allow broader access for testing
+      return true;
+    }
+    
+    // Helper function to check user role
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+    
+    function hasRole(roles) {
+      return getUserRole() in roles;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Development-friendly access - allows authenticated users broader access
+    function canAccessInDev() {
+      return isDevelopment() && request.auth != null;
+    }
+
+    // Test connectivity collection (for Firebase tests)
+    match /test_connectivity/{docId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // User management collections - Development friendly
+    match /operators/{operatorId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && 
+                      (isOwner(operatorId) || hasRole(['supervisor', 'management', 'admin'])));
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['supervisor', 'admin', 'management']));
+    }
+
+    match /supervisors/{supervisorId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && 
+                      (isOwner(supervisorId) || hasRole(['management', 'admin'])));
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['admin', 'management']));
+    }
+
+    match /management/{managementId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && hasRole(['admin']));
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['admin']));
+    }
+
+    // Work management - Development friendly
+    match /bundles/{bundleId} {
+      allow read: if canAccessInDev() || request.auth != null;
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['supervisor', 'admin', 'management']));
+    }
+
+    match /workItems/{workItemId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && 
+                      (resource.data.operatorId == request.auth.uid ||
+                       hasRole(['supervisor', 'admin', 'management'])));
+      allow create: if canAccessInDev() || 
+                       (request.auth != null && hasRole(['supervisor', 'admin']));
+      allow update: if canAccessInDev() || 
+                       (request.auth != null && 
+                        (resource.data.operatorId == request.auth.uid ||
+                         hasRole(['supervisor', 'admin'])));
+    }
+
+    match /workAssignments/{assignmentId} {
+      allow read: if canAccessInDev() ||
+                     (request.auth != null &&
+                      (resource.data.operatorId == request.auth.uid ||
+                       resource.data.supervisorId == request.auth.uid ||
+                       hasRole(['admin', 'management'])));
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['supervisor', 'admin']));
+    }
+
+    match /workCompletions/{completionId} {
+      allow read: if canAccessInDev() ||
+                     (request.auth != null &&
+                      (resource.data.operatorId == request.auth.uid ||
+                       hasRole(['supervisor', 'admin', 'management'])));
+      allow create: if canAccessInDev() || 
+                       (request.auth != null && 
+                        request.auth.uid == resource.data.operatorId);
+      allow update: if canAccessInDev() || 
+                       (request.auth != null && hasRole(['supervisor', 'admin']));
+    }
+
+    // WIP and progress tracking
+    match /wipEntries/{wipId} {
+      allow read: if canAccessInDev() || request.auth != null;
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['supervisor', 'admin']));
+    }
+
+    match /wipRolls/{rollId} {
+      allow read: if canAccessInDev() || request.auth != null;
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['supervisor', 'admin']));
+    }
+
+    // Quality management
+    match /qualityIssues/{issueId} {
+      allow read: if canAccessInDev() ||
+                     (request.auth != null &&
+                      (resource.data.operatorId == request.auth.uid ||
+                       resource.data.supervisorId == request.auth.uid ||
+                       hasRole(['admin', 'management'])));
+      allow create: if canAccessInDev() || 
+                       (request.auth != null && 
+                        hasRole(['operator', 'supervisor', 'admin']));
+      allow update: if canAccessInDev() || 
+                       (request.auth != null && hasRole(['supervisor', 'admin']));
+    }
+
+    // Damage reports
+    match /damage_reports/{reportId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && 
+                      (resource.data.operatorId == request.auth.uid ||
+                       resource.data.supervisorId == request.auth.uid ||
+                       hasRole(['admin', 'management'])));
+      allow create: if canAccessInDev() || 
+                       (request.auth != null && 
+                        hasRole(['operator', 'supervisor', 'admin']));
+      allow update: if canAccessInDev() || 
+                       (request.auth != null && 
+                        (resource.data.supervisorId == request.auth.uid ||
+                         hasRole(['admin'])));
+    }
+
+    match /damage_notifications/{notificationId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && 
+                      resource.data.recipientId == request.auth.uid);
+      allow create: if canAccessInDev() || request.auth != null;
+      allow update: if canAccessInDev() || 
+                       (request.auth != null && 
+                        resource.data.recipientId == request.auth.uid);
+    }
+
+    // Operator wallets and earnings
+    match /operatorWallets/{operatorId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && 
+                      (isOwner(operatorId) || hasRole(['admin', 'management'])));
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['admin', 'system']));
+    }
+
+    match /wageRecords/{recordId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && 
+                      (resource.data.operatorId == request.auth.uid ||
+                       hasRole(['admin', 'management'])));
+      allow create: if canAccessInDev() || 
+                       (request.auth != null && hasRole(['admin', 'system']));
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read, update: if canAccessInDev() || 
+                             (request.auth != null && 
+                              resource.data.recipientId == request.auth.uid);
+      allow create: if canAccessInDev() || request.auth != null;
+    }
+
+    // System configuration
+    match /systemSettings/{settingId} {
+      allow read: if canAccessInDev() || request.auth != null;
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['admin']));
+    }
+
+    match /machineConfigs/{configId} {
+      allow read: if canAccessInDev() || request.auth != null;
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['admin', 'supervisor']));
+    }
+
+    match /articleTemplates/{templateId} {
+      allow read: if canAccessInDev() || request.auth != null;
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['admin', 'supervisor']));
+    }
+
+    match /sizeConfigs/{configId} {
+      allow read: if canAccessInDev() || request.auth != null;
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['admin', 'supervisor']));
+    }
+
+    // Analytics and reporting
+    match /dailyReports/{reportId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && hasRole(['supervisor', 'admin', 'management']));
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['admin', 'system']));
+    }
+
+    match /productionStats/{statId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && hasRole(['supervisor', 'admin', 'management']));
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['admin', 'system']));
+    }
+
+    match /efficiencyLogs/{logId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && 
+                      (resource.data.operatorId == request.auth.uid ||
+                       hasRole(['supervisor', 'admin', 'management'])));
+      allow create: if canAccessInDev() || request.auth != null;
+    }
+
+    match /lineStatus/{statusId} {
+      allow read: if canAccessInDev() || request.auth != null;
+      allow write: if canAccessInDev() || 
+                      (request.auth != null && hasRole(['supervisor', 'admin']));
+    }
+
+    // Assignment history for audit trail
+    match /assignmentHistory/{historyId} {
+      allow read: if canAccessInDev() || 
+                     (request.auth != null && 
+                      (resource.data.operatorId == request.auth.uid ||
+                       resource.data.supervisorId == request.auth.uid ||
+                       hasRole(['admin', 'management'])));
+      allow create: if canAccessInDev() || request.auth != null;
+    }
+
+    // Deleted templates (soft delete)
+    match /deletedTemplates/{templateId} {
+      allow read, write: if canAccessInDev() || 
+                            (request.auth != null && hasRole(['admin']));
+    }
+
+    // Allow all other collections for development testing
+    match /{document=**} {
+      allow read, write: if canAccessInDev();
+    }
+  }
+}

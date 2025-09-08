@@ -1,11 +1,66 @@
 // Main Service Index - Exports all integrated business services
 // This is the single entry point for all business operations
 
-export { integratedBusinessService, ServiceResponse } from './integrated-business-service';
+export { integratedBusinessService } from './integrated-business-service';
+export type { ServiceResponse } from './base-service';
 export { firebaseIntegration } from './firebase-integration';
-export { workflowEngine, WorkflowDefinition, WorkflowStep } from './workflow-engine';
+export { workflowEngine } from './workflow-engine';
+export type { WorkflowDefinition, WorkflowStep } from './workflow-engine';
 export { firebaseConnection, useFirebaseConnection } from './firebase-connection';
 export * from './entities/index';
+
+// Individual Service Exports
+export { productionTSAService } from './production-ready-service';
+export { bundleService } from './bundle-service';
+export { analyticsService } from './analytics-service';
+export { tokenService } from './token-service';
+export { DamageReportService, damageReportService } from './damage-report-service';
+export { UserService } from './user-service';
+export type { UserProfile, UserActivity, UserListFilters } from './user-service';
+export { errorReportingService } from './error-reporting-service';
+export { permissionsService } from './permissions-service';
+export { OperatorService, operatorService } from './operator-service';
+export { BaseService } from './base-service';
+export type { QueryOptions, WhereClause } from './base-service';
+export { WorkAssignmentService, workAssignmentService } from './work-assignment-service';
+export { pwaService } from './pwa-service';
+export { OperatorWalletService, operatorWalletService } from './operator-wallet-service';
+export { notificationService } from './notification-service';
+export type { NotificationPayload } from './notification-service';
+export { permissionService } from './permission-service';
+export { realtimeService } from './realtime-service';
+export { authService } from './auth-service';
+export { mockDataService } from './mock-data-service';
+export { avatarService } from './avatar-service';
+export { OptimisticUpdates } from './optimistic-updates';
+export { ConnectionMonitor } from './connection-monitor';
+
+// TSA Production System Services
+export { productionLotService } from './production-lot-service';
+export { enhancedProductionService } from './enhanced-production-service';
+export { realtimeProductionService } from './realtime-production-service';
+export type { 
+  ProductionLot, 
+  ColorSizeBreakdown, 
+  SizeQuantity, 
+  ProcessStep, 
+  OperatorWorkEntry, 
+  MonthlyWageCalculation 
+} from './production-lot-service';
+export type {
+  CuttingDroplet,
+  ProductionBundle, 
+  BundleProcessStep,
+  OperatorWorkSession,
+  CuttingColorSize
+} from './enhanced-production-service';
+export type {
+  RealtimeOperatorStatus,
+  RealtimeWorkProgress,
+  RealtimeStationStatus,
+  RealtimeLiveMetrics,
+  RealtimeNotification
+} from './realtime-production-service';
 
 // Business Logic Exports
 export { default as businessLogic } from '../lib/businessLogic';
@@ -15,6 +70,8 @@ export { managementBusinessLogic } from '../features/management/business/managem
 
 // Quick Access Service Functions
 import { integratedBusinessService } from './integrated-business-service';
+import { firebaseConnection } from './firebase-connection';
+import { workflowEngine } from './workflow-engine';
 
 // === OPERATOR SERVICES ===
 export const operatorServices = {
@@ -63,6 +120,34 @@ export const connectionServices = {
   goOnline: firebaseConnection.goOnline
 };
 
+// === TSA PRODUCTION SERVICES ===
+// TEMPORARILY DISABLED - Import services directly in components to avoid circular deps
+/*
+export const tsaProductionServices = {
+  // Cutting and Lot Management
+  createCuttingDroplet: enhancedProductionService.createCuttingDroplet.bind(enhancedProductionService),
+  createBundlesFromCutting: enhancedProductionService.createBundlesFromCutting.bind(enhancedProductionService),
+  createProductionLot: productionLotService.createProductionLot.bind(productionLotService),
+  
+  // Work Assignment
+  assignBundleStepToOperator: enhancedProductionService.assignBundleStepToOperator.bind(enhancedProductionService),
+  getAvailableWorkForOperator: enhancedProductionService.getAvailableWorkForOperator.bind(enhancedProductionService),
+  
+  // Operator Work Tracking
+  createOperatorWorkEntry: productionLotService.createOperatorWorkEntry.bind(productionLotService),
+  completeOperatorWork: enhancedProductionService.completeOperatorWork.bind(enhancedProductionService),
+  
+  // Wage Calculation
+  getOperatorMonthlyWork: enhancedProductionService.getOperatorMonthlyWork.bind(enhancedProductionService),
+  calculateMonthlyWages: productionLotService.calculateMonthlyWages.bind(productionLotService),
+  
+  // Realtime Updates
+  updateOperatorStatus: realtimeProductionService.updateOperatorStatus.bind(realtimeProductionService),
+  subscribeToProductionStats: realtimeProductionService.subscribeToProductionStats.bind(realtimeProductionService),
+  sendNotification: realtimeProductionService.sendNotification.bind(realtimeProductionService)
+};
+*/
+
 // Main service instance for direct access
 export const TSAServices = {
   operator: operatorServices,
@@ -71,7 +156,9 @@ export const TSAServices = {
   supervisor: supervisorServices,
   management: managementServices,
   workflow: workflowServices,
-  connection: connectionServices
+  connection: connectionServices,
+  // TEMPORARILY DISABLED - Use direct service imports in components
+  // production: tsaProductionServices
 };
 
 // Service Health Check

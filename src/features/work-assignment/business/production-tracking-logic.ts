@@ -401,12 +401,12 @@ export class ProductionTrackingLogic {
   // Check break compliance (private helper method)
   private checkBreakComplianceInternal(actual: Break[], required: Break[]): boolean {
     if (!required || !Array.isArray(required)) {
-      console.warn('checkBreakCompliance: required breaks array is undefined or invalid');
+      console.warn('checkBreakComplianceInternal: required breaks array is undefined or invalid');
       return true; // Return true to avoid blocking when required breaks are not defined
     }
     
     if (!actual || !Array.isArray(actual)) {
-      console.warn('checkBreakCompliance: actual breaks array is undefined or invalid');
+      console.warn('checkBreakComplianceInternal: actual breaks array is undefined or invalid');
       return false;
     }
     

@@ -27,7 +27,7 @@ import {
   off, 
   serverTimestamp as rtServerTimestamp 
 } from 'firebase/database';
-import { db, rtdb, COLLECTIONS, RT_PATHS } from '@/config/firebase';
+import { db, rtdb, COLLECTIONS, RT_PATHS } from '../config/firebase';
 
 /**
  * OperatorService - Comprehensive operator management with real-time status tracking

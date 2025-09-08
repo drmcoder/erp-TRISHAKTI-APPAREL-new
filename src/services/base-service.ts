@@ -17,7 +17,7 @@ import {
   runTransaction,
   serverTimestamp 
 } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db } from '../config/firebase';
 import { OptimisticUpdates } from './optimistic-updates';
 import { ConnectionMonitor } from './connection-monitor';
 

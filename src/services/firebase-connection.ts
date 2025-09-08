@@ -4,8 +4,8 @@
 import { useState, useEffect } from 'react';
 import { connectFirestoreEmulator, enableNetwork, disableNetwork } from 'firebase/firestore';
 import { connectAuthEmulator } from 'firebase/auth';
-import { connectDatabaseEmulator, goOffline, goOnline } from 'firebase/database';
-import { db, auth, rtdb, REALTIME_CONFIG } from '@/config/firebase';
+import { connectDatabaseEmulator, goOffline, goOnline, ref, onValue } from 'firebase/database';
+import { db, auth, rtdb, REALTIME_CONFIG } from '../config/firebase';
 
 export interface ConnectionState {
   firestore: 'connected' | 'disconnected' | 'error';
@@ -92,8 +92,8 @@ export class FirebaseConnectionService {
     try {
       // Realtime Database doesn't have a direct ping method,
       // but we can check if we can set a test value
-      const testRef = rtdb.ref('.info/connected');
-      testRef.on('value', (snapshot) => {
+      const testRef = ref(rtdb, '.info/connected');
+      onValue(testRef, (snapshot) => {
         if (snapshot.val() === true) {
           this.updateConnectionState('realtimedb', 'connected');
           this.reconnectAttempts = 0;

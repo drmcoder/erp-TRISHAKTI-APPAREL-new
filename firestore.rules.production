@@ -1,0 +1,193 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions for role-based access
+    function getUserRole() {
+      return request.auth.token.role;
+    }
+    
+    function hasRole(roles) {
+      return getUserRole() in roles;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // OPERATOR PERMISSIONS
+    // Operators can only see their own work and data
+    match /operators/{operatorId} {
+      allow read: if isAuthenticated() && 
+                     (isOwner(operatorId) || hasRole(['supervisor', 'management', 'admin']));
+      allow write: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+    }
+
+    match /workAssignments/{assignmentId} {
+      allow read: if isAuthenticated() &&
+                     (resource.data.operatorId == request.auth.uid ||
+                      resource.data.supervisorId == request.auth.uid ||
+                      hasRole(['management', 'admin']));
+      allow write: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+    }
+
+    match /workCompletions/{completionId} {
+      allow read: if isAuthenticated() &&
+                     (resource.data.operatorId == request.auth.uid ||
+                      hasRole(['supervisor', 'management', 'admin']));
+      allow create: if isAuthenticated() && 
+                       (request.auth.uid == request.resource.data.operatorId ||
+                        hasRole(['supervisor', 'management', 'admin']));
+      allow update: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+    }
+
+    // Operator can see their own wallet, supervisors can see their team's wallets
+    match /operatorWallets/{operatorId} {
+      allow read: if isAuthenticated() && 
+                     (isOwner(operatorId) || 
+                      hasRole(['supervisor', 'management', 'admin']));
+      allow write: if isAuthenticated() && hasRole(['management', 'admin']);
+    }
+
+    // SUPERVISOR PERMISSIONS
+    // Supervisors can manage their team but not other teams
+    match /supervisors/{supervisorId} {
+      allow read: if isAuthenticated() && 
+                     (isOwner(supervisorId) || hasRole(['management', 'admin']));
+      allow write: if isAuthenticated() && hasRole(['management', 'admin']);
+    }
+
+    // Work items - supervisors can create and manage for their operators
+    match /workItems/{workItemId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.operatorId == request.auth.uid ||
+                      resource.data.supervisorId == request.auth.uid ||
+                      hasRole(['management', 'admin']));
+      allow create: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+      allow update: if isAuthenticated() && 
+                       (resource.data.operatorId == request.auth.uid ||
+                        resource.data.supervisorId == request.auth.uid ||
+                        hasRole(['management', 'admin']));
+    }
+
+    // Bundle management - supervisors assign, operators complete
+    match /bundles/{bundleId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+    }
+
+    // QUALITY CONTROL
+    // Operators can report issues, supervisors can approve/resolve
+    match /qualityIssues/{issueId} {
+      allow read: if isAuthenticated() &&
+                     (resource.data.operatorId == request.auth.uid ||
+                      resource.data.supervisorId == request.auth.uid ||
+                      hasRole(['management', 'admin']));
+      allow create: if isAuthenticated(); // Any authenticated user can report quality issues
+      allow update: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+    }
+
+    match /damage_reports/{reportId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.operatorId == request.auth.uid ||
+                      resource.data.supervisorId == request.auth.uid ||
+                      hasRole(['management', 'admin']));
+      allow create: if isAuthenticated() && hasRole(['operator', 'supervisor', 'management', 'admin']);
+      allow update: if isAuthenticated() && 
+                       (resource.data.supervisorId == request.auth.uid ||
+                        hasRole(['management', 'admin']));
+    }
+
+    // MANAGEMENT PERMISSIONS
+    // Only management can see financial and system data
+    match /management/{managementId} {
+      allow read, write: if isAuthenticated() && hasRole(['admin']);
+    }
+
+    // System configuration - only management/admin
+    match /systemSettings/{settingId} {
+      allow read: if isAuthenticated() && hasRole(['management', 'admin']);
+      allow write: if isAuthenticated() && hasRole(['admin']);
+    }
+
+    match /machineConfigs/{configId} {
+      allow read: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+      allow write: if isAuthenticated() && hasRole(['management', 'admin']);
+    }
+
+    // PRODUCTION PLANNING
+    // Only management can create lots and plan production
+    match /lots/{lotId} {
+      allow read: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+      allow write: if isAuthenticated() && hasRole(['management', 'admin']);
+    }
+
+    // REPORTING & ANALYTICS
+    // Different access levels for different roles
+    match /dailyReports/{reportId} {
+      allow read: if isAuthenticated() && 
+                     (hasRole(['supervisor', 'management', 'admin']) ||
+                      (hasRole(['operator']) && resource.data.operatorId == request.auth.uid));
+      allow write: if isAuthenticated() && hasRole(['management', 'admin']);
+    }
+
+    match /productionStats/{statId} {
+      allow read: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+      allow write: if isAuthenticated() && hasRole(['management', 'admin']);
+    }
+
+    // Efficiency logs - operators see their own, supervisors see their team
+    match /efficiencyLogs/{logId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.operatorId == request.auth.uid ||
+                      hasRole(['supervisor', 'management', 'admin']));
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+    }
+
+    // NOTIFICATIONS
+    match /notifications/{notificationId} {
+      allow read, update: if isAuthenticated() && 
+                             resource.data.recipientId == request.auth.uid;
+      allow create: if isAuthenticated();
+    }
+
+    // WIP and progress tracking - all can read, supervisors+ can write
+    match /wipEntries/{wipId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+    }
+
+    // AUDIT TRAIL
+    match /assignmentHistory/{historyId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.operatorId == request.auth.uid ||
+                      resource.data.supervisorId == request.auth.uid ||
+                      hasRole(['management', 'admin']));
+      allow create: if isAuthenticated();
+    }
+
+    // Wage records - operators see their own, management sees all
+    match /wageRecords/{recordId} {
+      allow read: if isAuthenticated() && 
+                     (resource.data.operatorId == request.auth.uid ||
+                      hasRole(['management', 'admin']));
+      allow write: if isAuthenticated() && hasRole(['management', 'admin']);
+    }
+
+    // Line status - all can read, supervisors+ can update
+    match /lineStatus/{statusId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && hasRole(['supervisor', 'management', 'admin']);
+    }
+
+    // DEVELOPMENT TESTING - Remove in production
+    match /test_connectivity/{docId} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

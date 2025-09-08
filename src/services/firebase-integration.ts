@@ -35,7 +35,7 @@ import {
   serverTimestamp as rtdbServerTimestamp
 } from 'firebase/database';
 
-import { db, rtdb, COLLECTIONS, RT_PATHS } from '@/config/firebase';
+import { db, rtdb, COLLECTIONS, RT_PATHS } from '../config/firebase';
 import { operatorBusinessLogic } from '@/features/operators/business/operator-business-logic';
 import { supervisorBusinessLogic } from '@/features/supervisors/business/supervisor-business-logic';
 import { managementBusinessLogic } from '@/features/management/business/management-business-logic';

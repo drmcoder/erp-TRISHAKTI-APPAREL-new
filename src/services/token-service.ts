@@ -294,3 +294,6 @@ export class TokenService {
     return true;
   }
 }
+
+// Export singleton instance
+export const tokenService = new TokenService();

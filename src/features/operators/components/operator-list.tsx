@@ -7,7 +7,7 @@ import {
   UserGroupIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/shared/components/ui/Button';
-import { Input } from '@/shared/components/ui/input';
+import { Input } from '@/shared/components/ui/Input';
 import { Badge } from '@/shared/components/ui/Badge';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { EmptyState } from '@/shared/components/empty-state';

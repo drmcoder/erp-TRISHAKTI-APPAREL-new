@@ -9,7 +9,7 @@ import {
   arrayRemove,
   serverTimestamp 
 } from 'firebase/firestore';
-import { db, COLLECTIONS } from '@/config/firebase';
+import { db, COLLECTIONS } from '../config/firebase';
 
 interface WalletBalance {
   operatorId: string;

@@ -1,0 +1,63 @@
+{
+  "rules": {
+    "live_production": {
+      ".read": "auth != null",
+      "operators": {
+        "$operatorId": {
+          ".read": "auth != null",
+          ".write": "auth != null && (auth.uid == $operatorId || auth.token.role == 'supervisor' || auth.token.role == 'manager')"
+        }
+      },
+      "bundles": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.token.role == 'supervisor' || auth.token.role == 'manager')"
+      },
+      "work_progress": {
+        ".read": "auth != null",
+        "$sessionId": {
+          ".write": "auth != null && (data.child('operatorId').val() == auth.uid || auth.token.role == 'supervisor' || auth.token.role == 'manager')"
+        }
+      },
+      "cutting_droplets": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.token.role == 'manager' || auth.token.role == 'supervisor')"
+      },
+      "metrics": {
+        ".read": "auth != null",
+        ".write": "auth != null && (auth.token.role == 'supervisor' || auth.token.role == 'manager')"
+      }
+    },
+    
+    "live_lots": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.role == 'supervisor' || auth.token.role == 'manager')"
+    },
+    
+    "live_operator_earnings": {
+      "$operatorId": {
+        ".read": "auth != null && (auth.uid == $operatorId || auth.token.role == 'supervisor' || auth.token.role == 'manager')",
+        "daily_total": {
+          ".write": "auth != null && (auth.uid == $operatorId || auth.token.role == 'supervisor')"
+        },
+        "today": {
+          ".write": "auth != null && auth.uid == $operatorId"
+        }
+      }
+    },
+    
+    "live_production_stats": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.role == 'supervisor' || auth.token.role == 'manager')"
+    },
+    
+    "operator_monthly_summary": {
+      "$operatorId": {
+        ".read": "auth != null && (auth.uid == $operatorId || auth.token.role == 'supervisor' || auth.token.role == 'manager')",
+        ".write": "auth != null && (auth.token.role == 'supervisor' || auth.token.role == 'manager')"
+      }
+    },
+    
+    ".read": "auth != null",
+    ".write": "auth != null"
+  }
+}

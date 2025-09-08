@@ -1,16 +1,15 @@
 // Business Logic Layer for Supervisor Management
 // Handles complex business rules, validations, and workflows for supervisors
 
-import { 
+import type { 
   Supervisor, 
   Operator, 
   Bundle,
   WorkItem,
-  SupervisorLevel,
-  AssignmentRequest 
+  SupervisorLevel
 } from '../../../types/entities';
-import { supervisorService } from '../../../services/entities/supervisor-service';
-import { operatorService } from '../../../services/entities/operator-service';
+import type { AssignmentRequest } from '../../work-assignment/types';
+import { supervisorService, operatorService } from '../../../services/entities';
 
 export interface SupervisorBusinessRuleResult {
   isValid: boolean;
@@ -46,12 +45,15 @@ export interface ApprovalDecision {
 export class SupervisorBusinessLogic {
   
   // Business Rules for Supervisor Creation and Management
-  static validateSupervisorCreation(data: any): SupervisorBusinessRuleResult {
+  static validateSupervisorCreation(data: unknown): SupervisorBusinessRuleResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
+    // Type guard for data
+    const supervisorData = data as Record<string, any>;
+
     // Username and basic validation
-    if (!data.username || data.username.length < 3) {
+    if (!supervisorData.username || supervisorData.username.length < 3) {
       errors.push('Username must be at least 3 characters long');
     }
 
@@ -308,8 +310,8 @@ export class SupervisorBusinessLogic {
     supervisor: Supervisor,
     teamOperators: Operator[],
     periodData: {
-      completedWork: any[];
-      qualityIncidents: any[];
+      completedWork: Array<{bundleId: string; completedAt: Date; quality: number}>;
+      qualityIncidents: Array<{date: Date; type: string; severity: string; resolved: boolean}>;
       onTimeDeliveries: number;
       totalDeliveries: number;
     }

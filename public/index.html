@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TSA ERP</title>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Force unregister service worker in development -->
+    <script>
+    if (window.location.hostname === 'localhost' || window.location.port === '3000') {
+        console.log('[DEV] Unregistering all service workers...');
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                registrations.forEach(registration => {
+                    console.log('[DEV] Unregistering:', registration.scope);
+                    registration.unregister();
+                });
+            });
+        }
+        
+        // Clear all caches
+        if ('caches' in window) {
+            caches.keys().then(cacheNames => {
+                cacheNames.forEach(cacheName => {
+                    console.log('[DEV] Clearing cache:', cacheName);
+                    caches.delete(cacheName);
+                });
+            });
+        }
+    }
+    </script>
+</body>
+</html>

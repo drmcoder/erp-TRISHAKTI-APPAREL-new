@@ -4,7 +4,7 @@
 export const OPERATOR_CONFIG = {
   // API Configuration
   api: {
-    baseUrl: process.env.REACT_APP_API_BASE_URL || 'https://api.tsa-erp.com/v1',
+    baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://api.tsa-erp.com/v1',
     timeout: 30000, // 30 seconds
     retryAttempts: 3,
     retryDelay: 1000, // 1 second

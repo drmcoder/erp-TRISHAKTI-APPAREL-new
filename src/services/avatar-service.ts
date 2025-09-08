@@ -1,5 +1,5 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '@/config/firebase';
+import { storage } from '../config/firebase';
 import { UserService } from './user-service';
 
 export interface AvatarUploadOptions {
@@ -326,3 +326,4 @@ class AvatarServiceClass {
 }
 
 export const AvatarService = new AvatarServiceClass();
+export const avatarService = AvatarService;

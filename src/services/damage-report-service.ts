@@ -8,7 +8,7 @@ import {
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
-import { db, COLLECTIONS } from '@/config/firebase';
+import { db, COLLECTIONS } from '../config/firebase';
 
 // Damage status enum based on API_SPECIFICATIONS.md
 const DAMAGE_STATUS = {
@@ -419,6 +419,40 @@ export class DamageReportService extends BaseService {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create notification',
         code: 'NOTIFICATION_FAILED'
+      };
+    }
+  }
+
+  /**
+   * Get rework requests for approval interface
+   */
+  async getReworkRequests(supervisorId: string): Promise<ServiceResponse<DamageReport[]>> {
+    try {
+      const whereClause: WhereClause = {
+        field: 'supervisorId',
+        operator: '==',
+        value: supervisorId
+      };
+
+      const result = await this.getWhere<DamageReport>(whereClause, {
+        orderByField: 'reportedAt',
+        orderDirection: 'desc'
+      });
+
+      if (!result.success) return result;
+
+      // Filter to get reports that need rework approval (reported status)
+      const reworkRequests = result.data?.filter(report => 
+        report.status === DAMAGE_STATUS.REPORTED
+      ) || [];
+
+      return { success: true, data: reworkRequests };
+    } catch (error) {
+      console.error('Error getting rework requests:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get rework requests',
+        code: 'REWORK_REQUESTS_FAILED'
       };
     }
   }

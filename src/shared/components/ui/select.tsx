@@ -2,24 +2,34 @@ import * as React from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/shared/utils';
 
-export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {}
+export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  onValueChange?: (value: string) => void;
+}
 
 const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, children, ...props }, ref) => (
-    <div className="relative">
-      <select
-        className={cn(
-          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none',
-          className
-        )}
-        ref={ref}
-        {...props}
-      >
-        {children}
-      </select>
-      <ChevronDownIcon className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50 pointer-events-none" />
-    </div>
-  )
+  ({ className, children, onValueChange, onChange, ...props }, ref) => {
+    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      if (onChange) onChange(e);
+      if (onValueChange) onValueChange(e.target.value);
+    };
+
+    return (
+      <div className="relative">
+        <select
+          className={cn(
+            'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none',
+            className
+          )}
+          ref={ref}
+          onChange={handleChange}
+          {...props}
+        >
+          {children}
+        </select>
+        <ChevronDownIcon className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50 pointer-events-none" />
+      </div>
+    );
+  }
 );
 Select.displayName = 'Select';
 
@@ -38,7 +48,11 @@ export const SelectItem: React.FC<{ value: string; children: React.ReactNode; cl
   </option>
 );
 
-export const SelectTrigger = Select;
+export const SelectTrigger: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
+  <div className={cn('relative', className)}>
+    {children}
+  </div>
+);
 
 export const SelectValue: React.FC<{ placeholder?: string; className?: string }> = ({ placeholder }) => (
   <>{placeholder}</>

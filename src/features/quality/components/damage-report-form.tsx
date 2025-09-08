@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/shared/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Input } from '@/shared/components/ui/input';
+import { Input } from '@/shared/components/ui/Input';
 import { Label } from '@/shared/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
 import { Textarea } from '@/shared/components/ui/textarea';
@@ -170,10 +170,7 @@ export const DamageReportForm: React.FC<DamageReportFormProps> = ({
               <SelectContent>
                 {DAMAGE_TYPES.map(type => (
                   <SelectItem key={type.value} value={type.value}>
-                    <div className="flex flex-col">
-                      <span>{type.label}</span>
-                      <span className="text-xs text-muted-foreground">{type.nepali}</span>
-                    </div>
+                    {type.label} - {type.nepali}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -203,10 +200,7 @@ export const DamageReportForm: React.FC<DamageReportFormProps> = ({
               <SelectContent>
                 {SEVERITY_LEVELS.map(level => (
                   <SelectItem key={level.value} value={level.value}>
-                    <div className="flex flex-col">
-                      <span className={level.color}>{level.label}</span>
-                      <span className="text-xs text-muted-foreground">{level.description}</span>
-                    </div>
+                    {level.label} - {level.description}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -1,5 +1,5 @@
 import { ref, onDisconnect, serverTimestamp, set, onValue } from 'firebase/database';
-import { rtdb, RT_PATHS } from '@/config/firebase';
+import { rtdb, RT_PATHS } from '../config/firebase';
 
 export interface ConnectionStatus {
   isOnline: boolean;

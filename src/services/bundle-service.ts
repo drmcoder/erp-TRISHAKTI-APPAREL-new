@@ -14,7 +14,7 @@ import {
   serverTimestamp,
   Timestamp
 } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db } from '../config/firebase';
 
 export interface Bundle {
   id: string;
@@ -176,6 +176,100 @@ class BundleService {
       console.error('Error getting bundles:', error);
       throw error;
     }
+  }
+
+  // Get bundle lifecycle data (compatibility method)
+  async getBundleLifecycle(bundleId: string): Promise<any | null> {
+    // For now, return the bundle data in lifecycle format
+    const bundle = await this.getBundleById(bundleId);
+    if (!bundle) return null;
+
+    // Convert bundle to lifecycle format expected by the component
+    return {
+      id: bundle.id,
+      bundleId: bundle.bundleNumber,
+      description: bundle.description,
+      totalQuantity: bundle.quantity,
+      completedQuantity: Math.floor(bundle.quantity * 0.3), // Mock 30% completion
+      currentStage: {
+        id: 'stage_1',
+        name: 'Cutting',
+        nameNepali: 'काट्ने',
+        sequence: 1,
+        status: 'in_progress',
+        requiredQuantity: bundle.quantity,
+        completedQuantity: Math.floor(bundle.quantity * 0.3)
+      },
+      stages: [
+        {
+          id: 'stage_1',
+          name: 'Cutting',
+          nameNepali: 'काट्ने',
+          sequence: 1,
+          status: 'in_progress',
+          requiredQuantity: bundle.quantity,
+          completedQuantity: Math.floor(bundle.quantity * 0.3),
+          machineType: 'cutting_machine',
+          estimatedHours: 8,
+          actualHours: 3
+        },
+        {
+          id: 'stage_2',
+          name: 'Sewing',
+          nameNepali: 'सिलाई',
+          sequence: 2,
+          status: 'pending',
+          requiredQuantity: bundle.quantity,
+          completedQuantity: 0,
+          machineType: 'sewing_machine',
+          estimatedHours: 16,
+        }
+      ],
+      priority: bundle.priority,
+      status: bundle.status === 'planning' ? 'draft' : 'active',
+      createdAt: bundle.createdAt,
+      targetCompletionDate: bundle.dueDate,
+      estimatedCompletionDate: bundle.dueDate,
+      assignedOperators: bundle.assignedTo ? [bundle.assignedTo] : [],
+      notes: `Bundle ${bundle.bundleNumber} - ${bundle.description}`,
+      qualityRequirements: [],
+      costBreakdown: {
+        materialCost: bundle.unitPrice * 0.6,
+        laborCost: bundle.unitPrice * 0.3,
+        overheadCost: bundle.unitPrice * 0.1,
+        totalCost: bundle.unitPrice
+      },
+      attachments: []
+    };
+  }
+
+  // Create bundle lifecycle (compatibility method)
+  async createBundleLifecycle(bundleData: any): Promise<any> {
+    const createData = {
+      bundleNumber: bundleData.bundleId || `BDL${Date.now()}`,
+      description: bundleData.description || 'New Bundle',
+      quantity: bundleData.totalQuantity || 1,
+      unitPrice: bundleData.costBreakdown?.totalCost || 0,
+      priority: bundleData.priority || 'medium',
+      dueDate: bundleData.targetCompletionDate || new Date(),
+    };
+
+    const bundleId = await this.createBundle(createData, 'system');
+    return this.getBundleLifecycle(bundleId);
+  }
+
+  // Update bundle lifecycle (compatibility method)
+  async updateBundleLifecycle(bundleId: string, bundleData: any): Promise<any> {
+    const updateData = {
+      description: bundleData.description,
+      quantity: bundleData.totalQuantity,
+      priority: bundleData.priority,
+      status: bundleData.status === 'draft' ? 'planning' : 'in-progress',
+      dueDate: bundleData.targetCompletionDate,
+    };
+
+    await this.updateBundle(bundleId, updateData);
+    return this.getBundleLifecycle(bundleId);
   }
 
   // Get bundle by ID

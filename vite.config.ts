@@ -19,7 +19,7 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src'),
       '@/components': resolve(__dirname, 'src/shared/components'),
-      '@/hooks': resolve(__dirname, 'src/shared/hooks'),
+      '@/hooks': resolve(__dirname, 'src/shared/hooks'),  
       '@/utils': resolve(__dirname, 'src/shared/utils'),
       '@/types': resolve(__dirname, 'src/shared/types'),
       '@/constants': resolve(__dirname, 'src/shared/constants'),
@@ -29,16 +29,29 @@ export default defineConfig({
       '@/app': resolve(__dirname, 'src/app'),
       '@/assets': resolve(__dirname, 'src/assets'),
     },
+    // Ensure consistent module resolution
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
 
   build: {
     target: 'esnext',
     minify: 'esbuild',
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
+        // Add timestamp to filenames for cache busting
+        entryFileNames: `assets/[name].[hash].js`,
+        chunkFileNames: `assets/[name].[hash].js`,
+        assetFileNames: `assets/[name].[hash].[ext]`,
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          firebase: ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'firebase-vendor': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+          'ui-vendor': ['lucide-react', '@headlessui/react', '@heroicons/react'],
+          'chart-vendor': ['recharts'],
+          'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'utils-vendor': ['date-fns', 'clsx', 'tailwind-merge', 'immer'],
+          'query-vendor': ['@tanstack/react-query', 'zustand']
         },
       },
     },
@@ -51,19 +64,46 @@ export default defineConfig({
     cors: true,
     hmr: {
       overlay: false,
-      port: 3003,
+      port: 3001, // Change to different port to avoid conflicts
     },
-    // Proxy configuration for API calls if needed
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    }
+    // Configure middleware for API endpoints
+    middlewareMode: false,
+    // Add headers to prevent caching during development
+    headers: {
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    },
+    // Force module resolution consistency
+    fs: {
+      strict: true,
+    },
   },
 
   optimizeDeps: {
-    include: ['react', 'react-dom'],
+    include: [
+      'react', 
+      'react-dom',
+      'react-router-dom',
+      'firebase/app',
+      'firebase/firestore',
+      'firebase/auth',
+      'lucide-react',
+      'date-fns',
+      'clsx',
+      'tailwind-merge',
+      'zustand',
+      '@tanstack/react-query'
+    ],
+    exclude: ['firebase-admin'],
+    // Force rebuild on cache inconsistencies
+    force: process.env.NODE_ENV === 'development',
+  },
+
+  // Enable better source mapping for debugging
+  esbuild: {
+    sourcemap: process.env.NODE_ENV === 'development',
+    target: 'esnext',
+    keepNames: false,
   },
 });

@@ -5,21 +5,19 @@ import {
   collection, 
   where, 
   orderBy, 
-  limit,
-  Unsubscribe,
-  DocumentData 
+  limit
 } from 'firebase/firestore';
+import type { DocumentData, Unsubscribe } from 'firebase/firestore';
 import { 
   ref, 
   onValue, 
   off, 
   set, 
   update, 
-  remove,
-  DatabaseReference,
-  Unsubscribe as RTUnsubscribe 
+  remove
 } from 'firebase/database';
-import { db, rtdb, COLLECTIONS, RT_PATHS } from '@/config/firebase';
+import type { DatabaseReference, Unsubscribe as RTUnsubscribe } from 'firebase/database';
+import { db, rtdb, COLLECTIONS, RT_PATHS } from '../config/firebase';
 
 // Types
 interface RealtimeSubscription {
@@ -430,6 +428,9 @@ export class RealtimeService {
     };
   }
 }
+
+// Export singleton instance
+export const realtimeService = new RealtimeService();
 
 // Export types
 export type { OperatorStatus, WorkProgress, LiveMetrics };

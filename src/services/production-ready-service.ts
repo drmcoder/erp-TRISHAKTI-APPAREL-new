@@ -26,7 +26,7 @@ import {
   onValue
 } from 'firebase/database';
 
-import { db, rtdb, COLLECTIONS, RT_PATHS } from '@/config/firebase';
+import { db, rtdb, COLLECTIONS, RT_PATHS } from '../config/firebase';
 import { workflowEngine } from './workflow-engine';
 import businessLogic from '@/lib/businessLogic';
 import { operatorBusinessLogic } from '@/features/operators/business/operator-business-logic';

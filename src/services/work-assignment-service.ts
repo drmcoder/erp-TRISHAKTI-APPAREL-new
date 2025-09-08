@@ -6,7 +6,7 @@ import {
   set, 
   onValue 
 } from 'firebase/database';
-import { rtdb, RT_PATHS } from '@/config/firebase';
+import { rtdb, RT_PATHS } from '../config/firebase';
 import { BaseService } from './base-service';
 import type { ServiceResponse } from './base-service';
 

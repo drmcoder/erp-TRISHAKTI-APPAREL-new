@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OperatorDashboard } from './components/operator/OperatorDashboard';
@@ -12,11 +12,20 @@ import { EarningsDashboard } from './features/earnings/components/earnings-dashb
 import { OperatorManagementDashboard } from './features/operators/components/operator-management-dashboard';
 import { SelfAssignmentInterface } from './features/work-assignment/components/self-assignment-interface';
 import { ProductionTimer } from './features/work-assignment/components/production-timer';
-import { WIPEntryForm } from './features/wip/components/wip-entry-form';
+import { EnhancedWIPEntryForm } from './features/wip/components/enhanced-wip-entry-form';
+// import { templateIntegrationService } from './services/template-integration-service'; // Disabled for demo
 import { ArticleTemplateManager } from './features/templates/components/article-template-manager';
 import { WorkflowSequencer } from './features/workflow/components/workflow-sequencer';
 import { MobileFriendlyLayout } from './components/layout/mobile-friendly-layout';
 import { MobileTest } from './components/mobile/mobile-test';
+import { MultiRollWIPEntry } from './features/wip/components/multi-roll-wip-entry';
+
+// Complete WIP Entry Workflow (New 3-step system)
+import { CompleteWIPEntryWorkflow } from './components/wip/complete-wip-entry-workflow';
+import { BarcodeScanner } from './components/barcode/barcode-scanner';
+import { BundleLabelGenerator } from './components/barcode/bundle-label-generator';
+import { LiveProductionDashboard } from './components/dashboard/live-production-dashboard';
+import { ResponsiveLayout, MobileOnly, TabletOnly, DesktopOnly, TVOnly } from './components/responsive/responsive-layout';
 
 // TSA Production System Components
 import CuttingDropletManager from './components/management/CuttingDropletManager';
@@ -25,6 +34,8 @@ import ProcessPricingManager from './components/management/ProcessPricingManager
 import EnhancedOperatorDashboard from './components/operator/EnhancedOperatorDashboard';
 import OperatorPieceTracker from './components/operator/OperatorPieceTracker';
 import BundleAssignmentManager from './components/supervisor/BundleAssignmentManager';
+
+// Template initialization disabled for demo
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -209,9 +220,94 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
           />
         </div>;
       case 'wip-entry':
-        return <WIPEntryForm 
-          onSave={(wipEntry) => console.log('WIP Entry saved:', wipEntry)}
+        return <EnhancedWIPEntryForm 
+          mode="create"
+          onSave={(wipEntry) => {
+            console.log('Enhanced WIP Entry saved:', wipEntry);
+            alert('WIP Entry saved successfully! (Demo Mode)');
+          }}
           onCancel={() => setCurrentView('dashboard')}
+          availableTemplates={[]} 
+          teamMembers={[
+            { id: 'user1', name: 'Maya Patel', role: 'operator' },
+            { id: 'user2', name: 'John Smith', role: 'supervisor' }
+          ]}
+          onTemplateCreate={(template) => {
+            console.log('Template created:', template);
+            alert('Template would be created in production mode');
+          }}
+          onCollaborate={(note) => {
+            console.log('Collaboration note:', note);
+          }}
+          realTimeUsers={[
+            { id: 'user1', name: 'Maya Patel', color: '#3B82F6' }
+          ]}
+        />;
+      case 'multi-roll-wip':
+        return <MultiRollWIPEntry
+          onSave={(wipEntry) => {
+            console.log('Multi-Roll WIP Entry saved:', wipEntry);
+            alert('WIP Entry saved successfully! (Demo Mode)');
+          }}
+          onCancel={() => setCurrentView('dashboard')}
+        />;
+      
+      // Complete 3-Step WIP Entry Workflow (New Implementation)
+      case 'complete-wip-entry':
+        return <CompleteWIPEntryWorkflow
+          onComplete={async (wipData) => {
+            console.log('🎯 Complete WIP Entry saved:', wipData);
+            console.log('📊 Articles:', wipData.parsedStyles.length);
+            console.log('📦 Rolls:', wipData.rollInfo.rollCount);
+            console.log('📏 Size Config:', wipData.sizeConfiguration);
+            alert(`WIP Entry saved successfully!\n\nLot: ${wipData.lotNumber}\nBuyer: ${wipData.buyerName}\nArticles: ${wipData.parsedStyles.length}\nRolls: ${wipData.rollInfo.rollCount}`);
+            setCurrentView('dashboard');
+          }}
+          onCancel={() => setCurrentView('dashboard')}
+          currentLanguage="en"
+        />;
+      
+      // Live Production Dashboard with TV Display Support
+      case 'live-dashboard':
+        return <LiveProductionDashboard
+          displayMode="desktop"
+          autoRefresh={true}
+          refreshInterval={5000}
+          showAlerts={true}
+        />;
+      
+      // TV Display Mode (Optimized for large screens)
+      case 'tv-dashboard':
+        return <LiveProductionDashboard
+          displayMode="tv"
+          autoRefresh={true}
+          refreshInterval={3000}
+          showAlerts={true}
+        />;
+      
+      // Barcode Scanner Interface
+      case 'barcode-scanner':
+        return <BarcodeScanner
+          onScanSuccess={(result) => {
+            console.log('📱 Barcode scan result:', result);
+            if (result.success && result.data) {
+              alert(`Bundle Scanned!\nBundle: ${result.data.bundleNumber}\nLot: ${result.data.lotNumber}`);
+            } else {
+              alert('Scan failed. Please try again.');
+            }
+          }}
+          onClose={() => setCurrentView('dashboard')}
+          allowManualEntry={true}
+          scanMode="both"
+          title="Scan Bundle"
+        />;
+      
+      // Bundle Label Generator
+      case 'label-generator':
+        return <BundleLabelGenerator
+          onLabelGenerated={(label) => {
+            console.log('🏷️ Label generated:', label);
+          }}
         />;
       case 'templates':
         return <ArticleTemplateManager 
@@ -271,6 +367,20 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string>('');
+
+  // Add keyboard shortcut for force reload (Ctrl+Shift+R or Cmd+Shift+R)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'R') {
+        event.preventDefault();
+        const { CacheManager } = require('./utils/cache-manager');
+        CacheManager.forceReload();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleLogin = (username: string) => {
     // Determine user role based on username/email
