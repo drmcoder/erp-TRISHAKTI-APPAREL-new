@@ -2,7 +2,8 @@
 // Frontend service to connect to WebSocket server and handle real-time events
 
 import { io, Socket } from 'socket.io-client';
-import { realtimeService, OperatorStatus, LiveMetrics } from './core/realtime-service';
+import { realtimeService } from './core/realtime-service';
+import type { OperatorStatus, LiveMetrics } from './core/realtime-service';
 
 export interface WebSocketClientConfig {
   serverUrl: string;
@@ -14,8 +15,12 @@ export interface WebSocketClientConfig {
 
 export interface ConnectionState {
   status: 'disconnected' | 'connecting' | 'connected' | 'error';
-  lastConnected?: Date;
+  isConnected: boolean;
+  isReconnecting: boolean;
   reconnectAttempts: number;
+  lastConnected?: Date;
+  lastDisconnected?: Date;
+  latency?: number;
   error?: string;
 }
 
@@ -24,6 +29,8 @@ export class WebSocketClient {
   private config: WebSocketClientConfig;
   private connectionState: ConnectionState = {
     status: 'disconnected',
+    isConnected: false,
+    isReconnecting: false,
     reconnectAttempts: 0
   };
   private eventListeners: Map<string, Function[]> = new Map();
@@ -72,6 +79,8 @@ export class WebSocketClient {
           clearTimeout(timeout);
           this.connectionState = {
             status: 'connected',
+            isConnected: true,
+            isReconnecting: false,
             lastConnected: new Date(),
             reconnectAttempts: 0
           };
@@ -83,6 +92,8 @@ export class WebSocketClient {
           clearTimeout(timeout);
           this.connectionState = {
             status: 'error',
+            isConnected: false,
+            isReconnecting: false,
             reconnectAttempts: this.connectionState.reconnectAttempts + 1,
             error: error.message
           };
@@ -109,6 +120,8 @@ export class WebSocketClient {
     } catch (error) {
       this.connectionState = {
         status: 'error',
+        isConnected: false,
+        isReconnecting: false,
         reconnectAttempts: this.connectionState.reconnectAttempts + 1,
         error: error instanceof Error ? error.message : 'Connection failed'
       };
