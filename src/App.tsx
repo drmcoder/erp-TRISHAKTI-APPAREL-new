@@ -10,12 +10,21 @@ import { ProductionDashboard } from './features/analytics/components/production-
 import { QualityManagementDashboard } from './features/quality/components/quality-management-dashboard';
 import { EarningsDashboard } from './features/earnings/components/earnings-dashboard';
 import { OperatorManagementDashboard } from './features/operators/components/operator-management-dashboard';
-import { BreakManagementSystem } from './features/work-assignment/components/break-management-system';
 import { SelfAssignmentInterface } from './features/work-assignment/components/self-assignment-interface';
 import { ProductionTimer } from './features/work-assignment/components/production-timer';
 import { WIPEntryForm } from './features/wip/components/wip-entry-form';
 import { ArticleTemplateManager } from './features/templates/components/article-template-manager';
 import { WorkflowSequencer } from './features/workflow/components/workflow-sequencer';
+import { MobileFriendlyLayout } from './components/layout/mobile-friendly-layout';
+import { MobileTest } from './components/mobile/mobile-test';
+
+// TSA Production System Components
+import CuttingDropletManager from './components/management/CuttingDropletManager';
+import ProductionLotManager from './components/management/ProductionLotManager';
+import ProcessPricingManager from './components/management/ProcessPricingManager';
+import EnhancedOperatorDashboard from './components/operator/EnhancedOperatorDashboard';
+import OperatorPieceTracker from './components/operator/OperatorPieceTracker';
+import BundleAssignmentManager from './components/supervisor/BundleAssignmentManager';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -170,14 +179,6 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
         return <EarningsDashboard userRole={userRole} operatorId={userRole === 'operator' ? userId : undefined} />;
       case 'operators':
         return <OperatorManagementDashboard userRole={userRole} />;
-      case 'breaks':
-        return <BreakManagementSystem 
-          operatorId={userId} 
-          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current User'}
-          sessionId={`session-${Date.now()}`}
-          sessionStartTime={new Date(Date.now() - 2 * 60 * 60 * 1000)} // 2 hours ago
-          workDuration={2 * 60 * 60 * 1000} // 2 hours in milliseconds
-        />;
       case 'self-assignment':
         return <SelfAssignmentInterface 
           operatorId={userId}
@@ -223,180 +224,46 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
           onExecutePlan={(plan) => console.log('Executing plan:', plan)}
           onUpdateOperationStatus={(operationId, status) => console.log('Operation status updated:', operationId, status)}
         />;
+      
+      // TSA Production System Views
+      case 'cutting-droplet':
+        return <CuttingDropletManager />;
+      case 'production-lots':
+        return <ProductionLotManager mode="create" />;
+      case 'pricing-manager':
+        return <ProcessPricingManager />;
+      case 'enhanced-operator':
+        return <EnhancedOperatorDashboard 
+          operatorId={userId}
+          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current Operator'}
+          machineTypes={['overlock', 'single_needle', 'flatlock']}
+        />;
+      case 'piece-tracker':
+        return <OperatorPieceTracker 
+          operatorId={userId}
+          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current Operator'}
+        />;
+      case 'bundle-assignment':
+        return <BundleAssignmentManager />;
+      case 'mobile-test':
+        return <MobileTest />;
       default:
         return <OperatorDashboard operatorId={userId} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <img src="/logo.png" alt="TSA" className="h-8 w-auto" />
-              <h1 className="ml-3 text-xl font-bold text-brand-600">TSA Production ERP</h1>
-              <span className="ml-4 text-sm text-gray-600">
-                Logged in as: <span className="font-medium text-brand-700 capitalize">{userRole}</span>
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <nav className="flex space-x-4">
-                <button
-                  onClick={() => setCurrentView('dashboard')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'dashboard' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => setCurrentView('work-assignment')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'work-assignment' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Work Assignment
-                </button>
-                <button
-                  onClick={() => setCurrentView('breaks')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'breaks' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Break Management
-                </button>
-                {userRole === 'operator' && (
-                  <button
-                    onClick={() => setCurrentView('self-assignment')}
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      currentView === 'self-assignment' 
-                        ? 'bg-brand-100 text-brand-700' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Self Assignment
-                  </button>
-                )}
-                {userRole === 'operator' && (
-                  <button
-                    onClick={() => setCurrentView('timer')}
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      currentView === 'timer' 
-                        ? 'bg-brand-100 text-brand-700' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Production Timer
-                  </button>
-                )}
-                <button
-                  onClick={() => setCurrentView('bundles')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'bundles' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Bundle Management
-                </button>
-                <button
-                  onClick={() => setCurrentView('wip-entry')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'wip-entry' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  WIP Entry
-                </button>
-                <button
-                  onClick={() => setCurrentView('templates')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'templates' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Templates
-                </button>
-                <button
-                  onClick={() => setCurrentView('workflow')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'workflow' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Workflow
-                </button>
-                <button
-                  onClick={() => setCurrentView('analytics')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'analytics' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Analytics
-                </button>
-                <button
-                  onClick={() => setCurrentView('quality')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'quality' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Quality
-                </button>
-                <button
-                  onClick={() => setCurrentView('earnings')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    currentView === 'earnings' 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  Earnings
-                </button>
-                {userRole !== 'operator' && (
-                  <button
-                    onClick={() => setCurrentView('operators')}
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      currentView === 'operators' 
-                        ? 'bg-brand-100 text-brand-700' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    Operators
-                  </button>
-                )}
-              </nav>
-              
-              <button
-                onClick={onLogout}
-                className="px-3 py-2 rounded-md text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content - Navigation-based Views */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {renderMainContent()}
-      </main>
-    </div>
+    <MobileFriendlyLayout 
+      currentUser={{
+        name: userRole === 'operator' ? 'Maya Patel' : 
+              userRole === 'supervisor' ? 'John Smith' : 'Admin User',
+        role: userRole as 'operator' | 'supervisor' | 'management' | 'admin'
+      }}
+      currentView={currentView}
+      onViewChange={setCurrentView}
+    >
+      {renderMainContent()}
+    </MobileFriendlyLayout>
   );
 };
 
