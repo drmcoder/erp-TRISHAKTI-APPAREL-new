@@ -10,25 +10,29 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   CalendarDaysIcon,
-  TagIcon
+  TagIcon,
+  PlusIcon,
+  TrashIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { sewingTemplateService } from '@/services/sewing-template-service';
 import type { Bundle, BundleSize } from '@/types/entities';
 import type { SewingTemplate } from '@/types/sewing-template-types';
 
-interface WIPEntryData {
-  // Step 1: Article Information
+interface ArticleInfo {
+  id: string;
   articleNumber: string;
-  customerPO: string;
   style: string;
-  color: string;
   deliveryDate: string;
   priority: 'low' | 'normal' | 'high' | 'urgent';
-  
-  // Step 2: Size Breakdown
   sizes: BundleSize[];
+}
+
+interface WIPEntryData {
+  // Step 1: Multiple Articles Information
+  articles: ArticleInfo[];
   
-  // Step 3: Template Selection & Confirmation
+  // Step 3: Template Selection & Confirmation (applies to all articles)
   selectedTemplateId: string;
   bundleNumber: string;
 }
@@ -44,13 +48,14 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [formData, setFormData] = useState<WIPEntryData>({
-    articleNumber: '',
-    customerPO: '',
-    style: '',
-    color: '',
-    deliveryDate: '',
-    priority: 'normal',
-    sizes: [],
+    articles: [{
+      id: 'article_1',
+      articleNumber: '',
+      style: '',
+      deliveryDate: '',
+      priority: 'normal',
+      sizes: []
+    }],
     selectedTemplateId: '',
     bundleNumber: ''
   });
@@ -58,6 +63,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   const [availableTemplates, setAvailableTemplates] = useState<SewingTemplate[]>([]);
   const [newSize, setNewSize] = useState({ size: '', quantity: '', rate: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
 
   // Load available templates when reaching step 3
   React.useEffect(() => {
@@ -77,14 +83,64 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     }
   };
 
+  // Add new article
+  const addArticle = () => {
+    const newArticle: ArticleInfo = {
+      id: `article_${Date.now()}`,
+      articleNumber: '',
+      style: '',
+      deliveryDate: '',
+      priority: 'normal',
+      sizes: []
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      articles: [...prev.articles, newArticle]
+    }));
+    
+    setCurrentArticleIndex(formData.articles.length);
+  };
+
+  // Remove article
+  const removeArticle = (index: number) => {
+    if (formData.articles.length <= 1) return; // Keep at least one article
+    
+    setFormData(prev => ({
+      ...prev,
+      articles: prev.articles.filter((_, i) => i !== index)
+    }));
+    
+    // Adjust current index if needed
+    if (currentArticleIndex >= index && currentArticleIndex > 0) {
+      setCurrentArticleIndex(currentArticleIndex - 1);
+    }
+  };
+
+  // Update current article
+  const updateCurrentArticle = (updates: Partial<ArticleInfo>) => {
+    setFormData(prev => ({
+      ...prev,
+      articles: prev.articles.map((article, index) =>
+        index === currentArticleIndex ? { ...article, ...updates } : article
+      )
+    }));
+  };
+
   const validateStep1 = () => {
     const stepErrors: Record<string, string> = {};
     
-    if (!formData.articleNumber.trim()) stepErrors.articleNumber = 'Article number is required';
-    if (!formData.customerPO.trim()) stepErrors.customerPO = 'Customer PO is required';
-    if (!formData.style.trim()) stepErrors.style = 'Style is required';
-    if (!formData.color.trim()) stepErrors.color = 'Color is required';
-    if (!formData.deliveryDate) stepErrors.deliveryDate = 'Delivery date is required';
+    // Validate all articles
+    formData.articles.forEach((article, index) => {
+      if (!article.articleNumber.trim()) stepErrors[`article_${index}_articleNumber`] = `Article ${index + 1}: Article number is required`;
+      if (!article.style.trim()) stepErrors[`article_${index}_style`] = `Article ${index + 1}: Style is required`;
+      if (!article.deliveryDate) stepErrors[`article_${index}_deliveryDate`] = `Article ${index + 1}: Delivery date is required`;
+    });
+
+    // Validate template selection
+    if (!formData.selectedTemplateId) {
+      stepErrors.templateSelection = 'Please select a sewing template';
+    }
     
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
@@ -93,9 +149,12 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   const validateStep2 = () => {
     const stepErrors: Record<string, string> = {};
     
-    if (formData.sizes.length === 0) {
-      stepErrors.sizes = 'At least one size entry is required';
-    }
+    // Validate that each article has at least one size
+    formData.articles.forEach((article, index) => {
+      if (article.sizes.length === 0) {
+        stepErrors[`article_${index}_sizes`] = `Article ${index + 1}: At least one size entry is required`;
+      }
+    });
     
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
@@ -113,23 +172,42 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
 
   const addSize = () => {
     if (newSize.size && newSize.quantity && newSize.rate) {
+      const updatedArticles = formData.articles.map((article, index) => 
+        index === currentArticleIndex 
+          ? {
+              ...article,
+              sizes: [...article.sizes, {
+                size: newSize.size,
+                quantity: parseInt(newSize.quantity),
+                completed: 0,
+                rate: parseFloat(newSize.rate)
+              }]
+            }
+          : article
+      );
+      
       setFormData(prev => ({
         ...prev,
-        sizes: [...prev.sizes, {
-          size: newSize.size,
-          quantity: parseInt(newSize.quantity),
-          completed: 0,
-          rate: parseFloat(newSize.rate)
-        }]
+        articles: updatedArticles
       }));
+      
       setNewSize({ size: '', quantity: '', rate: '' });
     }
   };
 
-  const removeSize = (index: number) => {
+  const removeSize = (sizeIndex: number) => {
+    const updatedArticles = formData.articles.map((article, index) => 
+      index === currentArticleIndex 
+        ? {
+            ...article,
+            sizes: article.sizes.filter((_, i) => i !== sizeIndex)
+          }
+        : article
+    );
+    
     setFormData(prev => ({
       ...prev,
-      sizes: prev.sizes.filter((_, i) => i !== index)
+      articles: updatedArticles
     }));
   };
 
@@ -173,190 +251,357 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   };
 
   const getTotalPieces = () => {
-    return formData.sizes.reduce((sum, size) => sum + size.quantity, 0);
+    return formData.articles.reduce((totalSum, article) => {
+      return totalSum + (article.sizes?.reduce((sum, size) => sum + size.quantity, 0) || 0);
+    }, 0);
   };
 
   const getTotalValue = () => {
-    return formData.sizes.reduce((sum, size) => sum + (size.quantity * size.rate), 0);
+    return formData.articles.reduce((totalSum, article) => {
+      return totalSum + (article.sizes?.reduce((sum, size) => sum + (size.quantity * size.rate), 0) || 0);
+    }, 0);
   };
 
   const getSelectedTemplate = () => {
     return availableTemplates.find(t => t.id === formData.selectedTemplateId);
   };
 
-  const renderStep1 = () => (
-    <Card className="p-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="bg-blue-100 p-2 rounded-lg">
-          <DocumentTextIcon className="h-6 w-6 text-blue-600" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Step 1: Article Information</h3>
-          <p className="text-sm text-gray-500">Enter basic article and order details</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Input
-            label="Article Number *"
-            placeholder="e.g., #8082, #3233"
-            value={formData.articleNumber}
-            onChange={(e) => setFormData(prev => ({ ...prev, articleNumber: e.target.value }))}
-            error={errors.articleNumber}
-          />
-        </div>
-
-        <div>
-          <Input
-            label="Customer PO *"
-            placeholder="Customer purchase order"
-            value={formData.customerPO}
-            onChange={(e) => setFormData(prev => ({ ...prev, customerPO: e.target.value }))}
-            error={errors.customerPO}
-          />
-        </div>
-
-        <div>
-          <Input
-            label="Style *"
-            placeholder="e.g., Polo T-shirt, Round Neck"
-            value={formData.style}
-            onChange={(e) => setFormData(prev => ({ ...prev, style: e.target.value }))}
-            error={errors.style}
-          />
-        </div>
-
-        <div>
-          <Input
-            label="Color *"
-            placeholder="e.g., Navy Blue, White"
-            value={formData.color}
-            onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-            error={errors.color}
-          />
-        </div>
-
-        <div>
-          <Input
-            type="date"
-            label="Delivery Date *"
-            value={formData.deliveryDate}
-            onChange={(e) => setFormData(prev => ({ ...prev, deliveryDate: e.target.value }))}
-            error={errors.deliveryDate}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Priority *</label>
-          <select
-            value={formData.priority}
-            onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="low">Low</option>
-            <option value="normal">Normal</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
-          </select>
-        </div>
-      </div>
-    </Card>
-  );
-
-  const renderStep2 = () => (
-    <Card className="p-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="bg-green-100 p-2 rounded-lg">
-          <CubeIcon className="h-6 w-6 text-green-600" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Step 2: Size Breakdown</h3>
-          <p className="text-sm text-gray-500">Add sizes, quantities, and rates</p>
-        </div>
-      </div>
-
-      {/* Add Size Form */}
-      <div className="bg-gray-50 p-4 rounded-lg mb-4">
-        <h4 className="font-medium text-gray-900 mb-3">Add Size</h4>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <Input
-            placeholder="Size (e.g., S, M, L)"
-            value={newSize.size}
-            onChange={(e) => setNewSize(prev => ({ ...prev, size: e.target.value }))}
-          />
-          <Input
-            type="number"
-            placeholder="Quantity"
-            value={newSize.quantity}
-            onChange={(e) => setNewSize(prev => ({ ...prev, quantity: e.target.value }))}
-          />
-          <Input
-            type="number"
-            step="0.01"
-            placeholder="Rate per piece"
-            value={newSize.rate}
-            onChange={(e) => setNewSize(prev => ({ ...prev, rate: e.target.value }))}
-          />
-          <Button 
-            onClick={addSize}
-            disabled={!newSize.size || !newSize.quantity || !newSize.rate}
-            className="w-full"
-          >
-            Add Size
-          </Button>
-        </div>
-      </div>
-
-      {/* Size List */}
-      {formData.sizes.length > 0 && (
-        <div className="space-y-2 mb-4">
-          <h4 className="font-medium text-gray-900">Added Sizes</h4>
-          {formData.sizes.map((size, index) => (
-            <div key={index} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
-              <div className="flex items-center space-x-4">
-                <Badge variant="secondary" className="font-mono">{size.size}</Badge>
-                <span className="text-sm text-gray-600">Qty: {size.quantity}</span>
-                <span className="text-sm text-gray-600">Rate: Rs. {size.rate}</span>
-                <span className="text-sm font-medium text-gray-900">
-                  Total: Rs. {(size.quantity * size.rate).toFixed(2)}
-                </span>
+  const renderStep1 = () => {
+    const currentArticle = formData.articles[currentArticleIndex];
+    
+    return (
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <DocumentTextIcon className="h-6 w-6 text-blue-600" />
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => removeSize(index)}
-                className="text-red-600 hover:text-red-700"
-              >
-                Remove
-              </Button>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Step 1: Article Information</h3>
+                <p className="text-sm text-gray-500">Enter basic article and order details</p>
+              </div>
             </div>
-          ))}
-        </div>
-      )}
+            <Button
+              onClick={addArticle}
+              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+            >
+              <PlusIcon className="h-4 w-4" />
+              <span>Add Article</span>
+            </Button>
+          </div>
 
-      {/* Summary */}
-      {formData.sizes.length > 0 && (
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h4 className="font-medium text-blue-900 mb-2">Order Summary</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-blue-700">Total Pieces:</span>
-              <span className="font-semibold text-blue-900 ml-2">{getTotalPieces()}</span>
+          {/* Article Tabs */}
+          {formData.articles.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b">
+              {formData.articles.map((article, index) => (
+                <div key={article.id} className="flex items-center">
+                  <button
+                    onClick={() => setCurrentArticleIndex(index)}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      index === currentArticleIndex
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    Article {index + 1}
+                    {article.articleNumber && ` (${article.articleNumber})`}
+                  </button>
+                  {formData.articles.length > 1 && (
+                    <button
+                      onClick={() => removeArticle(index)}
+                      className="ml-1 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
+          )}
+
+          {/* Current Article Form */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <span className="text-blue-700">Total Value:</span>
-              <span className="font-semibold text-blue-900 ml-2">Rs. {getTotalValue().toFixed(2)}</span>
+              <Input
+                label="Article Number *"
+                placeholder="e.g., #8082, #3233"
+                value={currentArticle.articleNumber}
+                onChange={(e) => updateCurrentArticle({ articleNumber: e.target.value })}
+                error={errors[`article_${currentArticleIndex}_articleNumber`]}
+              />
+            </div>
+
+            <div>
+              <Input
+                label="Style *"
+                placeholder="e.g., Polo T-shirt, Round Neck"
+                value={currentArticle.style}
+                onChange={(e) => updateCurrentArticle({ style: e.target.value })}
+                error={errors[`article_${currentArticleIndex}_style`]}
+              />
+            </div>
+
+
+            <div>
+              <Input
+                type="date"
+                label="Delivery Date *"
+                value={currentArticle.deliveryDate}
+                onChange={(e) => updateCurrentArticle({ deliveryDate: e.target.value })}
+                error={errors[`article_${currentArticleIndex}_deliveryDate`]}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Priority *</label>
+              <select
+                value={currentArticle.priority}
+                onChange={(e) => updateCurrentArticle({ priority: e.target.value as any })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="low">Low</option>
+                <option value="normal">Normal</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
             </div>
           </div>
-        </div>
-      )}
+        </Card>
 
-      {errors.sizes && (
-        <p className="text-red-500 text-sm mt-2">{errors.sizes}</p>
-      )}
-    </Card>
-  );
+        {/* Template Selection */}
+        <Card className="p-6">
+          <h4 className="font-medium text-gray-900 mb-4">Select Sewing Template</h4>
+          <p className="text-sm text-gray-600 mb-4">Choose a template that will be used for all articles in this bundle</p>
+          
+          <div className="space-y-2">
+            {availableTemplates.map((template) => (
+              <div
+                key={template.id}
+                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                  formData.selectedTemplateId === template.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setFormData(prev => ({ ...prev, selectedTemplateId: template.id! }))}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h5 className="font-medium text-gray-900">{template.templateName}</h5>
+                    <p className="text-sm text-gray-600">{template.templateCode}</p>
+                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                      <span>{template.operations.length} operations</span>
+                      <span>{template.totalSmv}min SMV</span>
+                      <span>Rs. {template.totalPricePerPiece} per piece</span>
+                    </div>
+                  </div>
+                  <Badge variant={template.complexityLevel === 'simple' ? 'success' : 
+                                template.complexityLevel === 'medium' ? 'warning' : 'danger'}>
+                    {template.complexityLevel}
+                  </Badge>
+                </div>
+              </div>
+            ))}
+            {errors.templateSelection && (
+              <p className="text-red-500 text-sm mt-2">{errors.templateSelection}</p>
+            )}
+          </div>
+        </Card>
+
+        {/* Articles Summary */}
+        {formData.articles.length > 1 && (
+          <Card className="p-6">
+            <h4 className="font-medium text-gray-900 mb-3">Articles Summary ({formData.articles.length})</h4>
+            <div className="space-y-2">
+              {formData.articles.map((article, index) => (
+                <div key={article.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Badge variant="secondary">#{index + 1}</Badge>
+                    <div>
+                      <p className="font-medium text-gray-900">{article.articleNumber || 'No article number'}</p>
+                      <p className="text-sm text-gray-500">
+                        {article.style} | {article.deliveryDate} | {article.priority}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline">{article.sizes.length} sizes</Badge>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+      </div>
+    );
+  };
+
+  const renderStep2 = () => {
+    const currentArticle = formData.articles[currentArticleIndex];
+    
+    return (
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="bg-green-100 p-2 rounded-lg">
+              <CubeIcon className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Step 2: Size Breakdown</h3>
+              <p className="text-sm text-gray-500">Add sizes, quantities, and rates for each article</p>
+            </div>
+          </div>
+
+          {/* Article Tabs */}
+          {formData.articles.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b">
+              {formData.articles.map((article, index) => (
+                <button
+                  key={article.id}
+                  onClick={() => setCurrentArticleIndex(index)}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    index === currentArticleIndex
+                      ? 'bg-green-100 text-green-700 border border-green-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {article.articleNumber || `Article ${index + 1}`}
+                  <span className="ml-2 text-xs bg-white px-1 rounded">
+                    {article.sizes.length} sizes
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Current Article Info */}
+          <div className="bg-blue-50 p-4 rounded-lg mb-4">
+            <h4 className="font-medium text-blue-900 mb-1">
+              {currentArticle.articleNumber || `Article ${currentArticleIndex + 1}`}
+            </h4>
+            <p className="text-sm text-blue-700">
+              {currentArticle.style}            </p>
+          </div>
+
+          {/* Add Size Form */}
+          <div className="bg-gray-50 p-4 rounded-lg mb-4">
+            <h4 className="font-medium text-gray-900 mb-3">Add Size</h4>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <Input
+                placeholder="Size (e.g., S, M, L)"
+                value={newSize.size}
+                onChange={(e) => setNewSize(prev => ({ ...prev, size: e.target.value }))}
+              />
+              <Input
+                type="number"
+                placeholder="Quantity"
+                value={newSize.quantity}
+                onChange={(e) => setNewSize(prev => ({ ...prev, quantity: e.target.value }))}
+              />
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Rate per piece"
+                value={newSize.rate}
+                onChange={(e) => setNewSize(prev => ({ ...prev, rate: e.target.value }))}
+              />
+              <Button 
+                onClick={addSize}
+                disabled={!newSize.size || !newSize.quantity || !newSize.rate}
+                className="w-full"
+              >
+                Add Size
+              </Button>
+            </div>
+          </div>
+
+          {/* Current Article Sizes */}
+          {currentArticle.sizes.length > 0 && (
+            <div className="space-y-2 mb-4">
+              <h4 className="font-medium text-gray-900">Added Sizes</h4>
+              {currentArticle.sizes.map((size, index) => (
+                <div key={index} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="flex items-center space-x-4">
+                    <Badge variant="secondary" className="font-mono">{size.size}</Badge>
+                    <span className="text-sm text-gray-600">Qty: {size.quantity}</span>
+                    <span className="text-sm text-gray-600">Rate: Rs. {size.rate}</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      Total: Rs. {(size.quantity * size.rate).toFixed(2)}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeSize(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Current Article Summary */}
+          {currentArticle.sizes.length > 0 && (
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h4 className="font-medium text-green-900 mb-2">Article Summary</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-green-700">Total Pieces:</span>
+                  <span className="font-semibold text-green-900 ml-2">
+                    {currentArticle.sizes.reduce((sum, size) => sum + size.quantity, 0)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-green-700">Total Value:</span>
+                  <span className="font-semibold text-green-900 ml-2">
+                    Rs. {currentArticle.sizes.reduce((sum, size) => sum + (size.quantity * size.rate), 0).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {errors[`article_${currentArticleIndex}_sizes`] && (
+            <p className="text-red-500 text-sm mt-2">{errors[`article_${currentArticleIndex}_sizes`]}</p>
+          )}
+        </Card>
+
+        {/* Overall Summary */}
+        <Card className="p-6">
+          <h4 className="font-medium text-gray-900 mb-3">Overall Summary</h4>
+          <div className="space-y-2">
+            {formData.articles.map((article, index) => (
+              <div key={article.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-gray-900">
+                    {article.articleNumber || `Article ${index + 1}`}
+                  </p>
+                  <p className="text-sm text-gray-500">{article.style}</p>
+                </div>
+                <div className="text-right text-sm">
+                  <p className="font-medium">
+                    {article.sizes.reduce((sum, size) => sum + size.quantity, 0)} pieces
+                  </p>
+                  <p className="text-gray-500">
+                    Rs. {article.sizes.reduce((sum, size) => sum + (size.quantity * size.rate), 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            ))}
+            <div className="border-t pt-2 mt-3">
+              <div className="flex justify-between items-center font-semibold text-lg">
+                <span>Grand Total:</span>
+                <div className="text-right">
+                  <p>{getTotalPieces()} pieces</p>
+                  <p>Rs. {getTotalValue().toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  };
 
   const renderStep3 = () => (
     <Card className="p-6">
