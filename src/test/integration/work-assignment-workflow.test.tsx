@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@/test/test-utils';
+import { render, screen, fireEvent, waitFor } from '@/test/test-utils';
 import { WorkAssignmentDashboard } from '@/features/work-assignment/components/assignment-dashboard';
 import { SelfAssignmentInterface } from '@/features/work-assignment/components/self-assignment-interface';
 import { WorkCompletionWorkflow } from '@/features/work-assignment/components/work-completion-workflow';
@@ -73,7 +73,7 @@ describe('Work Assignment Workflow Integration', () => {
       },
     ];
 
-    const mockOperators = [
+    const _mockOperators = [
       {
         id: 'op-1',
         name: 'John Smith',

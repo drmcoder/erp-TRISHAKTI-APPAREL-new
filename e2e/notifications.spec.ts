@@ -182,7 +182,7 @@ test.describe('Notification System', () => {
 });
 
 test.describe('Real-time Notification Updates', () => {
-  test('should receive real-time notifications', async ({ page, browser }) => {
+  test('should receive real-time notifications', async ({ browser }) => {
     // Create two pages to simulate real-time updates
     const context1 = await browser.newContext();
     const context2 = await browser.newContext();

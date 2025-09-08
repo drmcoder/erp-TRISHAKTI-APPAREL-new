@@ -408,7 +408,7 @@ class ProductionLotService {
       const currentStepCompleted = updatedSteps.find(s => s.id === stepId)?.status === 'completed';
       const nextStep = updatedSteps.find(s => s.stepNumber === lot.currentStep + 1);
       
-      let updateData: any = { processSteps: updatedSteps };
+      const updateData: any = { processSteps: updatedSteps };
       
       if (currentStepCompleted && nextStep) {
         updateData.currentStep = lot.currentStep + 1;

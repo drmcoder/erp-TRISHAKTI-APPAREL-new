@@ -19,12 +19,18 @@ interface OperatorListProps {
   onCreateNew?: () => void;
   onViewOperator?: (operatorId: string) => void;
   onEditOperator?: (operatorId: string) => void;
+  onDeleteOperator?: (operatorId: string) => void;
+  userRole?: string;
+  showActions?: boolean;
 }
 
 export const OperatorList: React.FC<OperatorListProps> = ({
   onCreateNew,
   onViewOperator,
-  onEditOperator
+  onEditOperator,
+  onDeleteOperator,
+  userRole = 'operator',
+  showActions = true
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -284,7 +290,9 @@ export const OperatorList: React.FC<OperatorListProps> = ({
                   key={operator.id}
                   operator={operator}
                   onView={() => onViewOperator?.(operator.id)}
-                  onEdit={() => onEditOperator?.(operator.id)}
+                  onEdit={userRole === 'supervisor' ? () => onEditOperator?.(operator.id) : undefined}
+                  onDelete={userRole === 'supervisor' ? () => onDeleteOperator?.(operator.id) : undefined}
+                  showActions={showActions}
                 />
               ))}
             </div>

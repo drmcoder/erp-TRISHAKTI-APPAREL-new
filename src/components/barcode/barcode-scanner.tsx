@@ -57,6 +57,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
         };
       }
     } catch (error) {
+      console.error('Permission API error:', error);
       console.log('Permission API not supported');
       setCameraPermission('pending');
     }
@@ -188,7 +189,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           </CardTitle>
           {onClose && (
             <Button
-              variant="secondary" outline
+              variant="outline"
               size="sm"
               onClick={onClose}
               className="h-8 w-8 p-0"
@@ -255,7 +256,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           ) : (
             <Button 
               onClick={stopScanning}
-              variant="secondary" outline
+              variant="outline"
               className="flex-1"
             >
               <XMarkIcon className="h-4 w-4 mr-2" />
@@ -265,7 +266,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           
           <Button
             onClick={switchCamera}
-            variant="secondary" outline
+            variant="outline"
             size="sm"
             disabled={!isScanning}
             className="px-3"
@@ -284,7 +285,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
                 placeholder="Enter barcode manually"
                 value={manualEntry}
                 onChange={(e) => setManualEntry(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleManualEntry()}
+                onKeyDown={(e) => e.key === 'Enter' && handleManualEntry()}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               <Button 

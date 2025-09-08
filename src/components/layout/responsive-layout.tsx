@@ -17,7 +17,7 @@ import {
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Badge } from '@/shared/components/ui/Badge';
-import { Sheet, SheetContent, SheetTrigger } from '@/shared/components/ui/sheet';
+import { Sheet, SheetContent } from '@/shared/components/ui/sheet';
 import { useSwipeable } from 'react-swipeable';
 import { UI_CONFIG, isMobile, isTablet, getResponsiveValue } from '@/config/ui-config';
 
@@ -266,11 +266,13 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   // Unread notifications count
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  const { ref: swipeRef, ...swipeProps } = swipeHandlers;
+  
   return (
     <div 
       ref={layoutRef}
       className="min-h-screen bg-background flex"
-      {...swipeHandlers}
+      {...swipeProps}
     >
       {/* Desktop Sidebar */}
       {viewportSize === 'desktop' && (

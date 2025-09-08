@@ -2,7 +2,8 @@
 // React hook for WebSocket integration with automatic connection management
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { webSocketClient, ConnectionState } from '../services/websocket-client';
+import { webSocketClient } from '../services/websocket-client';
+import type { ConnectionState } from '../services/websocket-client';
 import { OperatorStatus, LiveMetrics } from '../services/core/realtime-service';
 
 export interface WebSocketHookState {

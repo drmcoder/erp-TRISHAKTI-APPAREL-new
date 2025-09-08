@@ -16,10 +16,10 @@ test.describe('PWA Functionality', () => {
     expect(swRegistered).toBe(true);
   });
 
-  test('should show install prompt when available', async ({ page, context }) => {
+  test('should show install prompt when available', async ({ page }) => {
     // Mock beforeinstallprompt event
     await page.addInitScript(() => {
-      let deferredPrompt;
+      let _deferredPrompt;
       
       window.addEventListener('load', () => {
         // Simulate beforeinstallprompt event after a delay
@@ -267,7 +267,7 @@ test.describe('Mobile Responsiveness', () => {
   });
 
   test.describe('Orientation Changes', () => {
-    test('should handle orientation changes gracefully', async ({ page, browser }) => {
+    test('should handle orientation changes gracefully', async ({ browser }) => {
       const context = await browser.newContext({
         viewport: { width: 375, height: 667 }
       });

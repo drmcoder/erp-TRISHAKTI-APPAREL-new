@@ -19,9 +19,12 @@ import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import type { CreateOperatorData, UpdateOperatorData } from '@/types/operator-types';
 import { MACHINE_TYPES, SKILL_LEVELS } from '@/types/operator-types';
 
-// Form validation schema
-const operatorSchema = z.object({
+// Form validation schema - dynamic based on mode
+const getOperatorSchema = (mode: 'create' | 'edit') => z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: mode === 'create' 
+    ? z.string().min(6, 'Password must be at least 6 characters')
+    : z.string().optional(), // Optional in edit mode
   name: z.string().min(2, 'Name must be at least 2 characters'),
   employeeId: z.string().min(1, 'Employee ID is required'),
   email: z.string().email('Invalid email format').optional().or(z.literal('')),
@@ -31,12 +34,10 @@ const operatorSchema = z.object({
   machineTypes: z.array(z.string()).min(1, 'At least one machine type required'),
   skillLevel: z.enum(['beginner', 'intermediate', 'advanced', 'expert']),
   specializations: z.array(z.string()).optional(),
-  shift: z.enum(['morning', 'afternoon', 'night']),
-  maxConcurrentWork: z.number().min(1).max(10),
-  hiredDate: z.string().min(1, 'Hired date is required')
+  maxConcurrentWork: z.number().min(1).max(10)
 });
 
-type FormData = z.infer<typeof operatorSchema>;
+type FormData = z.infer<ReturnType<typeof getOperatorSchema>>;
 
 interface OperatorFormProps {
   initialData?: Partial<CreateOperatorData | UpdateOperatorData>;
@@ -69,6 +70,35 @@ const COLOR_OPTIONS = [
   '#84CC16', // lime
 ];
 
+// Predefined operations for specializations dropdown
+const AVAILABLE_OPERATIONS = [
+  { value: 'stitching', label: 'Stitching', nepaliLabel: 'सिलाई' },
+  { value: 'hemming', label: 'Hemming', nepaliLabel: 'हेमिंग' },
+  { value: 'buttonhole_making', label: 'Buttonhole Making', nepaliLabel: 'बटनहोल बनाउने' },
+  { value: 'button_attaching', label: 'Button Attaching', nepaliLabel: 'बटन जोड्ने' },
+  { value: 'zipper_insertion', label: 'Zipper Insertion', nepaliLabel: 'जिपर लगाउने' },
+  { value: 'seam_finishing', label: 'Seam Finishing', nepaliLabel: 'सिम फिनिशिंग' },
+  { value: 'edge_stitching', label: 'Edge Stitching', nepaliLabel: 'किनारा सिलाई' },
+  { value: 'topstitching', label: 'Topstitching', nepaliLabel: 'टपस्टिचिंग' },
+  { value: 'blind_hemming', label: 'Blind Hemming', nepaliLabel: 'अन्धा हेमिंग' },
+  { value: 'overlock_stitching', label: 'Overlock Stitching', nepaliLabel: 'ओभरलक सिलाई' },
+  { value: 'flatlock_stitching', label: 'Flatlock Stitching', nepaliLabel: 'फ्ल्यालक सिलाई' },
+  { value: 'coverstitch', label: 'Coverstitch', nepaliLabel: 'कभरस्टिच' },
+  { value: 'binding', label: 'Binding', nepaliLabel: 'बाइन्डिंग' },
+  { value: 'piping', label: 'Piping', nepaliLabel: 'पाइपिंग' },
+  { value: 'pleating', label: 'Pleating', nepaliLabel: 'प्लिटिंग' },
+  { value: 'gathering', label: 'Gathering', nepaliLabel: 'ग्याद्रिंग' },
+  { value: 'smocking', label: 'Smocking', nepaliLabel: 'स्मकिंग' },
+  { value: 'applique', label: 'Applique', nepaliLabel: 'एप्लिक' },
+  { value: 'embroidery', label: 'Embroidery', nepaliLabel: 'कसिदाकारी' },
+  { value: 'quality_inspection', label: 'Quality Inspection', nepaliLabel: 'गुणस्तर जाँच' },
+  { value: 'pattern_matching', label: 'Pattern Matching', nepaliLabel: 'नमुना मिलान' },
+  { value: 'pressing', label: 'Pressing', nepaliLabel: 'प्रेसिंग' },
+  { value: 'cutting', label: 'Cutting', nepaliLabel: 'काट्ने' },
+  { value: 'marking', label: 'Marking', nepaliLabel: 'चिन्ह लगाउने' },
+  { value: 'packaging', label: 'Packaging', nepaliLabel: 'प्याकेजिंग' },
+];
+
 export const OperatorForm: React.FC<OperatorFormProps> = ({
   initialData,
   onSubmit,
@@ -86,9 +116,10 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
     setValue,
     formState: { errors, isValid }
   } = useForm<FormData>({
-    resolver: zodResolver(operatorSchema),
+    resolver: zodResolver(getOperatorSchema(mode)),
     defaultValues: {
       username: initialData?.username || '',
+      password: '', // Always require password input for security
       name: initialData?.name || '',
       employeeId: initialData?.employeeId || '',
       email: initialData?.email || '',
@@ -98,9 +129,7 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
       machineTypes: initialData?.machineTypes || [],
       skillLevel: initialData?.skillLevel || 'beginner',
       specializations: initialData?.specializations || [],
-      shift: initialData?.shift || 'morning',
-      maxConcurrentWork: initialData?.maxConcurrentWork || 1,
-      hiredDate: initialData?.hiredDate ? new Date(initialData.hiredDate).toISOString().split('T')[0] : ''
+      maxConcurrentWork: initialData?.maxConcurrentWork || 1
     }
   });
 
@@ -163,7 +192,8 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
   const onFormSubmit = async (data: FormData) => {
     const formattedData = {
       ...data,
-      hiredDate: new Date(data.hiredDate),
+      hiredDate: new Date(), // Set current date as default since field is removed
+      shift: 'morning' as const, // Default to morning since only one shift
       avatar: selectedAvatar ? {
         type: selectedAvatar.type,
         value: selectedAvatar.value,
@@ -234,6 +264,24 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password *
+            </label>
+            <Input
+              {...register('password')}
+              type="password"
+              placeholder={mode === 'edit' ? 'Enter new password (leave blank to keep current)' : 'Enter password'}
+              className={errors.password ? 'border-red-500' : ''}
+            />
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
+            )}
+            {mode === 'edit' && (
+              <p className="text-xs text-gray-500 mt-1">Leave blank to keep current password</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Full Name *
             </label>
             <Input
@@ -283,20 +331,6 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
               {...register('phone')}
               placeholder="Enter phone number"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Hired Date *
-            </label>
-            <Input
-              {...register('hiredDate')}
-              type="date"
-              className={errors.hiredDate ? 'border-red-500' : ''}
-            />
-            {errors.hiredDate && (
-              <p className="text-red-500 text-sm mt-1">{errors.hiredDate.message}</p>
-            )}
           </div>
         </div>
 
@@ -451,7 +485,7 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
             )}
           </div>
 
-          {/* Skill Level and Shift */}
+          {/* Skill Level */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -466,20 +500,6 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
                     {skill.label} ({skill.nepaliLabel})
                   </option>
                 ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Shift *
-              </label>
-              <select
-                {...register('shift')}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="morning">Morning (बिहान)</option>
-                <option value="afternoon">Afternoon (दिउँसो)</option>
-                <option value="night">Night (राती)</option>
               </select>
             </div>
           </div>
@@ -511,11 +531,42 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
         </h3>
 
         <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Available Operations (Select multiple)
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+              {AVAILABLE_OPERATIONS.map((operation) => (
+                <label
+                  key={operation.value}
+                  className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                >
+                  <input
+                    type="checkbox"
+                    checked={watchedSpecializations.includes(operation.value)}
+                    onChange={(e) => {
+                      const current = watchedSpecializations;
+                      const updated = e.target.checked
+                        ? [...current, operation.value]
+                        : current.filter(spec => spec !== operation.value);
+                      setValue('specializations', updated);
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-gray-900">{operation.label}</div>
+                    <div className="text-xs text-gray-500">{operation.nepaliLabel}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
           <div className="flex space-x-2">
             <Input
               value={customSpecialization}
               onChange={(e) => setCustomSpecialization(e.target.value)}
-              placeholder="Add specialization..."
+              placeholder="Add custom specialization..."
               onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleSpecializationAdd())}
             />
             <Button
@@ -524,7 +575,7 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
               variant="secondary"
               disabled={!customSpecialization.trim()}
             >
-              Add
+              Add Custom
             </Button>
           </div>
 

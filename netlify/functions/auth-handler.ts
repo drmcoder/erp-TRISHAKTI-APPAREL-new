@@ -1,8 +1,6 @@
-import { Handler } from '@netlify/functions';
-
 // Netlify serverless function for authentication handling
-export const handler: Handler = async (event, context) => {
-  const { httpMethod, path, headers, body } = event;
+export const handler = async (event: any, _context: any) => {
+  const { httpMethod, path, body } = event;
 
   // CORS headers
   const corsHeaders = {

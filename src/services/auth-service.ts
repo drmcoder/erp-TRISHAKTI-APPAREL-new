@@ -145,11 +145,12 @@ export class AuthService {
         };
       }
 
-      // For development/demo purposes, use simple password validation
-      // In production, this should use proper password hashing
-      const expectedPassword = 'password123'; // Default password for demo
+      // Validate password using stored hash
+      // For demo purposes, using base64 encoding (NOT secure for production)
+      const storedPasswordHash = (user as any).passwordHash;
+      const providedPasswordHash = btoa(credentials.password);
       
-      if (credentials.password !== expectedPassword) {
+      if (!storedPasswordHash || storedPasswordHash !== providedPasswordHash) {
         return {
           success: false,
           error: 'Invalid username or password'

@@ -19,6 +19,9 @@ export type { DropdownProps, DropdownOption } from './Dropdown';
 
 export { Collapsible, SimpleCollapsible } from './Collapsible';
 
+export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
+export type { TabsProps, TabsListProps, TabsTriggerProps, TabsContentProps } from './tabs';
+
 // Typography Components
 export { 
   Heading, Text, H1, H2, H3, H4, H5, H6, 

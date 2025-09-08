@@ -84,6 +84,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminId }) => {
         setError(result.error || 'Failed to load dashboard data');
       }
     } catch (err) {
+      console.error('Dashboard data error:', err);
       setError('Error loading dashboard data');
     }
   };
@@ -122,6 +123,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminId }) => {
         });
         alert('Notification sent successfully!');
       } catch (error) {
+        console.error('Notification error:', error);
         alert('Failed to send notification');
       }
     }
@@ -141,6 +143,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminId }) => {
           alert(`Report generated: ${result.data.reportId}`);
         }
       } catch (error) {
+        console.error('Report generation error:', error);
         alert('Failed to generate report');
       }
     }

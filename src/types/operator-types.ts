@@ -211,6 +211,22 @@ export const MACHINE_TYPES: MachineCompatibility[] = [
     compatibleWith: ['singleNeedle', 'single_needle', 'Single Needle']
   },
   {
+    machineType: 'doubleNeedle',
+    displayName: 'Double Needle',
+    nepaliName: 'दुईवटा सुई',
+    category: 'stitching',
+    skillRequired: 'intermediate',
+    compatibleWith: ['doubleNeedle', 'double_needle', 'Double Needle']
+  },
+  {
+    machineType: 'kansai',
+    displayName: 'Kansai',
+    nepaliName: 'कान्साई',
+    category: 'stitching',
+    skillRequired: 'advanced',
+    compatibleWith: ['kansai', 'KANSAI', 'Kansai']
+  },
+  {
     machineType: 'buttonhole',
     displayName: 'Buttonhole',
     nepaliName: 'बटनहोल',
@@ -241,14 +257,6 @@ export const MACHINE_TYPES: MachineCompatibility[] = [
     category: 'cutting',
     skillRequired: 'advanced',
     compatibleWith: ['cutting']
-  },
-  {
-    machineType: 'embroidery',
-    displayName: 'Embroidery Machine',
-    nepaliName: 'कसिदाकारी मेसिन',
-    category: 'finishing',
-    skillRequired: 'expert',
-    compatibleWith: ['embroidery']
   },
   {
     machineType: 'manual',

@@ -216,7 +216,7 @@ class DeviceOptimizationService {
     const { type, connectionType, isLowPowerMode } = this.deviceInfo;
     
     // Base settings
-    let settings: OptimizationSettings = {
+    const settings: OptimizationSettings = {
       enableAnimations: true,
       enableImages: true,
       enablePrefetch: true,

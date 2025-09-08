@@ -27,6 +27,35 @@ export const OperatorManagementDashboard: React.FC<OperatorManagementDashboardPr
   const [activeView, setActiveView] = useState<'overview' | 'list' | 'detail' | 'form'>('overview');
   const [selectedOperatorId, setSelectedOperatorId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Handler for deleting an operator (supervisors only)
+  const handleDeleteOperator = async (operatorId: string) => {
+    if (userRole !== 'supervisor') {
+      alert('You do not have permission to delete operators.');
+      return;
+    }
+
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this operator? This action cannot be undone.'
+    );
+
+    if (confirmDelete) {
+      try {
+        // TODO: Implement actual delete API call
+        console.log('Deleting operator:', operatorId);
+        alert('Operator deleted successfully! (This is a demo - implement actual Firebase delete)');
+        
+        // If we were viewing the deleted operator, go back to overview
+        if (selectedOperatorId === operatorId) {
+          setSelectedOperatorId('');
+          setActiveView('overview');
+        }
+      } catch (error) {
+        console.error('Error deleting operator:', error);
+        alert('Failed to delete operator. Please try again.');
+      }
+    }
+  };
   
   // Mock data - in real implementation, this would come from API
   const operatorStats = {
@@ -265,10 +294,23 @@ export const OperatorManagementDashboard: React.FC<OperatorManagementDashboardPr
       case 'overview':
         return renderOverview();
       case 'list':
-        return <OperatorList onSelectOperator={(id) => {
-          setSelectedOperatorId(id);
-          setActiveView('detail');
-        }} />;
+        return <OperatorList 
+          onViewOperator={(id) => {
+            setSelectedOperatorId(id);
+            setActiveView('detail');
+          }}
+          onEditOperator={userRole === 'supervisor' ? (id) => {
+            setSelectedOperatorId(id);
+            setActiveView('form');
+          } : undefined}
+          onDeleteOperator={userRole === 'supervisor' ? handleDeleteOperator : undefined}
+          onCreateNew={userRole === 'supervisor' ? () => {
+            setSelectedOperatorId('');
+            setActiveView('form');
+          } : undefined}
+          userRole={userRole}
+          showActions={true}
+        />;
       case 'detail':
         return selectedOperatorId ? (
           <OperatorDetail 

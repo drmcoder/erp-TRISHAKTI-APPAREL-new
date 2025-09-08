@@ -17,7 +17,9 @@ interface OperatorCardProps {
   operator: OperatorSummary;
   onView?: () => void;
   onEdit?: () => void;
+  onDelete?: () => void;
   onStatusChange?: () => void;
+  showActions?: boolean; // Control visibility based on user role
   className?: string;
 }
 
@@ -25,7 +27,9 @@ export const OperatorCard: React.FC<OperatorCardProps> = ({
   operator,
   onView,
   onEdit,
+  onDelete,
   onStatusChange,
+  showActions = true,
   className = ''
 }) => {
   const statusConfig = STATUS_CONFIG[operator.currentStatus as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.offline;
@@ -137,37 +141,51 @@ export const OperatorCard: React.FC<OperatorCardProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <div className="flex space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onView}
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-          >
-            View Details
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onEdit}
-            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-          >
-            Edit
-          </Button>
-        </div>
+      {showActions && (
+        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onView}
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            >
+              View Details
+            </Button>
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onEdit}
+                className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+              >
+                Edit
+              </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDelete}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                Delete
+              </Button>
+            )}
+          </div>
 
-        {onStatusChange && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onStatusChange}
-            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-          >
-            Update Status
-          </Button>
-        )}
-      </div>
+          {onStatusChange && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onStatusChange}
+              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+            >
+              Update Status
+            </Button>
+          )}
+        </div>
+      )}
     </Card>
   );
 };

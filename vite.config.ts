@@ -38,6 +38,9 @@ export default defineConfig({
     minify: 'esbuild',
     sourcemap: false,
     chunkSizeWarningLimit: 1000,
+    // Faster builds
+    reportCompressedSize: false,
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         // Add timestamp to filenames for cache busting

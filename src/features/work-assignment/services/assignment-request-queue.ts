@@ -435,7 +435,7 @@ export class AssignmentRequestQueue {
   }
 
   private calculatePriorityScore(request: AssignmentRequest): number {
-    let score = request.priorityScore || 50; // Base score
+    const score = request.priorityScore || 50; // Base score
 
     // Add urgency bonus
     const urgencyBonus = {

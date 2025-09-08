@@ -3,8 +3,8 @@ import { X } from 'lucide-react';
 import { cn } from '@/shared/utils';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'blue' | 'green' | 'red' | 'purple' | 'gray' | 'outline' | 'destructive';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   shape?: 'rounded' | 'pill' | 'square';
   outline?: boolean;
   dismissible?: boolean;
@@ -41,9 +41,38 @@ const badgeVariants = {
     solid: 'bg-info-100 text-info-800 dark:bg-info-900 dark:text-info-300',
     outline: 'border border-info-300 text-info-700 bg-transparent dark:border-info-600 dark:text-info-400',
   },
+  blue: {
+    solid: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    outline: 'border border-blue-300 text-blue-700 bg-transparent dark:border-blue-600 dark:text-blue-400',
+  },
+  green: {
+    solid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+    outline: 'border border-green-300 text-green-700 bg-transparent dark:border-green-600 dark:text-green-400',
+  },
+  red: {
+    solid: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    outline: 'border border-red-300 text-red-700 bg-transparent dark:border-red-600 dark:text-red-400',
+  },
+  purple: {
+    solid: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+    outline: 'border border-purple-300 text-purple-700 bg-transparent dark:border-purple-600 dark:text-purple-400',
+  },
+  gray: {
+    solid: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+    outline: 'border border-gray-300 text-gray-700 bg-transparent dark:border-gray-600 dark:text-gray-400',
+  },
+  outline: {
+    solid: 'border border-gray-300 text-gray-700 bg-transparent dark:border-gray-600 dark:text-gray-400',
+    outline: 'border border-gray-300 text-gray-700 bg-transparent dark:border-gray-600 dark:text-gray-400',
+  },
+  destructive: {
+    solid: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    outline: 'border border-red-300 text-red-700 bg-transparent dark:border-red-600 dark:text-red-400',
+  },
 };
 
 const badgeSizes = {
+  xs: 'px-1.5 py-0.5 text-xs font-medium',
   sm: 'px-2 py-0.5 text-xs font-medium',
   md: 'px-2.5 py-1 text-xs font-medium',
   lg: 'px-3 py-1.5 text-sm font-medium',
@@ -102,6 +131,7 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
               'hover:bg-black hover:bg-opacity-10 rounded-full',
               'focus:outline-none focus:bg-black focus:bg-opacity-20',
               'transition-colors duration-150',
+              size === 'xs' && 'w-2 h-2',
               size === 'sm' && 'w-3 h-3',
               size === 'md' && 'w-4 h-4',
               size === 'lg' && 'w-5 h-5'

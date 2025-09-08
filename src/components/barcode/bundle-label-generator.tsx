@@ -66,8 +66,8 @@ export const BundleLabelGenerator: React.FC<BundleLabelGeneratorProps> = ({
   // Initialize form data
   useEffect(() => {
     if (bundleData) {
-      setFormData(bundleData);
-      generateLabel(bundleData);
+      setFormData({...bundleData, operatorAssigned: bundleData.operatorAssigned || ''});
+      generateLabel({...bundleData, operatorAssigned: bundleData.operatorAssigned || ''});
     }
   }, [bundleData]);
 
@@ -401,8 +401,8 @@ export const BundleLabelGenerator: React.FC<BundleLabelGeneratorProps> = ({
               <div><strong>Lot:</strong> {bundleData.lotNumber}</div>
               <div><strong>Article:</strong> {bundleData.articleName}</div>
               <div><strong>Operation:</strong> {bundleData.operation}</div>
-              <div><strong>Size:</strong> <Badge variant="outline">{bundleData.size}</Badge></div>
-              <div><strong>Color:</strong> <Badge variant="outline">{bundleData.color}</Badge></div>
+              <div><strong>Size:</strong> <Badge outline>{bundleData.size}</Badge></div>
+              <div><strong>Color:</strong> <Badge outline>{bundleData.color}</Badge></div>
               <div><strong>Pieces:</strong> {bundleData.pieces}</div>
               <div><strong>Cut by:</strong> {bundleData.cutBy}</div>
             </div>

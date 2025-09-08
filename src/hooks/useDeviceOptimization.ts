@@ -2,14 +2,8 @@
 // React hook for device-specific UI optimization and responsive behavior
 
 import { useState, useEffect, useMemo } from 'react';
-import { 
-  deviceOptimizationService, 
-  DeviceInfo, 
-  LayoutConfig, 
-  OptimizationSettings,
-  DeviceType,
-  OrientationType
-} from '../services/device-optimization-service-simple';
+import { deviceOptimizationService } from '../services/device-optimization-service-simple';
+import type { DeviceInfo, LayoutConfig, OptimizationSettings, DeviceType, OrientationType } from '../services/device-optimization-service-simple';
 
 export interface UseDeviceOptimizationOptions {
   enableAutoOptimization?: boolean;

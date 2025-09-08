@@ -192,6 +192,47 @@ class DeviceOptimizationService {
   isPortrait(): boolean {
     return this.deviceInfo.orientation === 'portrait';
   }
+
+  shouldLoadImages(): boolean {
+    // Don't load images on slow connections or low power mode
+    return !this.deviceInfo.isLowPowerMode && 
+           this.deviceInfo.connectionType !== 'slow' && 
+           this.deviceInfo.connectionType !== '3g';
+  }
+
+  shouldEnableAnimations(): boolean {
+    // Disable animations on low power mode or if user prefers reduced motion
+    return !this.deviceInfo.isLowPowerMode && !this.deviceInfo.reducedMotion;
+  }
+
+  getImageQuality(): 'low' | 'medium' | 'high' {
+    const { type, connectionType, isLowPowerMode } = this.deviceInfo;
+    
+    if (isLowPowerMode || connectionType === 'slow' || connectionType === '3g') {
+      return 'low';
+    }
+    
+    if (type === 'mobile' && connectionType === '4g') {
+      return 'medium';
+    }
+    
+    return 'high';
+  }
+
+  getUpdateFrequency(): number {
+    // Return update frequency in milliseconds
+    const { type, isLowPowerMode, connectionType } = this.deviceInfo;
+    
+    if (isLowPowerMode || connectionType === 'slow') {
+      return 10000; // 10 seconds
+    }
+    
+    if (type === 'mobile' && connectionType === '3g') {
+      return 5000; // 5 seconds
+    }
+    
+    return 1000; // 1 second for good connections
+  }
 }
 
 // Singleton instance

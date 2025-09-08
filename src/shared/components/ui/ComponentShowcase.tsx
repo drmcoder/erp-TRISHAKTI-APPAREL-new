@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Container, Stack, Grid, Card, CardHeader, CardBody, 
-  H1, H2, H3, Text, Button, Input, Modal, Badge, 
+  H1, H2, H3, H4, H5, H6, Text, Button, Input, Modal, Badge, 
   Dropdown, DropdownOption, StatusBadge, PriorityBadge,
   Flex, Divider, Code, List, ListItem
 } from './index';

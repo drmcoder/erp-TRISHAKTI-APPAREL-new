@@ -19,7 +19,7 @@ export const usePermissions = () => {
   const canAccessResource = (
     resource: string, 
     action: string, 
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ): boolean => {
     return PermissionsService.canAccessResource(user, resource, action, context);
   };

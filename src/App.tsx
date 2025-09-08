@@ -1,41 +1,48 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { OperatorDashboard } from './components/operator/OperatorDashboard';
-import { SupervisorDashboard } from './components/supervisor/SupervisorDashboard';
-import { AssignmentDashboard } from './features/work-assignment/components/assignment-dashboard';
-import { BundleLifecycleManager } from './features/bundles/components/bundle-lifecycle-manager';
-import { OperatorWorkDashboard } from './features/work-assignment/components/operator-work-dashboard';
-import { ProductionDashboard } from './features/analytics/components/production-dashboard';
-import { QualityManagementDashboard } from './features/quality/components/quality-management-dashboard';
-import { EarningsDashboard } from './features/earnings/components/earnings-dashboard';
-import { OperatorManagementDashboard } from './features/operators/components/operator-management-dashboard';
-import { SelfAssignmentInterface } from './features/work-assignment/components/self-assignment-interface';
-import { ProductionTimer } from './features/work-assignment/components/production-timer';
 import type { WorkItem } from './features/work-assignment/types';
-import { EnhancedWIPEntryForm } from './features/wip/components/enhanced-wip-entry-form';
-// import { templateIntegrationService } from './services/template-integration-service'; // Disabled for demo
-import { ArticleTemplateManager } from './features/templates/components/article-template-manager';
-import { WorkflowSequencer } from './features/workflow/components/workflow-sequencer';
-import { MobileFriendlyLayout } from './components/layout/mobile-friendly-layout';
-import { MobileTest } from './components/mobile/mobile-test';
-import { MultiRollWIPEntry } from './features/wip/components/multi-roll-wip-entry';
+import { ErrorBoundary } from './shared/components/ErrorBoundary';
 
-// Complete WIP Entry Workflow (New 3-step system)
-import { CompleteWIPEntryWorkflow } from './components/wip/complete-wip-entry-workflow';
+// Core components (loaded immediately)
 import { BarcodeScanner } from './components/barcode/barcode-scanner';
 import { BundleLabelGenerator } from './components/barcode/bundle-label-generator';
-import { LiveProductionDashboard } from './components/dashboard/live-production-dashboard';
-// Responsive layout components available if needed
-// import { ResponsiveLayout, MobileOnly, TabletOnly, DesktopOnly, TVOnly } from './components/responsive/responsive-layout';
+import { ThreeStepWipEntry } from './components/wip/three-step-wip-entry';
+import { AuthService } from './services/auth-service';
 
-// TSA Production System Components
-import CuttingDropletManager from './components/management/CuttingDropletManager';
-import ProductionLotManager from './components/management/ProductionLotManager';
-import ProcessPricingManager from './components/management/ProcessPricingManager';
-import EnhancedOperatorDashboard from './components/operator/EnhancedOperatorDashboard';
-import OperatorPieceTracker from './components/operator/OperatorPieceTracker';
-import BundleAssignmentManager from './components/supervisor/BundleAssignmentManager';
+// Lazy loaded components - split into logical chunks
+const OperatorDashboard = lazy(() => import('./components/operator/OperatorDashboard').then(m => ({ default: m.OperatorDashboard })));
+const SupervisorDashboard = lazy(() => import('./components/supervisor/SupervisorDashboard').then(m => ({ default: m.SupervisorDashboard })));
+const AssignmentDashboard = lazy(() => import('./features/work-assignment/components/assignment-dashboard').then(m => ({ default: m.AssignmentDashboard })));
+const BundleLifecycleManager = lazy(() => import('./features/bundles/components/bundle-lifecycle-manager').then(m => ({ default: m.BundleLifecycleManager })));
+const OperatorWorkDashboard = lazy(() => import('./features/work-assignment/components/operator-work-dashboard').then(m => ({ default: m.OperatorWorkDashboard })));
+const ProductionDashboard = lazy(() => import('./features/analytics/components/production-dashboard').then(m => ({ default: m.ProductionDashboard })));
+const QualityManagementDashboard = lazy(() => import('./features/quality/components/quality-management-dashboard').then(m => ({ default: m.QualityManagementDashboard })));
+const EarningsDashboard = lazy(() => import('./features/earnings/components/earnings-dashboard').then(m => ({ default: m.EarningsDashboard })));
+const OperatorManagementDashboard = lazy(() => import('./features/operators/components/operator-management-dashboard').then(m => ({ default: m.OperatorManagementDashboard })));
+const SelfAssignmentInterface = lazy(() => import('./features/work-assignment/components/self-assignment-interface').then(m => ({ default: m.SelfAssignmentInterface })));
+const ProductionTimer = lazy(() => import('./features/work-assignment/components/production-timer').then(m => ({ default: m.ProductionTimer })));
+const ArticleTemplateManager = lazy(() => import('./features/templates/components/article-template-manager').then(m => ({ default: m.ArticleTemplateManager })));
+const WorkflowSequencer = lazy(() => import('./features/workflow/components/workflow-sequencer').then(m => ({ default: m.WorkflowSequencer })));
+const MobileFriendlyLayout = lazy(() => import('./components/layout/mobile-friendly-layout.tsx').then(m => ({ default: m.MobileFriendlyLayout })));
+const MobileTest = lazy(() => import('./components/mobile/mobile-test').then(m => ({ default: m.MobileTest })));
+// CompleteWIPEntryWorkflow disabled as per user request
+const LiveProductionDashboard = lazy(() => import('./components/dashboard/live-production-dashboard').then(m => ({ default: m.LiveProductionDashboard })));
+const CuttingDropletManager = lazy(() => import('./components/management/CuttingDropletManager'));
+const ProductionLotManager = lazy(() => import('./components/management/ProductionLotManager'));
+const ProcessPricingManager = lazy(() => import('./components/management/ProcessPricingManager'));
+const EnhancedOperatorDashboard = lazy(() => import('./components/operator/EnhancedOperatorDashboard'));
+const OperatorPieceTracker = lazy(() => import('./components/operator/OperatorPieceTracker'));
+const BundleAssignmentManager = lazy(() => import('./components/supervisor/BundleAssignmentManager'));
+const SewingTemplateManager = lazy(() => import('./features/sewing-templates/components/sewing-template-manager').then(m => ({ default: m.SewingTemplateManager })));
+
+// Loading component
+const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
+  <div className="flex items-center justify-center h-64">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <span className="ml-3 text-lg">{text}</span>
+  </div>
+);
 
 // Template initialization disabled for demo
 
@@ -51,7 +58,7 @@ const queryClient = new QueryClient({
 });
 
 // Login Component
-const LoginPage = ({ onLogin }: { onLogin: (username: string) => void }) => {
+const LoginPage = ({ onLogin }: { onLogin: (username: string, role: string) => void }) => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -59,11 +66,23 @@ const LoginPage = ({ onLogin }: { onLogin: (username: string) => void }) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate login delay
-    setTimeout(() => {
+    try {
+      const result = await AuthService.login({
+        username: credentials.username,
+        password: credentials.password
+      });
+      
+      if (result.success && result.data) {
+        onLogin(result.data.username, result.data.role);
+      } else {
+        alert(result.error || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Login failed. Please try again.');
+    } finally {
       setIsLoading(false);
-      onLogin(credentials.username);
-    }, 1000);
+    }
   };
 
   return (
@@ -130,11 +149,10 @@ const LoginPage = ({ onLogin }: { onLogin: (username: string) => void }) => {
 
           <div className="text-center">
             <div className="text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="font-medium text-blue-800 mb-2">Demo Credentials:</p>
+              <p className="font-medium text-blue-800 mb-2">Login Credentials:</p>
               <div className="space-y-1 text-left">
-                <p><span className="font-medium">Operator:</span> operator / password</p>
                 <p><span className="font-medium">Supervisor:</span> sup / sup</p>
-                <p><span className="font-medium">Manager:</span> manager / password</p>
+                <p><span className="font-medium">Admin:</span> admin / admin</p>
               </div>
             </div>
           </div>
@@ -231,53 +249,20 @@ const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
             } as WorkItem}
           />
         </div>;
-      case 'wip-entry':
-        return <EnhancedWIPEntryForm 
-          mode="create"
-          onSave={(wipEntry) => {
-            console.log('Enhanced WIP Entry saved:', wipEntry);
-            alert('WIP Entry saved successfully! (Demo Mode)');
-          }}
-          onCancel={() => setCurrentView('dashboard')}
-          availableTemplates={[]} 
-          teamMembers={[
-            { id: 'user1', name: 'Maya Patel', role: 'operator' },
-            { id: 'user2', name: 'John Smith', role: 'supervisor' }
-          ]}
-          onTemplateCreate={(template) => {
-            console.log('Template created:', template);
-            alert('Template would be created in production mode');
-          }}
-          onCollaborate={(note) => {
-            console.log('Collaboration note:', note);
-          }}
-          realTimeUsers={[
-            { id: 'user1', name: 'Maya Patel', color: '#3B82F6' }
-          ]}
-        />;
-      case 'multi-roll-wip':
-        return <MultiRollWIPEntry
-          onSave={(wipEntry) => {
-            console.log('Multi-Roll WIP Entry saved:', wipEntry);
-            alert('WIP Entry saved successfully! (Demo Mode)');
-          }}
-          onCancel={() => setCurrentView('dashboard')}
-        />;
       
-      // Complete 3-Step WIP Entry Workflow (New Implementation)
+      // Complete 3-Step WIP Entry Workflow
       case 'complete-wip-entry':
-        return <CompleteWIPEntryWorkflow
-          onComplete={async (wipData) => {
-            console.log('🎯 Complete WIP Entry saved:', wipData);
-            console.log('📊 Articles:', wipData.parsedStyles.length);
-            console.log('📦 Rolls:', wipData.rollInfo.rollCount);
-            console.log('📏 Size Config:', wipData.sizeConfiguration);
-            alert(`WIP Entry saved successfully!\n\nLot: ${wipData.lotNumber}\nBuyer: ${wipData.buyerName}\nArticles: ${wipData.parsedStyles.length}\nRolls: ${wipData.rollInfo.rollCount}`);
-            setCurrentView('dashboard');
-          }}
-          onCancel={() => setCurrentView('dashboard')}
-          currentLanguage="en"
-        />;
+        return (
+          <ThreeStepWipEntry
+            onComplete={async (data) => {
+              // TODO: Implement actual WIP creation logic
+              console.log('WIP Entry completed:', data);
+              alert(`WIP Entry created successfully!\nBundle: ${data.bundleNumber}\nTotal Pieces: ${data.sizes.reduce((sum, size) => sum + size.quantity, 0)}`);
+              setCurrentView('dashboard');
+            }}
+            onCancel={() => setCurrentView('dashboard')}
+          />
+        );
       
       // Live Production Dashboard with TV Display Support
       case 'live-dashboard':
@@ -326,6 +311,8 @@ const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
           onSave={(template) => console.log('Template saved:', template)}
           onCancel={() => setCurrentView('dashboard')}
         />;
+      case 'sewing-templates':
+        return <SewingTemplateManager />;
       case 'workflow':
         return <WorkflowSequencer 
           operations={[]}
@@ -361,17 +348,25 @@ const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
   };
 
   return (
-    <MobileFriendlyLayout 
-      currentUser={{
-        name: userRole === 'operator' ? 'Maya Patel' : 
-              userRole === 'supervisor' ? 'John Smith' : 'Admin User',
-        role: userRole as 'operator' | 'supervisor' | 'management' | 'admin'
+    <ErrorBoundary
+      onError={(error) => {
+        console.error('Error in MobileFriendlyLayout:', error);
       }}
-      currentView={currentView}
-      onViewChange={setCurrentView}
     >
-      {renderMainContent()}
-    </MobileFriendlyLayout>
+      <MobileFriendlyLayout 
+        currentUser={{
+          name: userRole === 'operator' ? 'Maya Patel' : 
+                userRole === 'supervisor' ? 'John Smith' : 'Admin User',
+          role: userRole as 'operator' | 'supervisor' | 'management' | 'admin'
+        }}
+        currentView={currentView}
+        onViewChange={setCurrentView}
+      >
+        <ErrorBoundary>
+          {renderMainContent()}
+        </ErrorBoundary>
+      </MobileFriendlyLayout>
+    </ErrorBoundary>
   );
 };
 
@@ -400,15 +395,9 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleLogin = (username: string) => {
-    // Determine user role based on username/email - ensure consistent role types
-    let role: 'operator' | 'supervisor' | 'management' | 'admin' = 'operator';
-    if (username === 'sup' || username === 'supervisor') role = 'supervisor';
-    if (username === 'manager') role = 'management'; // Fixed: use 'management' instead of 'manager'
-    if (username === 'admin') role = 'admin';
-    if (username === 'operator') role = 'operator';
-    
-    setUserRole(role);
+  const handleLogin = (username: string, role: string) => {
+    // Set role from Firebase authentication result
+    setUserRole(role as 'operator' | 'supervisor' | 'management' | 'admin');
     setIsAuthenticated(true);
   };
 
@@ -424,7 +413,9 @@ function App() {
         {!isAuthenticated ? (
           <LoginPage onLogin={handleLogin} />
         ) : (
-          <Dashboard userRole={userRole} />
+          <Suspense fallback={<LoadingSpinner text="Loading dashboard..." />}>
+            <Dashboard userRole={userRole} />
+          </Suspense>
         )}
       </BrowserRouter>
     </QueryClientProvider>

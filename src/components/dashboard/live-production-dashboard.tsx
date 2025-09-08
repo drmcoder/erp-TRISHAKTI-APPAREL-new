@@ -6,7 +6,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui
 import { Badge } from '@/shared/components/ui/Badge';
 import {
   ChartBarIcon,
-  ClockIcon,
   UserGroupIcon,
   CurrencyRupeeIcon,
   ExclamationTriangleIcon,
@@ -83,7 +82,7 @@ export const LiveProductionDashboard: React.FC<LiveProductionDashboardProps> = (
   // WebSocket connection for real-time updates
   const {
     isConnected,
-    liveMetrics,
+    // liveMetrics, // Available for future use
     connectedOperators,
     workingOperators
   } = useWebSocket({
@@ -199,13 +198,14 @@ export const LiveProductionDashboard: React.FC<LiveProductionDashboardProps> = (
     return new Intl.NumberFormat('en-IN').format(num);
   };
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
+  // Currency formatting function (available for future use)
+  // const formatCurrency = (amount: number): string => {
+  //   return new Intl.NumberFormat('en-IN', {
+  //     style: 'currency',
+  //     currency: 'INR',
+  //     maximumFractionDigits: 0
+  //   }).format(amount);
+  // };
 
   const getEfficiencyColor = (efficiency: number): string => {
     if (efficiency >= 100) return 'text-green-600';
@@ -472,7 +472,7 @@ export const LiveProductionDashboard: React.FC<LiveProductionDashboardProps> = (
                           📍 {alert.location} • {alert.timestamp.toLocaleTimeString()}
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge outline className="text-xs">
                         {alert.severity.toUpperCase()}
                       </Badge>
                     </div>
@@ -492,7 +492,7 @@ export const LiveProductionDashboard: React.FC<LiveProductionDashboardProps> = (
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-12 gap-2">
-              {metrics.hourlyProduction.slice(-12).map((hour, index) => (
+              {metrics.hourlyProduction.slice(-12).map((hour) => (
                 <div key={hour.hour} className="text-center">
                   <div className={`text-xs text-${tvLayout ? 'gray-300' : 'gray-600'} mb-1`}>
                     {hour.hour}

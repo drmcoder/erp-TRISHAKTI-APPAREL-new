@@ -7,7 +7,7 @@
 
 import { readFileSync, writeFileSync } from 'fs';
 import { globSync } from 'glob';
-import { resolve } from 'path';
+import { resolve as _resolve } from 'path';
 
 interface ComplexityMetrics {
   file: string;
@@ -288,7 +288,7 @@ class ComplexityAnalyzer {
     }
   }
 
-  private generateGitHubSummary(projectMetrics: ProjectMetrics, fileMetrics: ComplexityMetrics[]): void {
+  private generateGitHubSummary(projectMetrics: ProjectMetrics, _fileMetrics: ComplexityMetrics[]): void {
     let summary = '## Code Complexity Analysis\n\n';
     
     summary += '### Overview\n';

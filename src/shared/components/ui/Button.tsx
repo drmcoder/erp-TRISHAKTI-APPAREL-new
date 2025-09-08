@@ -55,6 +55,20 @@ const buttonVariants = {
     'active:bg-danger-700 active:border-danger-700',
     'disabled:bg-danger-300 disabled:border-danger-300 disabled:cursor-not-allowed',
   ],
+  info: [
+    'bg-blue-500 text-white border-blue-500',
+    'hover:bg-blue-600 hover:border-blue-600',
+    'focus:ring-blue-500 focus:border-blue-600',
+    'active:bg-blue-700 active:border-blue-700',
+    'disabled:bg-blue-300 disabled:border-blue-300 disabled:cursor-not-allowed',
+  ],
+  back: [
+    'bg-gray-500 text-white border-gray-500',
+    'hover:bg-gray-600 hover:border-gray-600',
+    'focus:ring-gray-500 focus:border-gray-600',
+    'active:bg-gray-700 active:border-gray-700',
+    'disabled:bg-gray-300 disabled:border-gray-300 disabled:cursor-not-allowed',
+  ],
   ghost: [
     'bg-transparent text-secondary-700 border-transparent',
     'hover:bg-secondary-100 hover:text-secondary-900',

@@ -1,7 +1,32 @@
 // Real-Time WebSocket Service
 // Handles live updates, notifications, and collaboration features
 
-import { EventEmitter } from 'events';
+// Browser-compatible EventEmitter replacement
+class SimpleEventEmitter {
+  private listeners: { [event: string]: Function[] } = {};
+
+  on(event: string, callback: Function) {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
+    }
+    this.listeners[event].push(callback);
+  }
+
+  emit(event: string, ...args: any[]) {
+    if (this.listeners[event]) {
+      this.listeners[event].forEach(callback => callback(...args));
+    }
+  }
+
+  off(event: string, callback?: Function) {
+    if (!this.listeners[event]) return;
+    if (callback) {
+      this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+    } else {
+      this.listeners[event] = [];
+    }
+  }
+}
 import { io, Socket } from 'socket.io-client';
 
 export interface RealtimeEvent {
@@ -33,6 +58,12 @@ export interface LiveMetrics {
   qualityIssues: number;
   averageEfficiency: number;
   onTimeDelivery: number;
+  earnings: {
+    total: number;
+    operators: number;
+    supervisors: number;
+  };
+  activeOperators: number;
 }
 
 export interface CollaborationSession {
@@ -49,7 +80,7 @@ export interface CollaborationSession {
   sharedState: any;
 }
 
-class RealtimeService extends EventEmitter {
+class RealtimeService extends SimpleEventEmitter {
   private socket: Socket | null = null;
   private connectionStatus: 'disconnected' | 'connecting' | 'connected' = 'disconnected';
   private reconnectAttempts = 0;

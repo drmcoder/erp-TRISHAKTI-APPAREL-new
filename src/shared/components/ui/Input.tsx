@@ -75,27 +75,31 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const [showPassword, setShowPassword] = React.useState(false);
-    const [internalValue, setInternalValue] = React.useState(value || '');
     const generatedId = React.useId();
     const inputId = id || `input-${generatedId}`;
 
     const isPassword = type === 'password';
     const inputType = isPassword ? (showPassword ? 'text' : 'password') : type;
     
-    const hasValue = (value !== undefined ? value : internalValue) !== '';
+    // Use controlled value directly, don't maintain internal state for react-hook-form compatibility
+    const hasValue = value !== undefined && value !== '';
     const showClearButton = clearable && hasValue && !disabled;
     const showPasswordToggle = isPassword && !disabled;
 
     const handleClear = () => {
-      setInternalValue('');
       onClear?.();
+      // Let the parent handle the value clearing through onChange
+      if (props.onChange) {
+        props.onChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>);
+      }
     };
 
+    // Direct onChange handler - no internal state management
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (value === undefined) {
-        setInternalValue(e.target.value);
+      // Let react-hook-form handle the change
+      if (props.onChange) {
+        props.onChange(e);
       }
-      props.onChange?.(e);
     };
 
     return (
@@ -130,7 +134,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             type={inputType}
             disabled={disabled}
-            value={value !== undefined ? value : internalValue}
+            value={value ?? ''}
             className={cn(
               // Base styles
               'block w-full border rounded-md shadow-sm',

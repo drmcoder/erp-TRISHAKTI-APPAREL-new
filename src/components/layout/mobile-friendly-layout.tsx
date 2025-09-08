@@ -45,8 +45,6 @@ const navigationItems = {
   supervisor: [
     { icon: HomeIcon, label: 'Dashboard', href: '/supervisor', id: 'dashboard' },
     { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/supervisor/complete-wip', id: 'complete-wip-entry' },
-    { icon: ClipboardDocumentListIcon, label: 'Enhanced WIP', href: '/supervisor/wip', id: 'wip-entry' },
-    { icon: CubeIcon, label: 'Multi-Roll WIP', href: '/supervisor/multi-roll-wip', id: 'multi-roll-wip' },
     { icon: UserGroupIcon, label: 'Work Assignment', href: '/supervisor/assignments', id: 'work-assignment' },
     { icon: CubeIcon, label: 'Bundle Management', href: '/supervisor/bundles', id: 'bundles' },
     { icon: UserGroupIcon, label: 'Operator Management', href: '/supervisor/operators', id: 'operators' },
@@ -55,13 +53,12 @@ const navigationItems = {
     { icon: TagIcon, label: 'Label Generator', href: '/supervisor/labels', id: 'label-generator' },
     { icon: ChartBarIcon, label: 'Analytics', href: '/supervisor/analytics', id: 'analytics' },
     { icon: CogIcon, label: 'Quality Control', href: '/supervisor/quality', id: 'quality' },
-    { icon: DocumentTextIcon, label: 'Templates', href: '/supervisor/templates', id: 'templates' }
+    { icon: DocumentTextIcon, label: 'Templates', href: '/supervisor/templates', id: 'templates' },
+    { icon: DocumentTextIcon, label: 'Sewing Templates', href: '/supervisor/sewing-templates', id: 'sewing-templates' }
   ],
   management: [
     { icon: HomeIcon, label: 'Dashboard', href: '/management', id: 'dashboard' },
     { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/management/complete-wip', id: 'complete-wip-entry' },
-    { icon: ClipboardDocumentListIcon, label: 'Enhanced WIP', href: '/management/wip', id: 'wip-entry' },
-    { icon: CubeIcon, label: 'Multi-Roll WIP', href: '/management/multi-roll-wip', id: 'multi-roll-wip' },
     { icon: CubeIcon, label: 'Production Lots', href: '/management/production-lots', id: 'production-lots' },
     { icon: CubeIcon, label: 'Cutting Droplet', href: '/management/cutting', id: 'cutting-droplet' },
     { icon: CogIcon, label: 'Pricing Manager', href: '/management/pricing', id: 'pricing-manager' },
@@ -74,8 +71,6 @@ const navigationItems = {
   admin: [
     { icon: HomeIcon, label: 'Dashboard', href: '/admin', id: 'dashboard' },
     { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/admin/complete-wip', id: 'complete-wip-entry' },
-    { icon: ClipboardDocumentListIcon, label: 'Enhanced WIP', href: '/admin/wip', id: 'wip-entry' },
-    { icon: CubeIcon, label: 'Multi-Roll WIP', href: '/admin/multi-roll-wip', id: 'multi-roll-wip' },
     { icon: CubeIcon, label: 'Enhanced Operator', href: '/admin/enhanced-operator', id: 'enhanced-operator' },
     { icon: UserCircleIcon, label: 'Piece Tracker', href: '/admin/piece-tracker', id: 'piece-tracker' },
     { icon: CubeIcon, label: 'Bundle Assignment', href: '/admin/bundle-assignment', id: 'bundle-assignment' },
