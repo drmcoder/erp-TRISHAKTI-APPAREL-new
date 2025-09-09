@@ -10,8 +10,8 @@ import type {
   OperationProgress,
   MachineOperatorAssignment,
   SewingTemplateFilters
-} from '../types/sewing-template-types';
-import { validateTemplate, calculateTemplateComplexity } from '../types/sewing-template-types';
+} from '../shared/types/sewing-template-types';
+import { validateTemplate, calculateTemplateComplexity } from '../shared/types/sewing-template-types';
 import { Timestamp } from 'firebase/firestore';
 
 /**

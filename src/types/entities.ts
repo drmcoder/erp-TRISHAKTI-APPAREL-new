@@ -86,6 +86,7 @@ export interface BundleSize {
   quantity: number;
   completed: number;
   rate: number;
+  smv?: number; // Standard Minute Value - auto-calculated or user-edited
 }
 
 // Work Assignment Types

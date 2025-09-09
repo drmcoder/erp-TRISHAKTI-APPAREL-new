@@ -8,29 +8,46 @@ import {
   UserGroupIcon,
   CubeIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon,
-  CalendarDaysIcon,
-  TagIcon,
   PlusIcon,
-  TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import { sewingTemplateService } from '@/services/sewing-template-service';
-import type { Bundle, BundleSize } from '@/types/entities';
-import type { SewingTemplate } from '@/types/sewing-template-types';
+import type { BundleSize } from '@/types/entities';
+import type { SewingTemplate } from '@/shared/types/sewing-template-types';
+
+interface FabricRoll {
+  id: string;
+  rollNumber: string;
+  color: string;
+  weight: number; // in kg or grams
+  layerCount: number;
+  layerLength: number; // in meters
+  cuttingComplete: boolean;
+}
 
 interface ArticleInfo {
   id: string;
   articleNumber: string;
   style: string;
-  deliveryDate: string;
   priority: 'low' | 'normal' | 'high' | 'urgent';
   sizes: BundleSize[];
+  sizeNames: string; // e.g., "M:L:XL"
+  sizeRatios: string; // e.g., "1:2:1"
+  selectedTemplateId: string; // Individual template for this article
+  sewingOperations?: string[]; // Different operations for different articles
 }
 
 interface WIPEntryData {
   // Step 1: Multiple Articles Information
   articles: ArticleInfo[];
+  
+  // Step 2: Fabric Roll & Layering Information
+  fabricRolls: FabricRoll[];
+  batchCuttingInfo: {
+    layerLength: number; // Common layer length (e.g., 4.7m)
+    totalLayers: number;
+    cuttingEfficiency: number;
+  };
   
   // Step 3: Template Selection & Confirmation (applies to all articles)
   selectedTemplateId: string;
@@ -52,25 +69,32 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
       id: 'article_1',
       articleNumber: '',
       style: '',
-      deliveryDate: '',
       priority: 'normal',
-      sizes: []
+      sizes: [],
+      sizeNames: '',
+      sizeRatios: '',
+      selectedTemplateId: ''
     }],
+    fabricRolls: [],
+    batchCuttingInfo: {
+      layerLength: 4.7,
+      totalLayers: 0,
+      cuttingEfficiency: 95
+    },
     selectedTemplateId: '',
     bundleNumber: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [availableTemplates, setAvailableTemplates] = useState<SewingTemplate[]>([]);
-  const [newSize, setNewSize] = useState({ size: '', quantity: '', rate: '' });
+  const [newSize, setNewSize] = useState({ size: '', quantity: '', rate: '', smv: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+  const [newRoll, setNewRoll] = useState({ rollNumber: '', color: '', weight: '', layerCount: '' });
 
-  // Load available templates when reaching step 3
+  // Load available templates when component mounts (needed for Step 1)
   React.useEffect(() => {
-    if (currentStep === 3) {
-      loadTemplates();
-    }
-  }, [currentStep]);
+    loadTemplates();
+  }, []);
 
   const loadTemplates = async () => {
     try {
@@ -89,9 +113,11 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
       id: `article_${Date.now()}`,
       articleNumber: '',
       style: '',
-      deliveryDate: '',
       priority: 'normal',
-      sizes: []
+      sizes: [],
+      sizeNames: '',
+      sizeRatios: '',
+      selectedTemplateId: ''
     };
     
     setFormData(prev => ({
@@ -127,6 +153,47 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     }));
   };
 
+  // Add fabric roll
+  const addFabricRoll = () => {
+    if (newRoll.rollNumber && newRoll.color && newRoll.weight && newRoll.layerCount) {
+      const roll: FabricRoll = {
+        id: `roll_${Date.now()}`,
+        rollNumber: newRoll.rollNumber,
+        color: newRoll.color,
+        weight: parseFloat(newRoll.weight),
+        layerCount: parseInt(newRoll.layerCount),
+        layerLength: formData.batchCuttingInfo.layerLength,
+        cuttingComplete: false
+      };
+      
+      setFormData(prev => ({
+        ...prev,
+        fabricRolls: [...prev.fabricRolls, roll],
+        batchCuttingInfo: {
+          ...prev.batchCuttingInfo,
+          totalLayers: prev.batchCuttingInfo.totalLayers + parseInt(newRoll.layerCount)
+        }
+      }));
+      
+      setNewRoll({ rollNumber: '', color: '', weight: '', layerCount: '' });
+    }
+  };
+
+  // Remove fabric roll
+  const removeFabricRoll = (rollId: string) => {
+    const rollToRemove = formData.fabricRolls.find(roll => roll.id === rollId);
+    if (rollToRemove) {
+      setFormData(prev => ({
+        ...prev,
+        fabricRolls: prev.fabricRolls.filter(roll => roll.id !== rollId),
+        batchCuttingInfo: {
+          ...prev.batchCuttingInfo,
+          totalLayers: prev.batchCuttingInfo.totalLayers - rollToRemove.layerCount
+        }
+      }));
+    }
+  };
+
   const validateStep1 = () => {
     const stepErrors: Record<string, string> = {};
     
@@ -134,13 +201,19 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     formData.articles.forEach((article, index) => {
       if (!article.articleNumber.trim()) stepErrors[`article_${index}_articleNumber`] = `Article ${index + 1}: Article number is required`;
       if (!article.style.trim()) stepErrors[`article_${index}_style`] = `Article ${index + 1}: Style is required`;
-      if (!article.deliveryDate) stepErrors[`article_${index}_deliveryDate`] = `Article ${index + 1}: Delivery date is required`;
+      if (!article.sizeNames.trim()) stepErrors[`article_${index}_sizeNames`] = `Article ${index + 1}: Size names are required`;
+      if (!article.sizeRatios.trim()) stepErrors[`article_${index}_sizeRatios`] = `Article ${index + 1}: Size ratios are required`;
+      if (!article.selectedTemplateId) stepErrors[`article_${index}_template`] = `Article ${index + 1}: Sewing template is required`;
+      
+      // Validate size names and ratios match
+      if (article.sizeNames.trim() && article.sizeRatios.trim()) {
+        const sizes = article.sizeNames.split(':').filter(s => s.trim());
+        const ratios = article.sizeRatios.split(':').filter(r => r.trim());
+        if (sizes.length !== ratios.length) {
+          stepErrors[`article_${index}_sizeMatch`] = `Article ${index + 1}: Number of sizes and ratios must match`;
+        }
+      }
     });
-
-    // Validate template selection
-    if (!formData.selectedTemplateId) {
-      stepErrors.templateSelection = 'Please select a sewing template';
-    }
     
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
@@ -156,6 +229,16 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
       }
     });
     
+    // Validate fabric rolls
+    if (formData.fabricRolls.length === 0) {
+      stepErrors.fabricRolls = 'At least one fabric roll is required for batch cutting';
+    }
+    
+    // Validate layer length
+    if (formData.batchCuttingInfo.layerLength <= 0) {
+      stepErrors.layerLength = 'Layer length must be greater than 0';
+    }
+    
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
@@ -163,15 +246,62 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   const validateStep3 = () => {
     const stepErrors: Record<string, string> = {};
     
-    if (!formData.selectedTemplateId) stepErrors.template = 'Please select a sewing template';
     if (!formData.bundleNumber.trim()) stepErrors.bundleNumber = 'Bundle number is required';
+    
+    // Check that all articles have templates assigned (should be validated in Step 1 already)
+    const articlesWithoutTemplates = formData.articles.filter(article => !article.selectedTemplateId);
+    if (articlesWithoutTemplates.length > 0) {
+      stepErrors.articleTemplates = `${articlesWithoutTemplates.length} articles are missing template assignments`;
+    }
     
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
 
+  // Generate sizes from article configuration
+  const generateSizesFromConfig = (articleIndex: number) => {
+    const article = formData.articles[articleIndex];
+    if (!article.sizeNames.trim() || !article.sizeRatios.trim()) return;
+    
+    const sizeNames = article.sizeNames.split(':').map(s => s.trim()).filter(s => s);
+    const sizeRatios = article.sizeRatios.split(':').map(r => r.trim()).filter(r => r);
+    
+    if (sizeNames.length !== sizeRatios.length) {
+      setErrors(prev => ({
+        ...prev,
+        sizeGeneration: 'Size names and ratios count must match'
+      }));
+      return;
+    }
+    
+    // Clear existing sizes and generate new ones
+    const newSizes = sizeNames.map((sizeName, index) => ({
+      size: sizeName,
+      quantity: parseInt(sizeRatios[index]) || 1,
+      completed: 0,
+      rate: 0, // Will be set manually later
+      smv: 0 // Will be calculated when rate is set
+    }));
+    
+    const updatedArticles = formData.articles.map((art, index) => 
+      index === articleIndex 
+        ? { ...art, sizes: newSizes }
+        : art
+    );
+    
+    setFormData(prev => ({
+      ...prev,
+      articles: updatedArticles
+    }));
+    
+    setErrors(prev => ({ ...prev, sizeGeneration: '' }));
+  };
+
   const addSize = () => {
     if (newSize.size && newSize.quantity && newSize.rate) {
+      const rate = parseFloat(newSize.rate);
+      const smv = newSize.smv ? parseFloat(newSize.smv) : rate * 1.9; // Auto-calculate if not provided
+      
       const updatedArticles = formData.articles.map((article, index) => 
         index === currentArticleIndex 
           ? {
@@ -180,7 +310,8 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                 size: newSize.size,
                 quantity: parseInt(newSize.quantity),
                 completed: 0,
-                rate: parseFloat(newSize.rate)
+                rate: rate,
+                smv: smv
               }]
             }
           : article
@@ -191,8 +322,45 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
         articles: updatedArticles
       }));
       
-      setNewSize({ size: '', quantity: '', rate: '' });
+      setNewSize({ size: '', quantity: '', rate: '', smv: '' });
     }
+  };
+  
+  const updateSizeRate = (sizeIndex: number, rate: number) => {
+    const autoSmv = rate * 1.9; // Auto-calculate SMV
+    const updatedArticles = formData.articles.map((article, index) => 
+      index === currentArticleIndex 
+        ? {
+            ...article,
+            sizes: article.sizes.map((size, idx) => 
+              idx === sizeIndex ? { ...size, rate, smv: autoSmv } : size
+            )
+          }
+        : article
+    );
+    
+    setFormData(prev => ({
+      ...prev,
+      articles: updatedArticles
+    }));
+  };
+  
+  const updateSizeSmv = (sizeIndex: number, smv: number) => {
+    const updatedArticles = formData.articles.map((article, index) => 
+      index === currentArticleIndex 
+        ? {
+            ...article,
+            sizes: article.sizes.map((size, idx) => 
+              idx === sizeIndex ? { ...size, smv } : size
+            )
+          }
+        : article
+    );
+    
+    setFormData(prev => ({
+      ...prev,
+      articles: updatedArticles
+    }));
   };
 
   const removeSize = (sizeIndex: number) => {
@@ -262,9 +430,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     }, 0);
   };
 
-  const getSelectedTemplate = () => {
-    return availableTemplates.find(t => t.id === formData.selectedTemplateId);
-  };
+
 
   const renderStep1 = () => {
     const currentArticle = formData.articles[currentArticleIndex];
@@ -278,8 +444,8 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                 <DocumentTextIcon className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Step 1: Article Information</h3>
-                <p className="text-sm text-gray-500">Enter basic article and order details</p>
+                <h3 className="text-lg font-semibold text-gray-900">Step 1: Multi-Article Information</h3>
+                <p className="text-sm text-gray-500">Set up multiple articles for batch cutting</p>
               </div>
             </div>
             <Button
@@ -294,7 +460,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
           {/* Article Tabs */}
           {formData.articles.length > 1 && (
             <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b">
-              {formData.articles.map((article, index) => (
+              {formData.articles.map((article) => (
                 <div key={article.id} className="flex items-center">
                   <button
                     onClick={() => setCurrentArticleIndex(index)}
@@ -325,7 +491,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
             <div>
               <Input
                 label="Article Number *"
-                placeholder="e.g., #8082, #3233"
+                placeholder="e.g., #3233 (adult), #3265 (teen)"
                 value={currentArticle.articleNumber}
                 onChange={(e) => updateCurrentArticle({ articleNumber: e.target.value })}
                 error={errors[`article_${currentArticleIndex}_articleNumber`]}
@@ -335,29 +501,29 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
             <div>
               <Input
                 label="Style *"
-                placeholder="e.g., Polo T-shirt, Round Neck"
+                placeholder="e.g., Round Neck T-shirt"
                 value={currentArticle.style}
                 onChange={(e) => updateCurrentArticle({ style: e.target.value })}
                 error={errors[`article_${currentArticleIndex}_style`]}
               />
             </div>
 
-
             <div>
               <Input
-                type="date"
-                label="Delivery Date *"
-                value={currentArticle.deliveryDate}
-                onChange={(e) => updateCurrentArticle({ deliveryDate: e.target.value })}
-                error={errors[`article_${currentArticleIndex}_deliveryDate`]}
+                label="Size Names *"
+                placeholder="e.g., M:L:XL or S:M:L:XL:2XL"
+                value={currentArticle.sizeNames}
+                onChange={(e) => updateCurrentArticle({ sizeNames: e.target.value })}
+                error={errors[`article_${currentArticleIndex}_sizeNames`]}
               />
+              <p className="text-xs text-gray-500 mt-1">Enter sizes separated by colon (:)</p>
             </div>
 
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Priority *</label>
               <select
                 value={currentArticle.priority}
-                onChange={(e) => updateCurrentArticle({ priority: e.target.value as any })}
+                onChange={(e) => updateCurrentArticle({ priority: e.target.value as 'low' | 'normal' | 'high' | 'urgent' })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="low">Low</option>
@@ -366,52 +532,67 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                 <option value="urgent">Urgent</option>
               </select>
             </div>
-          </div>
-        </Card>
 
-        {/* Template Selection */}
-        <Card className="p-6">
-          <h4 className="font-medium text-gray-900 mb-4">Select Sewing Template</h4>
-          <p className="text-sm text-gray-600 mb-4">Choose a template that will be used for all articles in this bundle</p>
-          
-          <div className="space-y-2">
-            {availableTemplates.map((template) => (
-              <div
-                key={template.id}
-                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                  formData.selectedTemplateId === template.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => setFormData(prev => ({ ...prev, selectedTemplateId: template.id! }))}
+            <div>
+              <Input
+                label="Size Ratios *"
+                placeholder="e.g., 1:2:1 or 2:3:2:1:1"
+                value={currentArticle.sizeRatios}
+                onChange={(e) => updateCurrentArticle({ sizeRatios: e.target.value })}
+                error={errors[`article_${currentArticleIndex}_sizeRatios`]}
+              />
+              <p className="text-xs text-gray-500 mt-1">Enter ratios separated by colon (:), matching size names order</p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Sewing Template *</label>
+              <select
+                value={currentArticle.selectedTemplateId}
+                onChange={(e) => updateCurrentArticle({ selectedTemplateId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h5 className="font-medium text-gray-900">{template.templateName}</h5>
-                    <p className="text-sm text-gray-600">{template.templateCode}</p>
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                      <span>{template.operations.length} operations</span>
-                      <span>{template.totalSmv}min SMV</span>
-                      <span>Rs. {template.totalPricePerPiece} per piece</span>
-                    </div>
-                  </div>
-                  <Badge variant={template.complexityLevel === 'simple' ? 'success' : 
-                                template.complexityLevel === 'medium' ? 'warning' : 'danger'}>
-                    {template.complexityLevel}
-                  </Badge>
+                <option value="">Select a sewing template</option>
+                {availableTemplates.map((template) => (
+                  <option key={template.id} value={template.id}>
+                    {template.templateName} ({template.templateCode}) - {template.operations.length} ops
+                  </option>
+                ))}
+              </select>
+              {errors[`article_${currentArticleIndex}_template`] && (
+                <p className="text-red-500 text-sm mt-1">{errors[`article_${currentArticleIndex}_template`]}</p>
+              )}
+              
+              {/* Template Preview */}
+              {currentArticle.selectedTemplateId && (
+                <div className="mt-2 p-3 bg-gray-50 rounded border">
+                  {(() => {
+                    const selectedTemplate = availableTemplates.find(t => t.id === currentArticle.selectedTemplateId);
+                    return selectedTemplate ? (
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{selectedTemplate.templateName}</p>
+                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 mt-1">
+                          <span>{selectedTemplate.operations.length} operations</span>
+                          <span>{selectedTemplate.totalSmv}min SMV</span>
+                          <span>Rs. {selectedTemplate.totalPricePerPiece}/pc</span>
+                        </div>
+                      </div>
+                    ) : null;
+                  })()} 
                 </div>
-              </div>
-            ))}
-            {errors.templateSelection && (
-              <p className="text-red-500 text-sm mt-2">{errors.templateSelection}</p>
-            )}
+              )}
+            </div>
           </div>
         </Card>
 
         {/* Articles Summary */}
-        {formData.articles.length > 1 && (
+        {formData.articles.length > 0 && (
           <Card className="p-6">
-            <h4 className="font-medium text-gray-900 mb-3">Articles Summary ({formData.articles.length})</h4>
+            <h4 className="font-medium text-gray-900 mb-3">Batch Cutting Preview ({formData.articles.length} Articles)</h4>
+            <div className="bg-yellow-50 p-3 rounded-lg mb-4">
+              <p className="text-sm text-yellow-800">
+                📋 <strong>Multi-Article Batch:</strong> All articles will be cut together from the same fabric layers for maximum efficiency.
+              </p>
+            </div>
             <div className="space-y-2">
               {formData.articles.map((article, index) => (
                 <div key={article.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -420,11 +601,26 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                     <div>
                       <p className="font-medium text-gray-900">{article.articleNumber || 'No article number'}</p>
                       <p className="text-sm text-gray-500">
-                        {article.style} | {article.deliveryDate} | {article.priority}
+                        {article.style} | {article.priority} | Sizes: {article.sizeNames || 'Not set'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Template: {(() => {
+                          const template = availableTemplates.find(t => t.id === article.selectedTemplateId);
+                          return template ? template.templateName : 'Not selected';
+                        })()}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline">{article.sizes.length} sizes</Badge>
+                  <div className="text-right">
+                    <Badge variant="outline">{article.sizes.length} sizes</Badge>
+                    <div className="text-xs text-gray-500 mt-1">
+                      <p>Ratios: {article.sizeRatios || 'Not set'}</p>
+                      <p>Template: {(() => {
+                        const template = availableTemplates.find(t => t.id === article.selectedTemplateId);
+                        return template ? template.templateCode : 'Not selected';
+                      })()}</p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -439,21 +635,151 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     
     return (
       <div className="space-y-6">
+        {/* Batch Cutting Setup */}
+        <Card className="p-6">
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="bg-orange-100 p-2 rounded-lg">
+              <CubeIcon className="h-6 w-6 text-orange-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Step 2: Fabric Rolls & Batch Cutting</h3>
+              <p className="text-sm text-gray-500">Configure fabric rolls and layering for multi-article cutting</p>
+            </div>
+          </div>
+
+          {/* Layer Configuration */}
+          <div className="bg-blue-50 p-4 rounded-lg mb-6">
+            <h4 className="font-medium text-blue-900 mb-3">Batch Cutting Configuration</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Input
+                  type="number"
+                  step="0.1"
+                  label="Layer Length (meters)"
+                  value={formData.batchCuttingInfo.layerLength}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    batchCuttingInfo: {
+                      ...prev.batchCuttingInfo,
+                      layerLength: parseFloat(e.target.value) || 0
+                    }
+                  }))}
+                  placeholder="4.7"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Total Layers</label>
+                <div className="text-2xl font-bold text-blue-600">{formData.batchCuttingInfo.totalLayers}</div>
+                <p className="text-xs text-gray-500">Auto-calculated from rolls</p>
+              </div>
+              <div>
+                <Input
+                  type="number"
+                  label="Overall Efficiency (%)"
+                  value={formData.batchCuttingInfo.cuttingEfficiency}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    batchCuttingInfo: {
+                      ...prev.batchCuttingInfo,
+                      cuttingEfficiency: parseInt(e.target.value) || 95
+                    }
+                  }))}
+                  placeholder="95"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Add Fabric Roll */}
+          <div className="bg-gray-50 p-4 rounded-lg mb-6">
+            <h4 className="font-medium text-gray-900 mb-3">Add Fabric Roll</h4>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+              <Input
+                placeholder="Roll Number (e.g., R001)"
+                value={newRoll.rollNumber}
+                onChange={(e) => setNewRoll(prev => ({ ...prev, rollNumber: e.target.value }))}
+              />
+              <Input
+                placeholder="Color (e.g., Red, Green)"
+                value={newRoll.color}
+                onChange={(e) => setNewRoll(prev => ({ ...prev, color: e.target.value }))}
+              />
+              <Input
+                type="number"
+                step="0.1"
+                placeholder="Weight (kg)"
+                value={newRoll.weight}
+                onChange={(e) => setNewRoll(prev => ({ ...prev, weight: e.target.value }))}
+              />
+              <Input
+                type="number"
+                placeholder="Layer Count"
+                value={newRoll.layerCount}
+                onChange={(e) => setNewRoll(prev => ({ ...prev, layerCount: e.target.value }))}
+              />
+              <Button 
+                onClick={addFabricRoll}
+                disabled={!newRoll.rollNumber || !newRoll.color || !newRoll.weight || !newRoll.layerCount}
+                className="w-full bg-orange-600 hover:bg-orange-700"
+              >
+                Add Roll
+              </Button>
+            </div>
+          </div>
+
+          {/* Fabric Rolls List */}
+          {formData.fabricRolls.length > 0 && (
+            <div className="space-y-3 mb-6">
+              <h4 className="font-medium text-gray-900">Fabric Rolls Ready for Cutting ({formData.fabricRolls.length})</h4>
+              {formData.fabricRolls.map((roll) => (
+                <div key={roll.id} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-6">
+                    <Badge variant="secondary" className="font-mono">{roll.rollNumber}</Badge>
+                    <div className="flex items-center space-x-2">
+                      <div 
+                        className="w-4 h-4 rounded-full border border-gray-300" 
+                        style={{ backgroundColor: roll.color.toLowerCase() }}
+                      ></div>
+                      <span className="text-sm font-medium">{roll.color}</span>
+                    </div>
+                    <span className="text-sm text-gray-600">{roll.weight}kg</span>
+                    <span className="text-sm text-gray-600"><strong>{roll.layerCount}</strong> layers</span>
+                    <span className="text-sm text-gray-600">{roll.layerLength}m each</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => removeFabricRoll(roll.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {errors.fabricRolls && (
+            <p className="text-red-500 text-sm">{errors.fabricRolls}</p>
+          )}
+        </Card>
+
+        {/* Size Breakdown for Articles */}
         <Card className="p-6">
           <div className="flex items-center space-x-3 mb-6">
             <div className="bg-green-100 p-2 rounded-lg">
-              <CubeIcon className="h-6 w-6 text-green-600" />
+              <UserGroupIcon className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Step 2: Size Breakdown</h3>
-              <p className="text-sm text-gray-500">Add sizes, quantities, and rates for each article</p>
+              <h3 className="text-lg font-semibold text-gray-900">Article Size Breakdown</h3>
+              <p className="text-sm text-gray-500">Different cut ratios for each article type</p>
             </div>
           </div>
 
           {/* Article Tabs */}
           {formData.articles.length > 1 && (
             <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b">
-              {formData.articles.map((article, index) => (
+              {formData.articles.map((article) => (
                 <button
                   key={article.id}
                   onClick={() => setCurrentArticleIndex(index)}
@@ -474,19 +800,39 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
 
           {/* Current Article Info */}
           <div className="bg-blue-50 p-4 rounded-lg mb-4">
-            <h4 className="font-medium text-blue-900 mb-1">
-              {currentArticle.articleNumber || `Article ${currentArticleIndex + 1}`}
-            </h4>
-            <p className="text-sm text-blue-700">
-              {currentArticle.style}            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-blue-900">
+                  {currentArticle.articleNumber || `Article ${currentArticleIndex + 1}`}
+                </h4>
+                <p className="text-sm text-blue-700">{currentArticle.style}</p>
+              </div>
+              <div className="text-right text-sm">
+                <p className="text-blue-800">
+                  <strong>Sizes:</strong> {currentArticle.sizeNames || 'Not configured'}
+                </p>
+                <p className="text-blue-600">
+                  <strong>Ratios:</strong> {currentArticle.sizeRatios || 'Not configured'}
+                </p>
+                {currentArticle.sizeNames && currentArticle.sizeRatios && (
+                  <Button
+                    onClick={() => generateSizesFromConfig(currentArticleIndex)}
+                    className="mt-2 bg-blue-600 hover:bg-blue-700 text-xs px-2 py-1"
+                  >
+                    Generate Sizes
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Add Size Form */}
           <div className="bg-gray-50 p-4 rounded-lg mb-4">
-            <h4 className="font-medium text-gray-900 mb-3">Add Size</h4>
+            <h4 className="font-medium text-gray-900 mb-3">Add Individual Size (Optional)</h4>
+            <p className="text-sm text-gray-500 mb-3">Use "Generate Sizes" above for automatic creation, or add individual sizes manually</p>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <Input
-                placeholder="Size (e.g., S, M, L)"
+                placeholder="Size (e.g., M, L, XL)"
                 value={newSize.size}
                 onChange={(e) => setNewSize(prev => ({ ...prev, size: e.target.value }))}
               />
@@ -501,7 +847,18 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                 step="0.01"
                 placeholder="Rate per piece"
                 value={newSize.rate}
-                onChange={(e) => setNewSize(prev => ({ ...prev, rate: e.target.value }))}
+                onChange={(e) => {
+                  const rate = e.target.value;
+                  const autoSmv = rate ? (parseFloat(rate) * 1.9).toFixed(2) : '';
+                  setNewSize(prev => ({ ...prev, rate, smv: autoSmv }));
+                }}
+              />
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="SMV (auto-calculated)"
+                value={newSize.smv}
+                onChange={(e) => setNewSize(prev => ({ ...prev, smv: e.target.value }))}
               />
               <Button 
                 onClick={addSize}
@@ -511,90 +868,170 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                 Add Size
               </Button>
             </div>
+            {errors.sizeGeneration && (
+              <p className="text-red-500 text-sm mt-2">{errors.sizeGeneration}</p>
+            )}
           </div>
 
           {/* Current Article Sizes */}
           {currentArticle.sizes.length > 0 && (
             <div className="space-y-2 mb-4">
-              <h4 className="font-medium text-gray-900">Added Sizes</h4>
+              <h4 className="font-medium text-gray-900">Article Sizes ({currentArticle.sizes.length})</h4>
               {currentArticle.sizes.map((size, index) => (
-                <div key={index} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-3">
-                  <div className="flex items-center space-x-4">
-                    <Badge variant="secondary" className="font-mono">{size.size}</Badge>
-                    <span className="text-sm text-gray-600">Qty: {size.quantity}</span>
-                    <span className="text-sm text-gray-600">Rate: Rs. {size.rate}</span>
-                    <span className="text-sm font-medium text-gray-900">
-                      Total: Rs. {(size.quantity * size.rate).toFixed(2)}
-                    </span>
+                <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+                    <div>
+                      <Badge variant="secondary" className="font-mono">{size.size}</Badge>
+                      <p className="text-xs text-gray-500 mt-1">Qty: {size.quantity}</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-xs text-gray-500 block">Rate (Rs.)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={size.rate}
+                        onChange={(e) => updateSizeRate(index, parseFloat(e.target.value) || 0)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        placeholder="0.00"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-xs text-gray-500 block">SMV (auto)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={size.smv || 0}
+                        onChange={(e) => updateSizeSmv(index, parseFloat(e.target.value) || 0)}
+                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        placeholder="Auto-calc"
+                        title="Auto-calculated from rate × 1.9, but editable"
+                      />
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-500">Total Value</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          Rs. {(size.quantity * size.rate).toFixed(2)}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeSize(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        Remove
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeSize(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Remove
-                  </Button>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Current Article Summary */}
-          {currentArticle.sizes.length > 0 && (
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-2">Article Summary</h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-green-700">Total Pieces:</span>
-                  <span className="font-semibold text-green-900 ml-2">
-                    {currentArticle.sizes.reduce((sum, size) => sum + size.quantity, 0)}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-green-700">Total Value:</span>
-                  <span className="font-semibold text-green-900 ml-2">
-                    Rs. {currentArticle.sizes.reduce((sum, size) => sum + (size.quantity * size.rate), 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {errors[`article_${currentArticleIndex}_sizes`] && (
-            <p className="text-red-500 text-sm mt-2">{errors[`article_${currentArticleIndex}_sizes`]}</p>
+            <p className="text-red-500 text-sm">{errors[`article_${currentArticleIndex}_sizes`]}</p>
           )}
         </Card>
 
-        {/* Overall Summary */}
+        {/* Multi-Article Batch Summary */}
         <Card className="p-6">
-          <h4 className="font-medium text-gray-900 mb-3">Overall Summary</h4>
-          <div className="space-y-2">
-            {formData.articles.map((article, index) => (
-              <div key={article.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">
-                    {article.articleNumber || `Article ${index + 1}`}
-                  </p>
-                  <p className="text-sm text-gray-500">{article.style}</p>
+          <h4 className="font-medium text-gray-900 mb-4">Multi-Article Batch Summary</h4>
+          <div className="bg-yellow-50 p-4 rounded-lg mb-4">
+            <h5 className="font-medium text-yellow-900 mb-2">🔄 Simultaneous Cutting Process</h5>
+            <p className="text-sm text-yellow-800 mb-3">
+              All articles will be cut together using {formData.batchCuttingInfo.totalLayers} total layers at {formData.batchCuttingInfo.layerLength}m length.
+              Different cut ratios will be applied based on article specifications.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div>
+                <span className="text-yellow-700">Articles:</span>
+                <span className="font-semibold text-yellow-900 ml-1">{formData.articles.length}</span>
+              </div>
+              <div>
+                <span className="text-yellow-700">Fabric Rolls:</span>
+                <span className="font-semibold text-yellow-900 ml-1">{formData.fabricRolls.length}</span>
+              </div>
+              <div>
+                <span className="text-yellow-700">Total Layers:</span>
+                <span className="font-semibold text-yellow-900 ml-1">{formData.batchCuttingInfo.totalLayers}</span>
+              </div>
+              <div>
+                <span className="text-yellow-700">Total Pieces:</span>
+                <span className="font-semibold text-yellow-900 ml-1">{getTotalPieces()}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            {formData.articles.map((article) => (
+              <div key={article.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h5 className="font-medium text-gray-900 flex items-center space-x-2">
+                      <span>{article.articleNumber}</span>
+                      <Badge variant="outline" size="sm">
+                        {article.targetAgeGroup === 'adult' ? 'Adult' : 'Teen'}
+                      </Badge>
+                    </h5>
+                    <p className="text-sm text-gray-600">{article.style}</p>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant={article.priority === 'urgent' ? 'danger' : 
+                                  article.priority === 'high' ? 'warning' : 'secondary'}>
+                      {article.priority}
+                    </Badge>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Template: {(() => {
+                        const template = availableTemplates.find(t => t.id === article.selectedTemplateId);
+                        return template ? template.templateCode : 'Not set';
+                      })()}
+                    </p>
+                  </div>
                 </div>
-                <div className="text-right text-sm">
-                  <p className="font-medium">
-                    {article.sizes.reduce((sum, size) => sum + size.quantity, 0)} pieces
-                  </p>
-                  <p className="text-gray-500">
-                    Rs. {article.sizes.reduce((sum, size) => sum + (size.quantity * size.rate), 0).toFixed(2)}
-                  </p>
+                
+                {article.sizes.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mb-3">
+                    {article.sizes.map((size, sizeIndex) => (
+                      <div key={sizeIndex} className="bg-gray-50 px-2 py-1 rounded">
+                        <span className="font-medium">{size.size}:</span> {size.quantity}pcs
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-red-500 italic mb-3">No sizes added</div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 border-t pt-2">
+                  <div>
+                    <span>Article Total: </span>
+                    <span className="font-medium text-gray-900">
+                      {article.sizes.reduce((sum, size) => sum + size.quantity, 0)} pieces
+                    </span>
+                  </div>
+                  <div>
+                    <span>Article Value: </span>
+                    <span className="font-medium text-gray-900">
+                      Rs. {article.sizes.reduce((sum, size) => sum + (size.quantity * size.rate), 0).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
-            <div className="border-t pt-2 mt-3">
-              <div className="flex justify-between items-center font-semibold text-lg">
-                <span>Grand Total:</span>
-                <div className="text-right">
-                  <p>{getTotalPieces()} pieces</p>
-                  <p>Rs. {getTotalValue().toFixed(2)}</p>
-                </div>
+          </div>
+          
+          <div className="border-t pt-4 mt-4">
+            <div className="grid grid-cols-2 gap-4 text-lg font-semibold">
+              <div className="text-right">
+                <span className="text-gray-600">Batch Total:</span>
+                <span className="text-gray-900 ml-2">{getTotalPieces()} pieces</span>
+              </div>
+              <div className="text-left">
+                <span className="text-gray-600">Batch Value:</span>
+                <span className="text-gray-900 ml-2">Rs. {getTotalValue().toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -611,7 +1048,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
         </div>
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Step 3: Template Selection & Confirmation</h3>
-          <p className="text-sm text-gray-500">Choose sewing template and finalize</p>
+          <p className="text-sm text-gray-500">Choose sewing template and finalize batch</p>
         </div>
       </div>
 
@@ -627,57 +1064,65 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
           />
         </div>
 
-        {/* Template Selection */}
+        {/* Templates Summary */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Select Sewing Template *
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {availableTemplates.map((template) => (
-              <div 
-                key={template.id}
-                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                  formData.selectedTemplateId === template.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => setFormData(prev => ({ ...prev, selectedTemplateId: template.id! }))}
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-medium text-gray-900">{template.templateName}</h4>
-                  <Badge variant="secondary" size="sm">{template.category}</Badge>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Assigned Templates Summary</h4>
+          <div className="space-y-2">
+            {formData.articles.map((article) => {
+              const template = availableTemplates.find(t => t.id === article.selectedTemplateId);
+              return (
+                <div key={article.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-900">{article.articleNumber}</p>
+                    <p className="text-sm text-gray-500">{article.style}</p>
+                  </div>
+                  <div className="text-right text-sm">
+                    <p className="font-medium text-gray-900">
+                      {template ? template.templateName : 'No template selected'}
+                    </p>
+                    <p className="text-gray-500">
+                      {template ? `${template.operations.length} ops, ${template.totalSmv}min` : ''}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-600 mb-2">{template.templateCode}</p>
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>{template.operations.length} operations</span>
-                  <span>SMV: {template.totalSmv}min</span>
-                </div>
-                <div className="text-sm text-gray-500">
-                  Est. Cost: Rs. {template.totalPricePerPiece}/piece
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          {errors.template && (
-            <p className="text-red-500 text-sm mt-2">{errors.template}</p>
-          )}
         </div>
 
         {/* Final Summary */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-3">Final Summary</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <h4 className="font-medium text-gray-900 mb-3">Batch Cutting Summary</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
             <div>
-              <p><span className="text-gray-600">Article:</span> <span className="font-medium">{formData.articleNumber}</span></p>
-              <p><span className="text-gray-600">Style:</span> <span className="font-medium">{formData.style}</span></p>
-              <p><span className="text-gray-600">Color:</span> <span className="font-medium">{formData.color}</span></p>
-              <p><span className="text-gray-600">Customer PO:</span> <span className="font-medium">{formData.customerPO}</span></p>
+              <h5 className="font-medium mb-2">Batch Details</h5>
+              <p><span className="text-gray-600">Bundle Number:</span> <span className="font-medium">{formData.bundleNumber || 'Not set'}</span></p>
+              <p><span className="text-gray-600">Articles:</span> <span className="font-medium">{formData.articles.length}</span></p>
+              <p><span className="text-gray-600">Fabric Rolls:</span> <span className="font-medium">{formData.fabricRolls.length}</span></p>
+              <p><span className="text-gray-600">Total Layers:</span> <span className="font-medium">{formData.batchCuttingInfo.totalLayers}</span></p>
             </div>
             <div>
+              <h5 className="font-medium mb-2">Production Summary</h5>
               <p><span className="text-gray-600">Total Pieces:</span> <span className="font-medium">{getTotalPieces()}</span></p>
               <p><span className="text-gray-600">Total Value:</span> <span className="font-medium">Rs. {getTotalValue().toFixed(2)}</span></p>
-              <p><span className="text-gray-600">Priority:</span> <Badge variant="outline" size="sm">{formData.priority}</Badge></p>
-              <p><span className="text-gray-600">Template:</span> <span className="font-medium">{getSelectedTemplate()?.templateName}</span></p>
+              <p><span className="text-gray-600">Templates:</span> <span className="font-medium">{formData.articles.length} different templates assigned</span></p>
+              <p><span className="text-gray-600">Layer Length:</span> <span className="font-medium">{formData.batchCuttingInfo.layerLength}m</span></p>
+            </div>
+          </div>
+          
+          <div className="mt-4 pt-3 border-t">
+            <h5 className="font-medium mb-2">Articles in Batch</h5>
+            <div className="space-y-1">
+              {formData.articles.map((article) => (
+                <div key={article.id} className="flex items-center justify-between text-sm">
+                  <span>
+                    <strong>{article.articleNumber}</strong> ({article.targetAgeGroup})
+                  </span>
+                  <span>
+                    {article.sizes.reduce((sum, size) => sum + size.quantity, 0)} pieces
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -686,7 +1131,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   );
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       {/* Progress Indicator */}
       <div className="flex items-center justify-center mb-8">
         {[1, 2, 3].map((step) => (
@@ -743,7 +1188,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
               disabled={isLoading}
               className="bg-green-600 hover:bg-green-700"
             >
-              {isLoading ? 'Creating...' : 'Complete WIP Entry'}
+              {isLoading ? 'Creating Batch...' : 'Complete Multi-Article WIP Entry'}
             </Button>
           )}
         </div>

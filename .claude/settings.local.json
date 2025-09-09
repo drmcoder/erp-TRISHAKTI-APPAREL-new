@@ -58,7 +58,8 @@
       "Bash(for component in \"features/work-assignment/components/operator-work-dashboard\" \"features/quality/components/quality-management-dashboard\" \"features/workflow/components/workflow-sequencer\")",
       "Bash(do echo:*)",
       "Bash(time npm run build:skip-check)",
-      "Bash(/dev/null)"
+      "Bash(/dev/null)",
+      "Bash(lsof:*)"
     ],
     "deny": [],
     "ask": []

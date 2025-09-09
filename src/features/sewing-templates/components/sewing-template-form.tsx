@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../../../shared/components/ui/Button';
 import { Input } from '../../../shared/components/ui/Input';
-import { SewingTemplate, SewingOperation } from '../../../types/sewing-template-types';
+import type { SewingTemplate, SewingOperation } from '@/shared/types/sewing-template-types';
 
 interface SewingTemplateFormProps {
   template?: SewingTemplate;
@@ -267,7 +267,7 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  SMV (minutes) *
+                  SMV (auto) *
                 </label>
                 <Input
                   type="number"
@@ -275,7 +275,8 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                   step="0.1"
                   value={newOperation.smvMinutes || ''}
                   onChange={(e) => setNewOperation(prev => ({ ...prev, smvMinutes: parseFloat(e.target.value) || 0 }))}
-                  placeholder="2.5"
+                  placeholder="Auto-calculated"
+                  title="Auto-calculated from price × 1.9, but editable"
                 />
               </div>
 
@@ -288,7 +289,15 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                   min="0.1"
                   step="0.1"
                   value={newOperation.pricePerPiece || ''}
-                  onChange={(e) => setNewOperation(prev => ({ ...prev, pricePerPiece: parseFloat(e.target.value) || 0 }))}
+                  onChange={(e) => {
+                    const price = parseFloat(e.target.value) || 0;
+                    const autoSmv = price * 1.9; // Auto-calculate SMV
+                    setNewOperation(prev => ({ 
+                      ...prev, 
+                      pricePerPiece: price,
+                      smvMinutes: autoSmv 
+                    }));
+                  }}
                   placeholder="2.5"
                 />
               </div>
@@ -299,11 +308,23 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Machine Type *
                 </label>
-                <Input
+                <select
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={newOperation.machineType || ''}
                   onChange={(e) => setNewOperation(prev => ({ ...prev, machineType: e.target.value }))}
-                  placeholder="e.g., overlock, flatlock"
-                />
+                >
+                  <option value="">Select Machine Type</option>
+                  <option value="overlock">Overlock</option>
+                  <option value="flatlock">Flatlock</option>
+                  <option value="singleNeedle">Single Needle</option>
+                  <option value="doubleNeedle">Double Needle</option>
+                  <option value="kansai">Kansai</option>
+                  <option value="buttonhole">Buttonhole</option>
+                  <option value="buttonAttach">Button Attach</option>
+                  <option value="iron">Iron/Press</option>
+                  <option value="cutting">Cutting Machine</option>
+                  <option value="manual">Manual Work</option>
+                </select>
               </div>
 
               <div>

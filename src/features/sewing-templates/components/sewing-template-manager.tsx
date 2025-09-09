@@ -4,7 +4,7 @@ import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Card } from '@/shared/components/ui/Card';
-import type { SewingTemplate } from '@/types/sewing-template-types';
+import type { SewingTemplate } from '@/shared/types/sewing-template-types';
 import { sewingTemplateService } from '@/services/sewing-template-service';
 import { SewingTemplateForm } from './sewing-template-form';
 import { SewingTemplateView } from './sewing-template-view';
@@ -164,9 +164,22 @@ export const SewingTemplateManager: React.FC = () => {
     }
   };
 
-  const handleFormSuccess = () => {
-    setCurrentView('list');
-    loadTemplates();
+  const handleFormSuccess = async (templateData: Omit<SewingTemplate, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'timesUsed' | 'version'>) => {
+    try {
+      const result = currentView === 'edit' && selectedTemplate
+        ? await sewingTemplateService.updateTemplate(selectedTemplate.id!, templateData, user?.id || 'system')
+        : await sewingTemplateService.createTemplate(templateData, user?.id || 'system');
+      
+      if (result.success) {
+        setCurrentView('list');
+        loadTemplates();
+      } else {
+        setError(result.error || 'Failed to save template');
+      }
+    } catch (error) {
+      setError('Failed to save template');
+      console.error('Error saving template:', error);
+    }
   };
 
   const getComplexityBadgeColor = (complexity: SewingTemplate['complexityLevel']) => {
@@ -184,7 +197,7 @@ export const SewingTemplateManager: React.FC = () => {
       <div className="p-6">
         <SewingTemplateForm
           template={selectedTemplate}
-          onSuccess={handleFormSuccess}
+          onSave={handleFormSuccess}
           onCancel={() => setCurrentView('list')}
         />
       </div>

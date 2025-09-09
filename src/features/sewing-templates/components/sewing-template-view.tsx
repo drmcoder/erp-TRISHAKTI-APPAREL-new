@@ -9,7 +9,7 @@ import {
   StarIcon,
   ArrowLeftIcon
 } from '@heroicons/react/24/outline';
-import type { SewingTemplate } from '@/types/sewing-template-types';
+import type { SewingTemplate } from '@/shared/types/sewing-template-types';
 
 interface SewingTemplateViewProps {
   template: SewingTemplate;
