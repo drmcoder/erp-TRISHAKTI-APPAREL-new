@@ -234,32 +234,34 @@ export class WorkAssignmentService extends BaseService {
 
   async assignWork(assignmentData: AssignWorkData): Promise<ServiceResponse<WorkAssignment>> {
     try {
-      const validation = await this.validateAssignment(assignmentData);
-      if (!validation.isValid) {
-        return {
-          success: false,
-          error: validation.errors.join(', '),
-          code: 'VALIDATION_ERROR'
-        };
-      }
+      // Use atomic operations service to prevent race conditions
+      const { atomicOperationsService } = await import('./atomic-operations');
+      
+      const atomicOperation = {
+        workItemId: assignmentData.workItemId,
+        operatorId: assignmentData.operatorId,
+        supervisorId: this.getCurrentUserId(),
+        assignmentData: assignmentData,
+        timestamp: new Date()
+      };
 
-      // Check if operator is available
-      const operatorAvailability = await this.checkOperatorAvailability(assignmentData.operatorId);
-      if (!operatorAvailability.available) {
+      const result = await atomicOperationsService.atomicAssignWork(atomicOperation);
+      
+      if (!result.success) {
         return {
           success: false,
-          error: operatorAvailability.reason,
-          code: 'OPERATOR_UNAVAILABLE'
+          error: result.error || 'Assignment failed',
+          code: result.conflictedWith ? 'RACE_CONDITION_DETECTED' : 'ASSIGNMENT_ERROR'
         };
       }
 
       const assignment: WorkAssignment = {
         ...assignmentData,
-        id: this.generateId(),
+        id: result.assignmentId!,
         bundleId: await this.getBundleIdFromWorkItem(assignmentData.workItemId),
         assignedBy: this.getCurrentUserId(),
         assignedAt: new Date(),
-        status: 'pending',
+        status: 'assigned',
         targetPieces: await this.getWorkItemTargetPieces(assignmentData.workItemId),
         completedPieces: 0,
         rejectedPieces: 0,
@@ -271,15 +273,6 @@ export class WorkAssignmentService extends BaseService {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-
-      // Create assignment in database
-      await this.create(assignment, 'assignments');
-
-      // Update work item status
-      await this.updateWorkItemStatus(assignmentData.workItemId, 'assigned', assignmentData.operatorId);
-
-      // Update operator status
-      await this.updateOperatorAssignment(assignmentData.operatorId, assignment.id!);
 
       await this.logActivity('work_assigned', assignment.id!, {
         workItemId: assignmentData.workItemId,

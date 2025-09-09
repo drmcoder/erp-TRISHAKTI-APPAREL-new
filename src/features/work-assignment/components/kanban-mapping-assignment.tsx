@@ -688,8 +688,8 @@ export const KanbanMappingAssignment: React.FC<KanbanMappingAssignmentProps> = (
                   </div>
                 )}
               </Card>
-                );
-              })}
+              );
+            })}
           </div>
             
             {/* Operators on Break */}
