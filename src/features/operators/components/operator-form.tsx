@@ -18,6 +18,7 @@ import { Badge } from '@/shared/components/ui/Badge';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import type { CreateOperatorData, UpdateOperatorData } from '@/types/operator-types';
 import { MACHINE_TYPES, SKILL_LEVELS } from '@/types/operator-types';
+import { IDGenerationService } from '@/services/id-generation-service';
 
 // Form validation schema - dynamic based on mode
 const getOperatorSchema = (mode: 'create' | 'edit') => z.object({
@@ -110,6 +111,12 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
 }) => {
   const [selectedAvatar, setSelectedAvatar] = useState<AvatarOption | null>(null);
   const [customSpecialization, setCustomSpecialization] = useState('');
+  const [isGeneratingId, setIsGeneratingId] = useState(false);
+  const [nextEmployeeId, setNextEmployeeId] = useState<string>('');  
+  const [idValidation, setIdValidation] = useState<{ isValid: boolean; message?: string } | null>(null);
+  const [isValidatingId, setIsValidatingId] = useState(false);
+  const [usernameValidation, setUsernameValidation] = useState<{ isValid: boolean; message?: string } | null>(null);
+  const [isValidatingUsername, setIsValidatingUsername] = useState(false);
 
   const {
     register,
@@ -169,6 +176,93 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
       setSelectedAvatar(generateInitialsAvatar(watchedValues.name));
     }
   }, [watchedValues.name, selectedAvatar, mode]);
+
+  // Auto-generate Employee ID for create mode
+  useEffect(() => {
+    const generateEmployeeId = async () => {
+      if (mode === 'create' && !initialData?.employeeId) {
+        try {
+          setIsGeneratingId(true);
+          const preview = await IDGenerationService.previewNextEmployeeId();
+          setNextEmployeeId(preview);
+          setValue('employeeId', preview);
+        } catch (error) {
+          console.error('Failed to generate Employee ID:', error);
+        } finally {
+          setIsGeneratingId(false);
+        }
+      }
+    };
+
+    generateEmployeeId();
+  }, [mode, initialData?.employeeId, setValue]);
+
+  // Function to regenerate Employee ID
+  const handleRegenerateId = async () => {
+    try {
+      setIsGeneratingId(true);
+      const newId = await IDGenerationService.previewNextEmployeeId();
+      setNextEmployeeId(newId);
+      setValue('employeeId', newId);
+    } catch (error) {
+      console.error('Failed to regenerate Employee ID:', error);
+    } finally {
+      setIsGeneratingId(false);
+    }
+  };
+
+  // Function to validate Employee ID
+  const validateEmployeeId = async (employeeId: string) => {
+    if (!employeeId) return;
+    
+    try {
+      setIsValidatingId(true);
+      
+      // Check format first
+      const formatCheck = IDGenerationService.validateEmployeeIdFormat(employeeId);
+      if (!formatCheck.valid) {
+        setIdValidation({ isValid: false, message: formatCheck.message });
+        return;
+      }
+      
+      // Check uniqueness (only if not the same as initial data in edit mode)
+      if (mode === 'edit' && initialData?.employeeId === employeeId) {
+        setIdValidation({ isValid: true });
+        return;
+      }
+      
+      const isUnique = await IDGenerationService.isEmployeeIdUnique(employeeId);
+      if (!isUnique) {
+        setIdValidation({ isValid: false, message: 'This Employee ID is already taken' });
+        return;
+      }
+      
+      setIdValidation({ isValid: true });
+    } catch (error) {
+      console.error('Failed to validate Employee ID:', error);
+      setIdValidation({ isValid: false, message: 'Failed to validate ID' });
+    } finally {
+      setIsValidatingId(false);
+    }
+  };
+  
+  // Real-time validation for Employee ID in edit mode
+  useEffect(() => {
+    if (mode === 'edit' && watchedValues.employeeId) {
+      const timeoutId = setTimeout(() => {
+        validateEmployeeId(watchedValues.employeeId);
+      }, 500); // Debounce validation
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [watchedValues.employeeId, mode]);
+  
+  // Validate auto-generated ID
+  useEffect(() => {
+    if (mode === 'create' && nextEmployeeId) {
+      setIdValidation({ isValid: true, message: 'Auto-generated ID' });
+    }
+  }, [nextEmployeeId, mode]);
 
   const handleMachineTypeToggle = (machineType: string) => {
     const current = watchedMachineTypes;
@@ -232,20 +326,38 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
         }
       }
 
-      const formattedData = {
+      // Clean data to remove undefined values
+      const cleanedData: any = {
         ...data,
-        hiredDate: new Date(), // Set current date as default since field is removed
-        shift: 'morning' as const, // Default to morning since only one shift
-        avatar: selectedAvatar ? {
+        hiredDate: new Date(),
+        shift: 'morning' as const,
+        specializations: data.specializations?.filter(s => s.trim()) || []
+      };
+
+      // Only include defined optional fields
+      if (data.email && data.email.trim()) {
+        cleanedData.email = data.email.trim();
+      }
+      if (data.phone && data.phone.trim()) {
+        cleanedData.phone = data.phone.trim();
+      }
+      if (data.address && data.address.trim()) {
+        cleanedData.address = data.address.trim();
+      }
+      if (selectedAvatar) {
+        cleanedData.avatar = {
           type: selectedAvatar.type,
           value: selectedAvatar.value,
           backgroundColor: selectedAvatar.backgroundColor
-        } : undefined,
-        email: data.email || undefined,
-        phone: data.phone || undefined,
-        address: data.address || undefined,
-        specializations: data.specializations?.filter(s => s.trim()) || []
-      };
+        };
+      }
+
+      // Ensure Employee ID is properly set
+      if (mode === 'create' && nextEmployeeId) {
+        cleanedData.employeeId = nextEmployeeId;
+      }
+
+      const formattedData = cleanedData;
 
       await onSubmit(formattedData);
     } catch (error) {
@@ -343,14 +455,72 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Employee ID *
+              {mode === 'create' && (
+                <span className="ml-2 text-xs text-blue-600">(Auto-generated)</span>
+              )}
             </label>
-            <Input
-              {...register('employeeId')}
-              placeholder="Enter employee ID"
-              className={errors.employeeId ? 'border-red-500' : ''}
-            />
+            <div className="flex space-x-2">
+              <div className="flex-1 relative">
+                <Input
+                  {...register('employeeId')}
+                  placeholder={mode === 'create' ? 'Auto-generating...' : 'Enter employee ID'}
+                  className={`w-full ${
+                    errors.employeeId ? 'border-red-500' : 
+                    idValidation?.isValid === false ? 'border-red-500' :
+                    idValidation?.isValid === true ? 'border-green-500' : ''
+                  } ${mode === 'create' ? 'bg-gray-50' : ''}`}
+                  readOnly={mode === 'create'}
+                  value={mode === 'create' ? nextEmployeeId : undefined}
+                />
+                {isValidatingId && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <LoadingSpinner size="xs" />
+                  </div>
+                )}
+                {!isValidatingId && idValidation?.isValid === true && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                    ✓
+                  </div>
+                )}
+                {!isValidatingId && idValidation?.isValid === false && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-red-500">
+                    ✗
+                  </div>
+                )}
+              </div>
+              {mode === 'create' && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleRegenerateId}
+                  disabled={isGeneratingId}
+                  className="px-3 py-2 min-w-[100px]"
+                >
+                  {isGeneratingId ? (
+                    <div className="flex items-center space-x-1">
+                      <LoadingSpinner size="xs" />
+                      <span>Generating...</span>
+                    </div>
+                  ) : (
+                    'Regenerate'
+                  )}
+                </Button>
+              )}
+            </div>
             {errors.employeeId && (
               <p className="text-red-500 text-sm mt-1">{errors.employeeId.message}</p>
+            )}
+            {idValidation?.message && (
+              <p className={`text-sm mt-1 ${
+                idValidation.isValid ? 'text-green-600' : 'text-red-500'
+              }`}>
+                {idValidation.message}
+              </p>
+            )}
+            {mode === 'create' && nextEmployeeId && (
+              <p className="text-xs text-blue-600 mt-1">
+                Next ID: <span className="font-mono font-medium">{nextEmployeeId}</span>
+              </p>
             )}
           </div>
 

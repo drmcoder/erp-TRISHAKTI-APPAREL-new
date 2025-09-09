@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/shared/utils';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'ghost' | 'outline' | 'link' | 'back';
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'info' | 'ghost' | 'outline' | 'link' | 'back' | 'glass' | 'neu';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   loading?: boolean;
   leftIcon?: React.ReactNode;
@@ -12,6 +12,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
   rounded?: boolean;
+  interactive?: boolean; // Enable modern micro-interactions
   children: React.ReactNode;
 }
 
@@ -96,6 +97,27 @@ const buttonVariants = {
     'dark:text-primary-400',
     'dark:hover:text-primary-300',
   ],
+  glass: [
+    'bg-white/10 text-secondary-800 border border-white/20 backdrop-blur-md',
+    'hover:bg-white/20 hover:border-white/30',
+    'focus:ring-primary-500/50 focus:border-primary-300/50',
+    'active:bg-white/30',
+    'disabled:bg-white/5 disabled:text-secondary-400 disabled:cursor-not-allowed',
+    'dark:bg-secondary-900/30 dark:text-secondary-200 dark:border-secondary-700/30',
+    'dark:hover:bg-secondary-900/40',
+  ],
+  neu: [
+    'bg-secondary-50 text-secondary-700 border-0',
+    'shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff]',
+    'hover:shadow-[2px_2px_4px_#d1d5db,-2px_-2px_4px_#ffffff]',
+    'active:shadow-[inset_2px_2px_4px_#d1d5db,inset_-2px_-2px_4px_#ffffff]',
+    'focus:ring-primary-500/30',
+    'disabled:text-secondary-400 disabled:cursor-not-allowed disabled:shadow-none',
+    'dark:bg-secondary-800 dark:text-secondary-300',
+    'dark:shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151]',
+    'dark:hover:shadow-[2px_2px_4px_#111827,-2px_-2px_4px_#374151]',
+    'dark:active:shadow-[inset_2px_2px_4px_#111827,inset_-2px_-2px_4px_#374151]',
+  ],
 };
 
 const buttonSizes = {
@@ -118,6 +140,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       rightIcon,
       fullWidth = false,
       rounded = false,
+      interactive = false,
       children,
       ...props
     },
@@ -148,6 +171,18 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           
           // Loading state
           loading && 'cursor-wait',
+          
+          // Interactive enhancements
+          interactive && !isDisabled && [
+            'button-press',
+            variant !== 'neu' && 'hover-lift',
+          ],
+          
+          // Touch-friendly sizing for mobile
+          'min-h-[44px] md:min-h-[auto]',
+          
+          // Enhanced focus states
+          'focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
           
           className
         )}
@@ -234,4 +269,16 @@ export const OutlineButton: React.FC<Omit<ButtonProps, 'variant'>> = (props) => 
 
 export const LinkButton: React.FC<Omit<ButtonProps, 'variant'>> = (props) => (
   <Button variant="link" {...props} />
+);
+
+export const GlassButton: React.FC<Omit<ButtonProps, 'variant'>> = (props) => (
+  <Button variant="glass" interactive {...props} />
+);
+
+export const NeuButton: React.FC<Omit<ButtonProps, 'variant'>> = (props) => (
+  <Button variant="neu" interactive {...props} />
+);
+
+export const InteractiveButton: React.FC<ButtonProps> = (props) => (
+  <Button interactive {...props} />
 );

@@ -2,9 +2,10 @@ import React from 'react';
 import { cn } from '@/shared/utils';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'outlined' | 'elevated' | 'filled';
+  variant?: 'default' | 'outlined' | 'elevated' | 'filled' | 'glass' | 'neu';
   size?: 'sm' | 'md' | 'lg';
   hoverable?: boolean;
+  interactive?: boolean; // Enable modern micro-interactions
   children: React.ReactNode;
 }
 
@@ -37,6 +38,16 @@ const cardVariants = {
     'bg-secondary-50 border border-secondary-200 shadow-none',
     'dark:bg-secondary-800 dark:border-secondary-700',
   ],
+  glass: [
+    'bg-white/70 backdrop-blur-md border border-white/20 shadow-lg shadow-black/5',
+    'dark:bg-secondary-900/70 dark:border-secondary-700/30 dark:shadow-black/20',
+  ],
+  neu: [
+    'bg-secondary-50 border-0',
+    'shadow-[8px_8px_16px_#d1d5db,-8px_-8px_16px_#ffffff]',
+    'dark:bg-secondary-800',
+    'dark:shadow-[8px_8px_16px_#111827,-8px_-8px_16px_#374151]',
+  ],
 };
 
 const cardSizes = {
@@ -52,6 +63,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       variant = 'default',
       size = 'md',
       hoverable = false,
+      interactive = false,
       children,
       ...props
     },
@@ -76,7 +88,18 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
             'hover:shadow-md hover:scale-[1.02]',
             variant === 'outlined' && 'hover:border-primary-300',
             variant === 'elevated' && 'hover:shadow-xl',
+            variant === 'glass' && 'glass-hover dark:glass-hover-dark',
+            variant === 'neu' && 'hover:shadow-[4px_4px_8px_#d1d5db,-4px_-4px_8px_#ffffff] dark:hover:shadow-[4px_4px_8px_#111827,-4px_-4px_8px_#374151]',
           ],
+          
+          // Interactive enhancements
+          interactive && [
+            'card-hover',
+            'transform-gpu', // Enable GPU acceleration
+          ],
+          
+          // Enhanced focus states for accessibility
+          'focus-within:ring-2 focus-within:ring-primary-500 focus-within:ring-offset-2',
           
           className
         )}
@@ -250,4 +273,26 @@ export const ActionCard: React.FC<{
       </div>
     </div>
   </Card>
+);
+
+// Modern card variants
+export const GlassCard: React.FC<Omit<CardProps, 'variant'>> = (props) => (
+  <Card variant="glass" interactive {...props} />
+);
+
+export const NeuCard: React.FC<Omit<CardProps, 'variant'>> = (props) => (
+  <Card variant="neu" interactive {...props} />
+);
+
+export const InteractiveCard: React.FC<CardProps> = (props) => (
+  <Card interactive hoverable {...props} />
+);
+
+export const FloatingCard: React.FC<CardProps> = ({ className, ...props }) => (
+  <Card 
+    variant="elevated" 
+    interactive 
+    className={cn('animate-float', className)} 
+    {...props} 
+  />
 );

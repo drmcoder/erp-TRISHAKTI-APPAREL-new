@@ -53,8 +53,15 @@ export class OperatorService extends BaseService {
         };
       }
 
+      // Auto-generate Employee ID if not provided
+      let employeeId = operatorData.employeeId;
+      if (!employeeId) {
+        const { IDGenerationService } = await import('./id-generation-service');
+        employeeId = await IDGenerationService.generateEmployeeId();
+      }
+
       // Check for duplicate username and employee ID
-      const duplicateCheck = await this.checkDuplicates(operatorData.username, operatorData.employeeId);
+      const duplicateCheck = await this.checkDuplicates(operatorData.username, employeeId);
       if (!duplicateCheck.isValid) {
         return {
           success: false,
@@ -63,9 +70,17 @@ export class OperatorService extends BaseService {
         };
       }
 
-      // Create operator document
+      // Create operator document - filter out undefined values to prevent Firebase errors
+      const cleanOperatorData = Object.fromEntries(
+        Object.entries(operatorData).filter(([_, value]) => value !== undefined)
+      );
+
       const operator: Omit<Operator, 'id'> = {
-        ...operatorData,
+        ...cleanOperatorData,
+        employeeId, // Use auto-generated or provided ID
+        email: operatorData.email || '', // Ensure email is never undefined
+        phone: operatorData.phone || '',
+        address: operatorData.address || '',
         role: 'operator',
         averageEfficiency: 0,
         qualityScore: 0,
@@ -533,8 +548,8 @@ export class OperatorService extends BaseService {
       errors.push('Name must be at least 2 characters');
     }
 
-    if (!data.employeeId || !/^[A-Z0-9]+$/.test(data.employeeId)) {
-      errors.push('Employee ID must contain only uppercase letters and numbers');
+    if (!data.employeeId || !/^TSA-EMP-\d{4}$/.test(data.employeeId)) {
+      errors.push('Employee ID must follow format: TSA-EMP-XXXX (e.g., TSA-EMP-0001)');
     }
 
     if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {

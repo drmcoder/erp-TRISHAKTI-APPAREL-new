@@ -7,7 +7,8 @@ import {
 import { useAuthStore } from '@/app/store/auth-store';
 import { useErrorHandler } from '@/shared/hooks/useErrorHandler';
 import { useLoadingState } from '@/shared/hooks/useLoadingState';
-import { User, LogIn, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { User, LogIn, Eye, EyeOff, AlertCircle, Shield, Clock } from 'lucide-react';
+import { trustedDeviceService } from '@/services/trusted-device-service';
 import { cn } from '@/shared/utils';
 
 interface LoginFormProps {
@@ -50,6 +51,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [deviceStats, setDeviceStats] = useState<any>(null);
+  const [showTrustedLogin, setShowTrustedLogin] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,9 +62,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const { handleError } = useErrorHandler();
   const { isLoading, withLoading } = useLoadingState();
 
-  // Clear any existing auth errors when component mounts
+  // Load saved credentials and check for trusted device
   useEffect(() => {
     clearError();
+    
+    // Load remembered credentials from localStorage
+    const savedUsername = localStorage.getItem('tsaerp_remembered_username');
+    const savedRememberMe = localStorage.getItem('tsaerp_remember_me') === 'true';
+    
+    if (savedUsername && savedRememberMe) {
+      setUsername(savedUsername);
+      setRememberMe(true);
+      
+      // Check if this device is trusted for this user
+      const stats = trustedDeviceService.getDeviceStats(savedUsername);
+      setDeviceStats(stats);
+      
+      // If device is trusted, show quick login option
+      if (stats && stats.isTrusted) {
+        setShowTrustedLogin(true);
+      }
+    }
   }, [clearError]);
 
   const handleSubmit = withLoading(async (e: React.FormEvent) => {
@@ -84,12 +105,53 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         rememberMe 
       });
       
+      // Record successful login attempt for trusted device tracking
+      const operatorName = username.trim(); // In real app, get from user object
+      trustedDeviceService.recordLoginAttempt(username.trim(), operatorName, true);
+      
+      // Handle remember me persistence
+      if (rememberMe) {
+        localStorage.setItem('tsaerp_remembered_username', username.trim());
+        localStorage.setItem('tsaerp_remember_me', 'true');
+      } else {
+        localStorage.removeItem('tsaerp_remembered_username');
+        localStorage.removeItem('tsaerp_remember_me');
+      }
+      
       // Redirect after successful login
       const from = (location.state as any)?.from?.pathname || redirectTo || '/dashboard';
       navigate(from, { replace: true });
     } catch (error) {
+      // Record failed login attempt
+      trustedDeviceService.recordLoginAttempt(username.trim(), username.trim(), false);
       // Error is handled by the auth store and error handler
       console.error('Login failed:', error);
+    }
+  });
+
+  // Handle trusted device quick login
+  const handleTrustedLogin = withLoading(async () => {
+    if (!username) return;
+    
+    try {
+      // Auto-login with saved credentials since device is trusted
+      await login({ 
+        username: username.trim(), 
+        password: 'auto_trusted_login', // Special token for trusted devices
+        rememberMe: true,
+        isTrustedDevice: true
+      });
+      
+      // Record successful trusted login
+      trustedDeviceService.recordLoginAttempt(username.trim(), username.trim(), true);
+      
+      const from = (location.state as any)?.from?.pathname || redirectTo || '/dashboard';
+      navigate(from, { replace: true });
+    } catch (error) {
+      // If trusted login fails, revoke trust and show regular login
+      trustedDeviceService.revokeTrust(username.trim());
+      setShowTrustedLogin(false);
+      handleError('Trusted login expired. Please login normally.');
     }
   });
 
@@ -133,11 +195,56 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </Text>
         </div>
 
-        {/* Login Form */}
-        <Card variant="elevated" className="backdrop-blur-sm">
+        {/* Trusted Device Quick Login */}
+        {showTrustedLogin && deviceStats && (
+          <Card variant="elevated" className="backdrop-blur-sm mb-4 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+            <CardBody className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Shield className="w-6 h-6 text-green-600" />
+                <Text weight="bold" className="text-green-800">
+                  Trusted Device Detected!
+                </Text>
+              </div>
+              
+              <div className="space-y-2">
+                <Text size="sm" className="text-green-700">
+                  Welcome back, <span className="font-semibold">{username}</span>!
+                </Text>
+                <Text size="xs" color="muted">
+                  You've logged in {deviceStats.successfulLogins} times from this device
+                </Text>
+              </div>
+
+              <Button
+                onClick={handleTrustedLogin}
+                loading={isLoading}
+                disabled={isLoading}
+                size="lg"
+                className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                leftIcon={<Shield className="w-4 h-4" />}
+              >
+                {isLoading ? 'Signing you in...' : 'Quick Login'}
+              </Button>
+
+              <button
+                onClick={() => setShowTrustedLogin(false)}
+                className="text-xs text-gray-500 hover:text-gray-700 underline"
+                disabled={isLoading}
+              >
+                Use regular login instead
+              </button>
+            </CardBody>
+          </Card>
+        )}
+
+        {/* Regular Login Form */}
+        <Card variant="elevated" className={cn(
+          "backdrop-blur-sm",
+          showTrustedLogin && "opacity-60"
+        )}>
           <CardHeader className="pb-4">
             <Text weight="semibold" className="text-center">
-              Sign In
+              {showTrustedLogin ? 'Regular Sign In' : 'Sign In'}
             </Text>
           </CardHeader>
           
@@ -183,20 +290,30 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                 />
               </div>
 
-              {/* Remember Me */}
+              {/* Remember Me and Forgot Password */}
               <div className="flex items-center justify-between">
-                <label className="flex items-center">
+                <label className="flex items-center cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="mr-2 rounded border-secondary-300 text-primary-600 focus:ring-primary-500"
+                    className="mr-2 rounded border-secondary-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-0 focus:ring-2 transition-colors"
                     disabled={isLoading}
                   />
-                  <Text size="sm">Remember me</Text>
+                  <Text size="sm" className="group-hover:text-primary-600 transition-colors">
+                    Remember me
+                  </Text>
+                  <div className="ml-1 group relative">
+                    <Text size="xs" color="muted" className="cursor-help">
+                      ⓘ
+                    </Text>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                      Saves your username for next time
+                    </div>
+                  </div>
                 </label>
                 
-                <Link href="#" className="text-sm">
+                <Link href="#" className="text-sm text-primary-600 hover:text-primary-700 transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -271,11 +388,37 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               </div>
             </div>
 
+            {/* Device Login Progress (show when user has some logins but not trusted yet) */}
+            {username && !showTrustedLogin && deviceStats && !deviceStats.isTrusted && deviceStats.loginCount > 0 && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg space-y-2">
+                <Flex align="center" gap={2}>
+                  <Clock className="w-4 h-4 text-yellow-600" />
+                  <Text size="sm" weight="medium" className="text-yellow-800">
+                    Device Trust Progress
+                  </Text>
+                </Flex>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-yellow-200 rounded-full h-2">
+                    <div 
+                      className="bg-yellow-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(deviceStats.successfulLogins / 5) * 100}%` }}
+                    />
+                  </div>
+                  <Text size="xs" className="text-yellow-700 font-medium">
+                    {deviceStats.successfulLogins}/5
+                  </Text>
+                </div>
+                <Text size="xs" className="text-yellow-700">
+                  {5 - deviceStats.successfulLogins} more logins to enable quick login
+                </Text>
+              </div>
+            )}
+
             {/* Help Text */}
             <div className="space-y-2 p-3 bg-info-50 dark:bg-info-900/20 rounded-lg">
               <Flex align="center" gap={2}>
                 <AlertCircle className="w-4 h-4 text-info-600 dark:text-info-400" />
-                <Text size="sm" weight="medium" color="info">
+                <Text size="sm" weight="medium" className="text-info-600 dark:text-info-400">
                   Demo Information
                 </Text>
               </Flex>
@@ -284,6 +427,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               </Text>
               <Text size="xs" color="muted">
                 Each role provides different navigation and permissions to demonstrate the system.
+              </Text>
+              <Text size="xs" color="muted">
+                💡 Tip: Login 5+ times from same device to enable quick login
               </Text>
             </div>
           </CardBody>

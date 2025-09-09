@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Menu, X, Search, Bell, Settings, User, Moon, Sun, Monitor,
-  ChevronDown, LogOut, UserCircle, HelpCircle
+  ChevronDown, LogOut, UserCircle, HelpCircle, Globe
 } from 'lucide-react';
 import { 
   Button, Flex, Text, Badge, NotificationBadge, 
@@ -10,6 +10,7 @@ import {
 import { useAuthStore, useUser } from '@/app/store/auth-store';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { useThemeStore } from '@/app/store/theme-store';
+import { LanguageSwitcherCompact } from '@/components/common/language-switcher';
 import { cn } from '@/shared/utils';
 
 interface HeaderProps {
@@ -200,6 +201,11 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Search className="w-4 h-4" />
             </Button>
+
+            {/* Language toggle */}
+            <div className="hidden sm:block">
+              <LanguageSwitcherCompact />
+            </div>
 
             {/* Theme toggle */}
             <div className="hidden sm:block">
