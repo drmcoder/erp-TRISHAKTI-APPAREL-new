@@ -191,9 +191,9 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } />
 
-        {/* Supervisor routes */}
-        <Route path="production">
-          <Route path="assignment" element={
+        {/* Work Assignment routes - Consolidated */}
+        <Route path="work-assignment">
+          <Route path="drag-drop" element={
             <ProtectedRoute 
               requiredRoles={['supervisor', 'management', 'admin']}
               requiredPermissions={['work:assign']}
@@ -203,6 +203,60 @@ export const AppRoutes: React.FC = () => {
               <WorkAssignmentPage />
             </ProtectedRoute>
           } />
+          <Route path="kanban" element={
+            <ProtectedRoute 
+              requiredRoles={['supervisor', 'management', 'admin']}
+              requiredPermissions={['work:assign']}
+              resource="work"
+              action="assign"
+            >
+              <WorkAssignmentPage />
+            </ProtectedRoute>
+          } />
+          <Route path="bulk" element={
+            <ProtectedRoute 
+              requiredRoles={['supervisor', 'management', 'admin']}
+              requiredPermissions={['work:assign']}
+              resource="work"
+              action="assign"
+            >
+              <WorkAssignmentPage />
+            </ProtectedRoute>
+          } />
+          <Route path="self" element={
+            <ProtectedRoute 
+              requiredRoles={['supervisor', 'management', 'admin']}
+              requiredPermissions={['work:assign']}
+              resource="work"
+              action="assign"
+            >
+              <WorkAssignmentPage />
+            </ProtectedRoute>
+          } />
+          <Route path="history" element={
+            <ProtectedRoute 
+              requiredRoles={['supervisor', 'management', 'admin']}
+              requiredPermissions={['work:view']}
+              resource="work"
+              action="view"
+            >
+              <WorkAssignmentPage />
+            </ProtectedRoute>
+          } />
+          <Route path="analytics" element={
+            <ProtectedRoute 
+              requiredRoles={['supervisor', 'management', 'admin']}
+              requiredPermissions={['analytics:view']}
+              resource="analytics"
+              action="view"
+            >
+              <WorkAssignmentPage />
+            </ProtectedRoute>
+          } />
+        </Route>
+
+        {/* Production routes */}
+        <Route path="production">
           <Route path="progress" element={
             <ProtectedRoute 
               requiredRoles={['supervisor', 'management', 'admin']}

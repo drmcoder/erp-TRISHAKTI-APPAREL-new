@@ -303,15 +303,62 @@ export class AtomicOperationsService {
       };
     }
 
-    // Check machine compatibility
+    // Enhanced machine compatibility validation
     const canOperateMachine = operator.machineTypes?.includes(workItem.machineType) ||
                              operator.primaryMachine === workItem.machineType;
     
     if (!canOperateMachine) {
       return {
         valid: false,
-        error: 'Operator is not qualified for this machine type'
+        error: `Operator is not qualified for ${workItem.machineType} machine type`
       };
+    }
+
+    // Specific validation for overlock vs single needle
+    const workItemMachine = workItem.machineType.toLowerCase();
+    const operatorMachines = (operator.machineTypes || []).map((m: string) => m.toLowerCase());
+    const primaryMachine = operator.primaryMachine?.toLowerCase() || '';
+
+    // Prevent overlock work assignment to single needle operators
+    if (workItemMachine.includes('overlock') || workItemMachine.includes('over lock')) {
+      const canDoOverlock = operatorMachines.some(m => 
+        m.includes('overlock') || m.includes('over lock') || m.includes('serger')
+      ) || primaryMachine.includes('overlock') || primaryMachine.includes('over lock');
+      
+      if (!canDoOverlock) {
+        return {
+          valid: false,
+          error: 'Overlock work cannot be assigned to single needle operator'
+        };
+      }
+    }
+
+    // Prevent single needle work assignment to overlock-only operators  
+    if (workItemMachine.includes('single') || workItemMachine.includes('straight')) {
+      const canDoSingle = operatorMachines.some(m =>
+        m.includes('single') || m.includes('straight') || m.includes('lockstitch')
+      ) || primaryMachine.includes('single') || primaryMachine.includes('straight');
+      
+      if (!canDoSingle) {
+        return {
+          valid: false,
+          error: 'Single needle work cannot be assigned to overlock-only operator'
+        };
+      }
+    }
+
+    // Check skill level requirements
+    if (workItem.skillLevelRequired) {
+      const skillLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
+      const operatorSkillIndex = skillLevels.indexOf(operator.skillLevel?.toLowerCase() || 'beginner');
+      const requiredSkillIndex = skillLevels.indexOf(workItem.skillLevelRequired.toLowerCase());
+      
+      if (operatorSkillIndex < requiredSkillIndex) {
+        return {
+          valid: false,
+          error: `Work requires ${workItem.skillLevelRequired} skill level, operator is ${operator.skillLevel || 'beginner'}`
+        };
+      }
     }
 
     return { valid: true };

@@ -76,7 +76,66 @@ const navigationItems: NavigationItem[] = [
     permissions: ['wage:view'],
   },
 
-  // Supervisor Section
+  // Work Assignment Section - Consolidated
+  {
+    id: 'work-assignments',
+    label: 'Work Assignment',
+    icon: <UserCheck className="w-5 h-5" />,
+    roles: ['supervisor', 'management', 'admin'],
+    permissions: ['work:assign'],
+    children: [
+      {
+        id: 'drag-drop-assignment',
+        label: 'Drag & Drop Assignment',
+        icon: <Map className="w-4 h-4" />,
+        href: '/work-assignment/drag-drop',
+        roles: ['supervisor', 'management', 'admin'],
+        permissions: ['work:assign'],
+      },
+      {
+        id: 'kanban-assignment',
+        label: 'Kanban Assignment',
+        icon: <LayoutDashboard className="w-4 h-4" />,
+        href: '/work-assignment/kanban',
+        roles: ['supervisor', 'management', 'admin'],
+        permissions: ['work:assign'],
+      },
+      {
+        id: 'bulk-assignment',
+        label: 'Bulk Assignment',
+        icon: <Package className="w-4 h-4" />,
+        href: '/work-assignment/bulk',
+        roles: ['supervisor', 'management', 'admin'],
+        permissions: ['work:assign'],
+      },
+      {
+        id: 'self-assignment',
+        label: 'Self Assignment',
+        icon: <CheckSquare className="w-4 h-4" />,
+        href: '/work-assignment/self',
+        roles: ['supervisor', 'management', 'admin'],
+        permissions: ['work:assign'],
+      },
+      {
+        id: 'assignment-history',
+        label: 'Assignment History',
+        icon: <Clock className="w-4 h-4" />,
+        href: '/work-assignment/history',
+        roles: ['supervisor', 'management', 'admin'],
+        permissions: ['work:view'],
+      },
+      {
+        id: 'assignment-analytics',
+        label: 'Assignment Analytics',
+        icon: <BarChart3 className="w-4 h-4" />,
+        href: '/work-assignment/analytics',
+        roles: ['supervisor', 'management', 'admin'],
+        permissions: ['analytics:view'],
+      },
+    ],
+  },
+
+  // Production Section (remaining items)
   {
     id: 'production',
     label: 'Production',
@@ -84,14 +143,6 @@ const navigationItems: NavigationItem[] = [
     roles: ['supervisor', 'management', 'admin'],
     permissions: ['production:view'],
     children: [
-      {
-        id: 'work-assignment',
-        label: 'Work Assignment',
-        icon: <UserCheck className="w-4 h-4" />,
-        href: '/production/assignment',
-        roles: ['supervisor', 'management', 'admin'],
-        permissions: ['work:assign'],
-      },
       {
         id: 'progress-tracking',
         label: 'Progress Tracking',
@@ -255,7 +306,8 @@ const NavigationItemComponent: React.FC<{
   item: NavigationItem;
   permissions: ReturnType<typeof usePermissions>;
   level?: number;
-}> = ({ item, permissions, level = 0 }) => {
+  onNavigate?: () => void;
+}> = ({ item, permissions, level = 0, onNavigate }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { user } = permissions;
   
@@ -302,9 +354,12 @@ const NavigationItemComponent: React.FC<{
     return (
       <NavLink
         to={item.href}
+        onClick={onNavigate} // Auto-hide on navigation
         className={({ isActive }) => cn(
           linkClasses,
-          isActive && 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300'
+          isActive && 'bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300',
+          // Enhanced touch targets for mobile
+          'min-h-[44px] touch-manipulation'
         )}
       >
         <span className="mr-3 flex-shrink-0">
@@ -328,7 +383,7 @@ const NavigationItemComponent: React.FC<{
       <div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className={linkClasses}
+          className={cn(linkClasses, 'min-h-[44px] touch-manipulation')}
         >
           <span className="mr-3 flex-shrink-0">
             {item.icon}
@@ -356,6 +411,7 @@ const NavigationItemComponent: React.FC<{
                 item={child}
                 permissions={permissions}
                 level={level + 1}
+                onNavigate={onNavigate}
               />
             ))}
           </div>
@@ -433,6 +489,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     key={item.id}
                     item={item}
                     permissions={permissions}
+                    onNavigate={() => {
+                      // Auto-hide sidebar on mobile after navigation
+                      if (window.innerWidth < 1024) {
+                        onClose?.();
+                      }
+                    }}
                   />
                 ))}
               </div>
