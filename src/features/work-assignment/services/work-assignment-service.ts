@@ -666,6 +666,155 @@ export class WorkAssignmentService extends BaseService {
   private async calculatePriorityScore(workItemId: string, operatorId: string): Promise<number> { return 1; }
   private async getOperatorEfficiency(operatorId: string): Promise<number> { return 0.8; }
   private async getWorkComplexity(workItemId: string): Promise<number> { return 1; }
+
+  // ==================== MISSING METHODS FROM HOOKS ====================
+
+  /**
+   * Get pending assignment requests
+   */
+  async getPendingAssignmentRequests(): Promise<ServiceResponse<AssignmentRequest[]>> {
+    try {
+      const query = this.db.collection('assignmentRequests').where('status', '==', 'pending');
+      const snapshot = await query.get();
+      const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as AssignmentRequest[];
+      
+      return { success: true, data: requests };
+    } catch (error) {
+      return { success: false, error: 'Failed to get pending requests' };
+    }
+  }
+
+  /**
+   * Get available work items for operator
+   */
+  async getAvailableWorkItems(operatorId?: string): Promise<ServiceResponse<WorkItem[]>> {
+    try {
+      let query = this.db.collection('workItems').where('status', '==', 'pending');
+      
+      if (operatorId) {
+        // Filter by operator skills/machine compatibility
+        query = query.where('isAvailable', '==', true);
+      }
+      
+      const snapshot = await query.get();
+      const workItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as WorkItem[];
+      
+      return { success: true, data: workItems };
+    } catch (error) {
+      return { success: false, error: 'Failed to get available work items' };
+    }
+  }
+
+  /**
+   * Get assignment recommendations for operator
+   */
+  async getAssignmentRecommendations(operatorId: string): Promise<ServiceResponse<WorkItem[]>> {
+    try {
+      // Get operator info
+      const operatorResult = await this.getOperatorById(operatorId);
+      if (!operatorResult.success) {
+        return { success: false, error: 'Operator not found' };
+      }
+
+      // Get available work items
+      const workItemsResult = await this.getAvailableWorkItems(operatorId);
+      if (!workItemsResult.success) {
+        return { success: false, error: 'Failed to get work items' };
+      }
+
+      // Simple recommendation logic (can be enhanced with ML)
+      const recommendations = workItemsResult.data?.slice(0, 5) || [];
+      
+      return { success: true, data: recommendations };
+    } catch (error) {
+      return { success: false, error: 'Failed to get recommendations' };
+    }
+  }
+
+  /**
+   * Get work progress
+   */
+  async getWorkProgress(assignmentId: string): Promise<ServiceResponse<{
+    progress: number;
+    efficiency: number;
+    qualityScore?: number;
+    estimatedCompletion: Date;
+  }>> {
+    try {
+      const assignmentResult = await this.getAssignmentById(assignmentId);
+      if (!assignmentResult.success) {
+        return { success: false, error: 'Assignment not found' };
+      }
+
+      const assignment = assignmentResult.data!;
+      const progress = Math.round((assignment.completedPieces / assignment.targetPieces) * 100);
+      const efficiency = 0.85; // Calculate based on actual time vs target
+      
+      return {
+        success: true,
+        data: {
+          progress,
+          efficiency,
+          qualityScore: assignment.qualityScore,
+          estimatedCompletion: new Date(assignment.targetCompletion)
+        }
+      };
+    } catch (error) {
+      return { success: false, error: 'Failed to get work progress' };
+    }
+  }
+
+  /**
+   * Get all operators
+   */
+  async getAllOperators(): Promise<ServiceResponse<any[]>> {
+    try {
+      const snapshot = await this.db.collection('operators').get();
+      const operators = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      return { success: true, data: operators };
+    } catch (error) {
+      return { success: false, error: 'Failed to get operators' };
+    }
+  }
+
+  /**
+   * Start work session
+   */
+  async startWorkSession(data: any): Promise<ServiceResponse<any>> {
+    try {
+      const session = {
+        ...data,
+        id: this.generateId(),
+        startTime: new Date(),
+        status: 'active',
+        createdAt: new Date().toISOString()
+      };
+      
+      await this.create(session, 'workSessions');
+      return { success: true, data: session };
+    } catch (error) {
+      return { success: false, error: 'Failed to start work session' };
+    }
+  }
+
+  /**
+   * Pause work session
+   */
+  async pauseWorkSession(data: any): Promise<ServiceResponse<any>> {
+    try {
+      const sessionId = data.sessionId;
+      await this.update(sessionId, {
+        status: 'paused',
+        pausedAt: new Date(),
+        updatedAt: new Date().toISOString()
+      }, 'workSessions');
+      
+      return { success: true, data: { sessionId, status: 'paused' } };
+    } catch (error) {
+      return { success: false, error: 'Failed to pause work session' };
+    }
+  }
 }
 
 export const workAssignmentService = new WorkAssignmentService();

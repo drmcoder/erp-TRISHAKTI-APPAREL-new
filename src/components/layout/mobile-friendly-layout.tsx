@@ -113,6 +113,7 @@ const navigationGroups = {
       label: 'Security',
       icon: CogIcon,
       items: [
+        { icon: UserGroupIcon, label: 'User Management', href: '/admin/user-management', id: 'user-management' },
         { icon: UserCircleIcon, label: 'Login Analytics', href: '/admin/login-analytics', id: 'login-analytics' },
         { icon: CogIcon, label: 'Trusted Devices', href: '/admin/trusted-devices', id: 'trusted-devices' },
         { icon: BellIcon, label: 'Notifications', href: '/admin/workflow-notifications', id: 'workflow-notifications' },
@@ -258,6 +259,8 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [isHovering, setIsHovering] = useState(false);
+  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Sync activeItem with currentView prop
   useEffect(() => {
@@ -316,6 +319,34 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
     }
   }, [activeItem, navGroups]);
 
+  // Auto-hover sidebar functionality
+  const handleSidebarMouseEnter = () => {
+    if (!isMobile && sidebarCollapsed) {
+      if (hoverTimeout) clearTimeout(hoverTimeout);
+      setIsHovering(true);
+      setSidebarOpen(true);
+    }
+  };
+
+  const handleSidebarMouseLeave = () => {
+    if (!isMobile && sidebarCollapsed) {
+      setIsHovering(false);
+      const timeout = setTimeout(() => {
+        if (!isHovering) {
+          setSidebarOpen(false);
+        }
+      }, 300); // 300ms delay before closing
+      setHoverTimeout(timeout);
+    }
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeout) clearTimeout(hoverTimeout);
+    };
+  }, [hoverTimeout]);
+
   const getRoleColor = (role: string) => {
     const colors = {
       operator: 'bg-green-500',
@@ -338,6 +369,14 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
+      {/* Desktop Hover Trigger Zone */}
+      {!isMobile && sidebarCollapsed && !sidebarOpen && (
+        <div
+          className="fixed left-0 top-0 w-4 h-full z-30 bg-transparent"
+          onMouseEnter={handleSidebarMouseEnter}
+        />
+      )}
+
       {/* Sidebar Overlay for Mobile */}
       {sidebarOpen && isMobile && (
         <div 
@@ -351,9 +390,11 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
         id="mobile-sidebar"
         className={cn(
           "fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          sidebarOpen || (!isMobile && !sidebarCollapsed) ? "translate-x-0" : "-translate-x-full",
           "lg:w-64"
         )}
+        onMouseEnter={() => !isMobile && setIsHovering(true)}
+        onMouseLeave={handleSidebarMouseLeave}
       >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between h-16 px-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">

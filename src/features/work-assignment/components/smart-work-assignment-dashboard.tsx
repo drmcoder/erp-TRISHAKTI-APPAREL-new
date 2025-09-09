@@ -106,15 +106,77 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
   const loadData = async () => {
     setLoading(true);
     
-    // Generate comprehensive mock data
-    const mockBundles: BundleWithOperations[] = [];
-    const articleNumbers = ['3233', '3265', '3401', '3522', '3678', '3721'];
-    const styles = ['Adult T-Shirt', 'Ladies Blouse', 'Kids T-Shirt', 'Polo Shirt', 'Tank Top', 'Hoodie'];
-    const priorities = ['low', 'normal', 'high', 'urgent'] as const;
-    const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-    const colors = ['White', 'Black', 'Navy', 'Red', 'Blue', 'Green', 'Pink', 'Gray'];
-
-    for (let i = 1; i <= 150; i++) {
+    try {
+      // Load real data from Firebase services
+      const { workAssignmentService } = await import('@/services/work-assignment-service');
+      const { bundleService } = await import('@/services/bundle-service');
+      const { operatorService } = await import('@/services/operator-service');
+      
+      // Load bundles with operations from Firebase
+      const bundlesResult = await bundleService.getAllBundles();
+      const operatorsResult = await operatorService.getAllOperators();
+      const assignmentsResult = await workAssignmentService.getAvailableAssignments();
+      
+      let bundles: BundleWithOperations[] = [];
+      
+      if (bundlesResult.success && bundlesResult.data) {
+        // Transform Firebase bundles to the expected format
+        bundles = bundlesResult.data.map(bundle => ({
+          id: bundle.id || `bundle_${Date.now()}_${Math.random()}`,
+          bundleNumber: bundle.bundleNumber || `B${String(Date.now()).slice(-4)}`,
+          articleNumber: bundle.articleNumber || '0000',
+          styleName: bundle.styleName || 'Unknown Style',
+          priority: bundle.priority || 'normal',
+          sizes: bundle.sizeBreakdown ? Object.keys(bundle.sizeBreakdown) : ['M'],
+          colors: bundle.colors || ['White'],
+          totalPieces: bundle.totalPieces || 0,
+          estimatedTime: bundle.estimatedTime || 60,
+          totalValue: bundle.totalValue || 100,
+          requiredSkills: bundle.requiredSkills || [],
+          dueDate: bundle.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          createdDate: bundle.createdAt?.toDate ? bundle.createdAt.toDate() : new Date(),
+          operations: bundle.operations || [{
+            id: `op_${bundle.id}_default`,
+            name: 'General Assembly',
+            nameNepali: 'सामान्य जम्मा',
+            machineType: 'sewing' as const,
+            requiredSkill: 'basic_sewing',
+            timePerPiece: 3.0,
+            pricePerPiece: 2.0,
+            status: 'pending' as const
+          }]
+        }));
+      }
+      
+      // If no real data, create a minimal fallback
+      if (bundles.length === 0) {
+        console.log('No bundles found in Firebase, creating sample data...');
+        bundles = [{
+          id: 'sample_bundle_1',
+          bundleNumber: 'B0001',
+          articleNumber: '3233',
+          styleName: 'Adult T-Shirt',
+          priority: 'normal' as const,
+          sizes: ['M', 'L'],
+          colors: ['White'],
+          totalPieces: 50,
+          estimatedTime: 180,
+          totalValue: 250,
+          requiredSkills: ['basic_sewing'],
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          createdDate: new Date(),
+          operations: [{
+            id: 'op_sample_1',
+            name: 'Shoulder Join',
+            nameNepali: 'काँध जोड्ने',
+            machineType: 'overlock' as const,
+            requiredSkill: 'shoulder_join',
+            timePerPiece: 4.5,
+            pricePerPiece: 2.5,
+            status: 'pending' as const
+          }]
+        }];
+      }
       const articleIdx = Math.floor(Math.random() * articleNumbers.length);
       const priority = priorities[Math.floor(Math.random() * priorities.length)];
       const bundleSizes = sizes.slice(0, 2 + Math.floor(Math.random() * 3));

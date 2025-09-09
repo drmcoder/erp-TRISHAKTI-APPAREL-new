@@ -3,6 +3,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { WorkItem } from './features/work-assignment/types';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
+import { appInitializationService } from './services/app-initialization-service';
+import { errorReportingService } from './services/error-reporting-service';
 
 // Core components (loaded immediately)
 import { BarcodeScanner } from './components/barcode/barcode-scanner';
@@ -11,48 +13,399 @@ import { ThreeStepWipEntry } from './components/wip/three-step-wip-entry';
 import { AuthService } from './services/auth-service';
 
 // Lazy loaded components - split into logical chunks
-const OperatorDashboard = lazy(() => import('./components/operator/OperatorDashboard').then(m => ({ default: m.OperatorDashboard })));
-const SupervisorDashboard = lazy(() => import('./components/supervisor/SupervisorDashboard').then(m => ({ default: m.SupervisorDashboard })));
-const AssignmentDashboard = lazy(() => import('./features/work-assignment/components/assignment-dashboard').then(m => ({ default: m.AssignmentDashboard })));
-const BundleLifecycleManager = lazy(() => import('./features/bundles/components/bundle-lifecycle-manager').then(m => ({ default: m.BundleLifecycleManager })));
-const ProductionDashboard = lazy(() => import('./features/analytics/components/production-dashboard').then(m => ({ default: m.ProductionDashboard })));
-const QualityManagementDashboard = lazy(() => import('./features/quality/components/quality-management-dashboard').then(m => ({ default: m.QualityManagementDashboard })));
-const EarningsDashboard = lazy(() => import('./features/earnings/components/earnings-dashboard').then(m => ({ default: m.EarningsDashboard })));
-const OperatorManagementDashboard = lazy(() => import('./features/operators/components/operator-management-dashboard').then(m => ({ default: m.OperatorManagementDashboard })));
-const SelfAssignmentInterface = lazy(() => import('./features/work-assignment/components/self-assignment-interface').then(m => ({ default: m.SelfAssignmentInterface })));
-const ProductionTimer = lazy(() => import('./features/work-assignment/components/production-timer').then(m => ({ default: m.ProductionTimer })));
+const OperatorDashboard = lazy(() => 
+  import('./components/operator/OperatorDashboard')
+    .then(m => ({ default: m.OperatorDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'OperatorDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Operator Dashboard temporarily unavailable') };
+    })
+);
+const SupervisorDashboard = lazy(() => 
+  import('./components/supervisor/SupervisorDashboard')
+    .then(m => ({ default: m.SupervisorDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'SupervisorDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Supervisor Dashboard temporarily unavailable') };
+    })
+);
+const AssignmentDashboard = lazy(() => 
+  import('./features/work-assignment/components/assignment-dashboard')
+    .then(m => ({ default: m.AssignmentDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'AssignmentDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Assignment Dashboard temporarily unavailable') };
+    })
+);
+const BundleLifecycleManager = lazy(() => 
+  import('./features/bundles/components/bundle-lifecycle-manager')
+    .then(m => ({ default: m.BundleLifecycleManager }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'BundleLifecycleManager', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Bundle Lifecycle Manager temporarily unavailable') };
+    })
+);
+const ProductionDashboard = lazy(() => 
+  import('./features/analytics/components/production-dashboard')
+    .then(m => ({ default: m.ProductionDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'ProductionDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Production Dashboard temporarily unavailable') };
+    })
+);
+const QualityManagementDashboard = lazy(() => 
+  import('./features/quality/components/quality-management-dashboard')
+    .then(m => ({ default: m.QualityManagementDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'QualityManagementDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Quality Management Dashboard temporarily unavailable') };
+    })
+);
+const EarningsDashboard = lazy(() => 
+  import('./features/earnings/components/earnings-dashboard')
+    .then(m => ({ default: m.EarningsDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'EarningsDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Earnings Dashboard temporarily unavailable') };
+    })
+);
+const OperatorManagementDashboard = lazy(() => 
+  import('./features/operators/components/operator-management-dashboard')
+    .then(m => ({ default: m.OperatorManagementDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'OperatorManagementDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Operator Management Dashboard temporarily unavailable') };
+    })
+);
+const SelfAssignmentInterface = lazy(() => 
+  import('./features/work-assignment/components/self-assignment-interface')
+    .then(m => ({ default: m.SelfAssignmentInterface }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'SelfAssignmentInterface', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Self Assignment Interface temporarily unavailable') };
+    })
+);
+const ProductionTimer = lazy(() => 
+  import('./features/work-assignment/components/production-timer')
+    .then(m => ({ default: m.ProductionTimer }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'ProductionTimer', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Production Timer temporarily unavailable') };
+    })
+);
 // Removed ArticleTemplateManager - functionality integrated into WIP entry
-const WorkflowSequencer = lazy(() => import('./features/workflow/components/workflow-sequencer').then(m => ({ default: m.WorkflowSequencer })));
-const MobileFriendlyLayout = lazy(() => import('./components/layout/mobile-friendly-layout.tsx').then(m => ({ default: m.MobileFriendlyLayout })));
-const MobileTest = lazy(() => import('./components/mobile/mobile-test').then(m => ({ default: m.MobileTest })));
+const WorkflowSequencer = lazy(() => 
+  import('./features/workflow/components/workflow-sequencer')
+    .then(m => ({ default: m.WorkflowSequencer }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'WorkflowSequencer', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Workflow Sequencer temporarily unavailable') };
+    })
+);
+const MobileFriendlyLayout = lazy(() => 
+  import('./components/layout/mobile-friendly-layout')
+    .then(m => ({ default: m.MobileFriendlyLayout }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'MobileFriendlyLayout', type: 'dynamic-import' },
+        level: 'error'
+      });
+      throw err;
+    })
+);
+const MobileTest = lazy(() => 
+  import('./components/mobile/mobile-test')
+    .then(m => ({ default: m.MobileTest }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'MobileTest', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Mobile Test temporarily unavailable') };
+    })
+);
 // CompleteWIPEntryWorkflow disabled as per user request
-const LiveProductionDashboard = lazy(() => import('./components/dashboard/live-production-dashboard').then(m => ({ default: m.LiveProductionDashboard })));
-const CuttingDropletManager = lazy(() => import('./components/management/CuttingDropletManager'));
-const ProductionLotManager = lazy(() => import('./components/management/ProductionLotManager'));
-const ProcessPricingManager = lazy(() => import('./components/management/ProcessPricingManager'));
-const EnhancedOperatorDashboard = lazy(() => import('./components/operator/EnhancedOperatorDashboard'));
-const OperatorPieceTracker = lazy(() => import('./components/operator/OperatorPieceTracker'));
-const BundleAssignmentManager = lazy(() => import('./components/supervisor/BundleAssignmentManager'));
-const SewingTemplateManager = lazy(() => import('./features/sewing-templates/components/sewing-template-manager').then(m => ({ default: m.SewingTemplateManager })));
-const BundleAssignmentDashboard = lazy(() => import('./features/bundles/components/bundle-assignment-dashboard').then(m => ({ default: m.BundleAssignmentDashboard })));
-const OperatorWorkDashboard = lazy(() => import('./features/bundles/components/operator-work-dashboard').then(m => ({ default: m.OperatorWorkDashboard })));
+const LiveProductionDashboard = lazy(() => 
+  import('./components/dashboard/live-production-dashboard')
+    .then(m => ({ default: m.LiveProductionDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'LiveProductionDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Live Production Dashboard temporarily unavailable') };
+    })
+);
+const CuttingDropletManager = lazy(() => 
+  import('./components/management/CuttingDropletManager')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'CuttingDropletManager', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Cutting Droplet Manager temporarily unavailable') };
+    })
+);
+const ProductionLotManager = lazy(() => 
+  import('./components/management/ProductionLotManager')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'ProductionLotManager', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Production Lot Manager temporarily unavailable') };
+    })
+);
+const ProcessPricingManager = lazy(() => 
+  import('./components/management/ProcessPricingManager')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'ProcessPricingManager', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Process Pricing Manager temporarily unavailable') };
+    })
+);
+const EnhancedOperatorDashboard = lazy(() => 
+  import('./components/operator/EnhancedOperatorDashboard')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'EnhancedOperatorDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Enhanced Operator Dashboard temporarily unavailable') };
+    })
+);
+const OperatorPieceTracker = lazy(() => 
+  import('./components/operator/OperatorPieceTracker')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'OperatorPieceTracker', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Operator Piece Tracker temporarily unavailable') };
+    })
+);
+const BundleAssignmentManager = lazy(() => 
+  import('./components/supervisor/BundleAssignmentManager')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'BundleAssignmentManager', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Bundle Assignment Manager temporarily unavailable') };
+    })
+);
+const SewingTemplateManager = lazy(() => 
+  import('./features/sewing-templates/components/sewing-template-manager')
+    .then(m => ({ default: m.SewingTemplateManager }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'SewingTemplateManager', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Sewing Template Manager temporarily unavailable') };
+    })
+);
+const BundleAssignmentDashboard = lazy(() => 
+  import('./features/bundles/components/bundle-assignment-dashboard')
+    .then(m => ({ default: m.BundleAssignmentDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'BundleAssignmentDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Bundle Assignment Dashboard temporarily unavailable') };
+    })
+);
+const OperatorWorkDashboard = lazy(() => 
+  import('./features/bundles/components/operator-work-dashboard')
+    .then(m => ({ default: m.OperatorWorkDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'OperatorWorkDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Operator Work Dashboard temporarily unavailable') };
+    })
+);
 
 // NEW COMPONENTS - Enhanced Work Assignment & Analytics
-const OperatorSelfAssignment = lazy(() => import('./features/bundles/components/operator-self-assignment').then(m => ({ default: m.OperatorSelfAssignment })));
-const SupervisorPartsDashboard = lazy(() => import('./features/bundles/components/supervisor-parts-dashboard').then(m => ({ default: m.SupervisorPartsDashboard })));
-const MultiStrategyAssignmentDashboard = lazy(() => import('./features/work-assignment/components/multi-strategy-assignment-dashboard').then(m => ({ default: m.MultiStrategyAssignmentDashboard })));
-const BundleBatchTrackingDashboard = lazy(() => import('./features/analytics/components/bundle-batch-tracking-dashboard').then(m => ({ default: m.BundleBatchTrackingDashboard })));
-const DragDropAssignmentDashboard = lazy(() => import('./features/work-assignment/components/drag-drop-assignment-dashboard').then(m => ({ default: m.DragDropAssignmentDashboard })));
+const OperatorSelfAssignment = lazy(() => 
+  import('./features/bundles/components/operator-self-assignment')
+    .then(m => ({ default: m.OperatorSelfAssignment }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'OperatorSelfAssignment', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Operator Self Assignment temporarily unavailable') };
+    })
+);
+const SupervisorPartsDashboard = lazy(() => 
+  import('./features/bundles/components/supervisor-parts-dashboard')
+    .then(m => ({ default: m.SupervisorPartsDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'SupervisorPartsDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Supervisor Parts Dashboard temporarily unavailable') };
+    })
+);
+const MultiStrategyAssignmentDashboard = lazy(() => 
+  import('./features/work-assignment/components/multi-strategy-assignment-dashboard')
+    .then(m => ({ default: m.MultiStrategyAssignmentDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'MultiStrategyAssignmentDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Multi Strategy Assignment Dashboard temporarily unavailable') };
+    })
+);
+const BundleBatchTrackingDashboard = lazy(() => 
+  import('./features/analytics/components/bundle-batch-tracking-dashboard')
+    .then(m => ({ default: m.BundleBatchTrackingDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'BundleBatchTrackingDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Bundle Batch Tracking Dashboard temporarily unavailable') };
+    })
+);
+const DragDropAssignmentDashboard = lazy(() => 
+  import('./features/work-assignment/components/drag-drop-assignment-dashboard')
+    .then(m => ({ default: m.DragDropAssignmentDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'DragDropAssignmentDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Drag Drop Assignment Dashboard temporarily unavailable') };
+    })
+);
 // KanbanMappingAssignment temporarily removed due to syntax issues
-const SupervisorOperatorBuckets = lazy(() => import('./features/work-assignment/components/supervisor-operator-buckets').then(m => ({ default: m.SupervisorOperatorBuckets })));
-const SmartWorkAssignmentDashboard = lazy(() => import('./features/work-assignment/components/smart-work-assignment-dashboard').then(m => ({ default: m.SmartWorkAssignmentDashboard })));
-const OperatorProfileAssignment = lazy(() => import('./features/operators/components/operator-profile-assignment').then(m => ({ default: m.OperatorProfileAssignment })));
-const SequentialWorkflowAssignment = lazy(() => import('./features/work-assignment/components/sequential-workflow-assignment').then(m => ({ default: m.SequentialWorkflowAssignment })));
+const SupervisorOperatorBuckets = lazy(() => 
+  import('./features/work-assignment/components/supervisor-operator-buckets')
+    .then(m => ({ default: m.SupervisorOperatorBuckets }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'SupervisorOperatorBuckets', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Supervisor Operator Buckets temporarily unavailable') };
+    })
+);
+const SmartWorkAssignmentDashboard = lazy(() => 
+  import('./features/work-assignment/components/smart-work-assignment-dashboard')
+    .then(m => ({ default: m.SmartWorkAssignmentDashboard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'SmartWorkAssignmentDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Smart Work Assignment Dashboard temporarily unavailable') };
+    })
+);
+const OperatorProfileAssignment = lazy(() => 
+  import('./features/operators/components/operator-profile-assignment')
+    .then(m => ({ default: m.OperatorProfileAssignment }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'OperatorProfileAssignment', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Operator Profile Assignment temporarily unavailable') };
+    })
+);
+const SequentialWorkflowAssignment = lazy(() => 
+  import('./features/work-assignment/components/sequential-workflow-assignment')
+    .then(m => ({ default: m.SequentialWorkflowAssignment }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'SequentialWorkflowAssignment', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Sequential Workflow Assignment temporarily unavailable') };
+    })
+);
 
 // ADMIN & SECURITY COMPONENTS - NEW FEATURES
-const LoginAnalyticsDashboard = lazy(() => import('./components/admin/LoginAnalyticsDashboard'));
-const TrustedDeviceManager = lazy(() => import('./components/admin/TrustedDeviceManager'));
-const WorkflowNotificationDemo = lazy(() => import('./components/examples/WorkflowNotificationDemo'));
+const LoginAnalyticsDashboard = lazy(() => 
+  import('./components/admin/LoginAnalyticsDashboard')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'LoginAnalyticsDashboard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Login Analytics Dashboard temporarily unavailable') };
+    })
+);
+const TrustedDeviceManager = lazy(() => 
+  import('./components/admin/TrustedDeviceManager')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'TrustedDeviceManager', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Trusted Device Manager temporarily unavailable') };
+    })
+);
+const WorkflowNotificationDemo = lazy(() => 
+  import('./components/examples/WorkflowNotificationDemo')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'WorkflowNotificationDemo', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Workflow Demo temporarily unavailable') };
+    })
+);
+const AdminUserManagement = lazy(() => 
+  import('./components/admin/AdminUserManagement')
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'AdminUserManagement', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Admin User Management temporarily unavailable') };
+    })
+);
 
 // Loading component
 // Optimized Loading component with better UX
@@ -119,13 +472,13 @@ const LoginPage = ({ onLogin }: { onLogin: (username: string, role: string) => v
             <img src="/logo.png" alt="TSA" className="h-16 w-auto" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            TSA Production ERP
+            🏢 TSA Intelligence Hub
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Advanced Manufacturing Management System
+            🚀 Advanced Smart Manufacturing Command Center
           </p>
           <p className="text-center text-xs text-gray-500">
-            Real-time Operations • AI-Powered Analytics • Smart Workflows
+            AI-Powered Analytics • Real-Time Intelligence • Predictive Operations
           </p>
         </div>
         
@@ -442,13 +795,13 @@ Ready for supervisor assignment!`);
         />;
       
       case 'parts-issues':
-        return <SupervisorPartsDashboard userRole={userRole} />;
+        return <SupervisorPartsDashboard />;
       
       case 'multi-assignment':
-        return <MultiStrategyAssignmentDashboard userRole={userRole} />;
+        return <MultiStrategyAssignmentDashboard />;
       
       case 'bundle-analytics':
-        return <BundleBatchTrackingDashboard userRole={userRole} />;
+        return <BundleBatchTrackingDashboard />;
       
       // DRAG & DROP ASSIGNMENT SYSTEMS
       case 'drag-drop-assignment':
@@ -478,6 +831,9 @@ Ready for supervisor assignment!`);
       
       case 'trusted-devices':
         return <TrustedDeviceManager />;
+      
+      case 'user-management':
+        return <AdminUserManagement adminId={userId} />;
       
       case 'workflow-notifications':
         return <WorkflowNotificationDemo />;
@@ -522,22 +878,33 @@ function App() {
     return localStorage.getItem('tsa_user_role') || '';
   });
 
-  // Validate session on app initialization - temporarily disabled due to Firebase issues
+  // Initialize app with smart caching and data preloading
   useEffect(() => {
-    const validateSession = async () => {
+    const initializeApp = async () => {
+      // Initialize TSA Intelligence Hub
+      await appInitializationService.initialize();
+      
+      // Session validation logic
       const storedToken = localStorage.getItem('tsa_auth_token');
       const storedRole = localStorage.getItem('tsa_user_role');
       const storedUsername = localStorage.getItem('tsa_username');
       
       if (storedToken === 'authenticated' && storedRole && storedUsername) {
         try {
-          // TODO: Re-enable when Firebase connection is stable
-          // const result = await AuthService.validateSession(storedUsername, storedRole);
-          // if (!result.success) {
-          //   console.log('Session validation failed, logging out');
-          //   handleLogout();
-          // }
-          console.log('Session validation temporarily disabled - using localStorage only');
+          // Enable Firebase session validation
+          try {
+            const { authService } = await import('./services/auth-service');
+            const result = await authService.validateSession(storedUsername, storedRole);
+            if (!result.success) {
+              console.log('Session validation failed, logging out');
+              handleLogout();
+              return;
+            }
+            console.log('🛡️ Session validated successfully via Firebase');
+          } catch (error) {
+            console.error('Firebase session validation error:', error);
+            console.log('🛡️ Firebase validation failed, using localStorage fallback');
+          }
         } catch (error) {
           console.error('Session validation error:', error);
           // Temporarily don't logout on validation errors
@@ -546,9 +913,12 @@ function App() {
       }
     };
 
-    // Only validate if user appears to be authenticated
+    // Initialize app - only validate if user appears to be authenticated
     if (isAuthenticated && userRole) {
-      validateSession();
+      initializeApp();
+    } else {
+      // Initialize app even when not authenticated for login optimization
+      appInitializationService.initialize();
     }
   }, [isAuthenticated, userRole]);
 

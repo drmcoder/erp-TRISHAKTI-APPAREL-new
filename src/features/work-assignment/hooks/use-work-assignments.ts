@@ -342,10 +342,7 @@ export function usePendingAssignmentRequests(
 ) {
   return useQuery({
     queryKey: workAssignmentQueryKeys.pendingRequests(),
-    queryFn: async () => {
-      // This would be implemented in the service
-      return { success: true, data: [] as AssignmentRequest[] };
-    },
+    queryFn: () => workAssignmentService.getPendingAssignmentRequests(),
     staleTime: 30 * 1000, // 30 seconds
     refetchInterval: 60 * 1000, // Refresh every minute
     ...options
@@ -398,10 +395,7 @@ export function useAvailableWorkItems(
 ) {
   return useQuery({
     queryKey: ['available-work-items', operatorId],
-    queryFn: async () => {
-      // This would fetch unassigned work items that match operator skills
-      return { success: true, data: [] as WorkItem[] };
-    },
+    queryFn: () => workAssignmentService.getAvailableWorkItems(operatorId),
     enabled: !!operatorId,
     staleTime: 60 * 1000, // 1 minute
     ...options
@@ -415,10 +409,7 @@ export function useAssignmentRecommendations(
 ) {
   return useQuery({
     queryKey: ['assignment-recommendations', operatorId],
-    queryFn: async () => {
-      // This would use AI/ML to recommend optimal assignments
-      return { success: true, data: [] as WorkItem[] };
-    },
+    queryFn: () => workAssignmentService.getAssignmentRecommendations(operatorId),
     enabled: !!operatorId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     ...options
@@ -437,17 +428,7 @@ export function useWorkProgress(
 ) {
   return useQuery({
     queryKey: ['work-progress', assignmentId],
-    queryFn: async () => {
-      // This would fetch real-time progress data
-      return {
-        success: true,
-        data: {
-          progress: 0,
-          efficiency: 0,
-          estimatedCompletion: new Date()
-        }
-      };
-    },
+    queryFn: () => workAssignmentService.getWorkProgress(assignmentId),
     enabled: !!assignmentId,
     refetchInterval: 30 * 1000, // Update every 30 seconds
     ...options
@@ -458,10 +439,7 @@ export function useWorkProgress(
 export function useOperators() {
   return useQuery({
     queryKey: ['operators'],
-    queryFn: async () => {
-      // This would fetch all operators
-      return { success: true, data: [] };
-    }
+    queryFn: () => workAssignmentService.getAllOperators()
   });
 }
 
@@ -469,10 +447,7 @@ export function useStartWorkSession() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: any) => {
-      // This would start a work session
-      return { success: true, data: null };
-    },
+    mutationFn: (data: any) => workAssignmentService.startWorkSession(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['work-sessions'] });
     }
@@ -483,10 +458,7 @@ export function usePauseWorkSession() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (data: any) => {
-      // This would pause a work session
-      return { success: true, data: null };
-    },
+    mutationFn: (data: any) => workAssignmentService.pauseWorkSession(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['work-sessions'] });
     }

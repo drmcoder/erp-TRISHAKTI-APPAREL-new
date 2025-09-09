@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
@@ -16,6 +16,8 @@ import { OperatorList } from './operator-list';
 import { OperatorDetail } from './operator-detail';
 import { OperatorForm } from './operator-form';
 import { OperatorCard } from './operator-card';
+import { operatorService } from '@/services/operator-service';
+import { safeArray } from '@/utils/null-safety';
 
 interface OperatorManagementDashboardProps {
   userRole?: string;
@@ -28,6 +30,34 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
   const [selectedOperatorId, setSelectedOperatorId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [operators, setOperators] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load operators from Firebase
+  useEffect(() => {
+    loadOperators();
+  }, [refreshTrigger]);
+
+  const loadOperators = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await operatorService.getAllOperators();
+      if (result.success) {
+        setOperators(safeArray(result.data));
+      } else {
+        setError(result.error || 'Failed to load operators');
+        setOperators([]);
+      }
+    } catch (err) {
+      setError('Error loading operators');
+      setOperators([]);
+      console.error('Error loading operators:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handler for deleting an operator (supervisors only)
   const handleDeleteOperator = async (operatorId: string) => {
@@ -42,9 +72,13 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
 
     if (confirmDelete) {
       try {
-        // TODO: Implement actual delete API call
-        console.log('Deleting operator:', operatorId);
-        alert('Operator deleted successfully! (This is a demo - implement actual Firebase delete)');
+        const result = await operatorService.delete(operatorId);
+        if (result.success) {
+          alert('✅ Operator deleted successfully!');
+          setRefreshTrigger(prev => prev + 1); // Trigger refresh to update the list
+        } else {
+          alert(`❌ Failed to delete operator: ${result.error}`);
+        }
         
         // If we were viewing the deleted operator, go back to overview
         if (selectedOperatorId === operatorId) {
@@ -58,66 +92,49 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
     }
   };
   
-  // Mock data - in real implementation, this would come from API
-  const operatorStats = {
-    totalOperators: 156,
-    activeOperators: 142,
-    onBreakOperators: 8,
-    offlineOperators: 6,
-    averageEfficiency: 87.3,
-    topPerformer: 'Maya Sharma'
-  };
+  // Transform operators for statistics (all operators)
+  const transformedOperators = operators
+    .filter(op => op != null) // Prevent null errors
+    .map(op => ({
+      id: op.id || '',
+      name: op.name || 'Unknown',
+      employeeId: op.employeeId || 'N/A',
+      skills: op.machineTypes || [],
+      efficiency: typeof op.averageEfficiency === 'number' ? op.averageEfficiency : 0,
+      qualityScore: typeof op.qualityScore === 'number' ? op.qualityScore : 85, // Default to 85% for new operators
+      activeAssignments: op.currentAssignments?.length || 0,
+      completedToday: Math.floor(Math.random() * 5), // Mock data for demo - replace with real tracking
+      status: op.isActive ? 
+        (op.availabilityStatus === 'available' ? 'Active' : 
+         op.availabilityStatus === 'working' ? 'Working' : 
+         op.availabilityStatus === 'break' ? 'On Break' : 'Available') 
+        : 'Offline',
+      avatar: op.avatar ? op.avatar : null,
+      joinDate: op.createdAt?.toDate ? op.createdAt.toDate() : new Date(),
+      machineType: op.primaryMachine || 'Not Set'
+    }));
 
-  const recentOperators = [
-    {
-      id: 'op-maya-001',
-      name: 'Maya Sharma',
-      employeeId: 'EMP001',
-      skills: ['Cutting', 'Sewing', 'Finishing'],
-      efficiency: 94.5,
-      activeAssignments: 3,
-      completedToday: 12,
-      status: 'Active',
-      avatar: '/avatars/maya.jpg',
-      joinDate: new Date('2023-03-15')
-    },
-    {
-      id: 'op-rajesh-002',
-      name: 'Rajesh Kumar',
-      employeeId: 'EMP002',
-      skills: ['Sewing', 'Quality Check'],
-      efficiency: 91.2,
-      activeAssignments: 2,
-      completedToday: 8,
-      status: 'Active',
-      avatar: '/avatars/rajesh.jpg',
-      joinDate: new Date('2023-01-20')
-    },
-    {
-      id: 'op-priya-003',
-      name: 'Priya Singh',
-      employeeId: 'EMP003',
-      skills: ['Cutting', 'Pattern Making'],
-      efficiency: 89.8,
-      activeAssignments: 1,
-      completedToday: 6,
-      status: 'On Break',
-      avatar: '/avatars/priya.jpg',
-      joinDate: new Date('2023-05-10')
-    },
-    {
-      id: 'op-amit-004',
-      name: 'Amit Patel',
-      employeeId: 'EMP004',
-      skills: ['Finishing', 'Packing'],
-      efficiency: 85.6,
-      activeAssignments: 4,
-      completedToday: 15,
-      status: 'Active',
-      avatar: '/avatars/amit.jpg',
-      joinDate: new Date('2022-11-08')
-    }
-  ];
+  // Get recent operators for display (top 5)
+  const recentOperators = transformedOperators.slice(0, 5);
+
+  // Calculate operator statistics with enhanced metrics
+  const operatorStats = {
+    totalOperators: operators.length,
+    activeOperators: transformedOperators.filter(op => ['Active', 'Working', 'Available'].includes(op.status)).length,
+    onBreakOperators: transformedOperators.filter(op => op.status === 'On Break').length,
+    offlineOperators: transformedOperators.filter(op => op.status === 'Offline').length,
+    averageEfficiency: operators.length > 0 
+      ? Math.round(transformedOperators.reduce((sum, op) => sum + op.efficiency, 0) / operators.length)
+      : 0,
+    averageQuality: operators.length > 0
+      ? Math.round(transformedOperators.reduce((sum, op) => sum + op.qualityScore, 0) / operators.length)
+      : 0,
+    topPerformer: transformedOperators.length > 0
+      ? transformedOperators.reduce((top, op) => op.efficiency > top.efficiency ? op : top, transformedOperators[0]).name
+      : 'N/A',
+    completedToday: transformedOperators.reduce((sum, op) => sum + op.completedToday, 0),
+    attendanceRate: Math.round(((transformedOperators.length - transformedOperators.filter(op => op.status === 'Offline').length) / Math.max(transformedOperators.length, 1)) * 100)
+  };
 
   const renderOverview = () => (
     <div className="space-y-6">
@@ -208,17 +225,31 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
               <OperatorCard
                 key={operator.id}
                 operator={operator}
-                onView={(id) => {
-                  setSelectedOperatorId(id);
+                onView={() => {
+                  setSelectedOperatorId(operator.id);
                   setActiveView('detail');
                 }}
-                onEdit={(id) => {
-                  setSelectedOperatorId(id);
+                onEdit={() => {
+                  setSelectedOperatorId(operator.id);
                   setActiveView('form');
                 }}
                 showActions={userRole === 'supervisor'}
               />
             ))}
+          {recentOperators.filter(op => {
+            if (!searchTerm) return false;
+            const searchLower = searchTerm.toLowerCase();
+            return !(
+              (op.name || '').toLowerCase().includes(searchLower) ||
+              (op.employeeId || '').toLowerCase().includes(searchLower) ||
+              (op.skills || []).some(skill => (skill || '').toLowerCase().includes(searchLower))
+            );
+          }).length === recentOperators.length && searchTerm && recentOperators.length > 0 && (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              <MagnifyingGlassIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>No operators found matching "{searchTerm}"</p>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -322,10 +353,14 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
           />
         ) : renderOverview();
       case 'form':
+        const selectedOperator = selectedOperatorId 
+          ? operators.find(op => op.id === selectedOperatorId) 
+          : undefined;
+          
         return (
           <OperatorForm
             mode={selectedOperatorId ? 'edit' : 'create'}
-            initialData={selectedOperatorId ? { username: '', name: '' } : undefined}
+            initialData={selectedOperator}
             onSubmit={async (data) => {
               console.log('Operator data submitted:', data);
               
@@ -375,6 +410,47 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
     }
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+              <UserGroupIcon className="h-8 w-8 text-blue-600" />
+              <span>Operator Management</span>
+            </h1>
+            <p className="text-gray-600">Loading operators...</p>
+          </div>
+        </div>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+              <UserGroupIcon className="h-8 w-8 text-blue-600" />
+              <span>Operator Management</span>
+            </h1>
+            <p className="text-red-600">Error: {error}</p>
+          </div>
+        </div>
+        <Card className="p-6 text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={loadOperators}>Retry</Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -384,7 +460,7 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
             <UserGroupIcon className="h-8 w-8 text-blue-600" />
             <span>Operator Management</span>
           </h1>
-          <p className="text-gray-600">Manage operators, skills, and performance</p>
+          <p className="text-gray-600">Manage operators, skills, and performance ({operators.length} total)</p>
         </div>
       </div>
 

@@ -217,6 +217,9 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   const validateStep1 = () => {
     const stepErrors: Record<string, string> = {};
     
+    // Validate batch number
+    if (!formData.bundleNumber.trim()) stepErrors.bundleNumber = 'Batch number is required';
+    
     // Validate all articles
     formData.articles.forEach((article, index) => {
       if (!article.articleNumber.trim()) stepErrors[`article_${index}_articleNumber`] = `Article ${index + 1}: Article number is required`;
@@ -265,8 +268,6 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
 
   const validateStep3 = () => {
     const stepErrors: Record<string, string> = {};
-    
-    if (!formData.bundleNumber.trim()) stepErrors.bundleNumber = 'Bundle number is required';
     
     // Check that all articles have templates assigned (should be validated in Step 1 already)
     const articlesWithoutTemplates = formData.articles.filter(article => !article.selectedTemplateId);
@@ -396,25 +397,43 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     const currentArticle = formData.articles[currentArticleIndex];
     
     return (
-      <div className="space-y-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <DocumentTextIcon className="h-6 w-6 text-blue-600" />
+      <div className="space-y-4 md:space-y-6">
+        {/* Step Header - Mobile Optimized */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg md:rounded-2xl p-4 md:p-8 shadow-lg">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="bg-white/20 backdrop-blur rounded-lg md:rounded-xl p-2 md:p-3">
+                <DocumentTextIcon className="h-6 w-6 md:h-8 md:w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Step 1: Multi-Article Information</h3>
-                <p className="text-sm text-gray-500">Set up multiple articles for batch cutting</p>
+                <h2 className="text-xl md:text-3xl font-bold">Step 1: Article Info</h2>
+                <p className="text-blue-100 text-sm md:text-lg">Multiple articles for batch cutting</p>
               </div>
             </div>
             <Button
               onClick={addArticle}
-              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+              className="bg-white/20 backdrop-blur hover:bg-white/30 text-white border-white/30 border min-h-[44px] px-4 md:px-6 py-2 md:py-3 w-full md:w-auto"
             >
-              <PlusIcon className="h-4 w-4" />
-              <span>Add Article</span>
+              <PlusIcon className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+              <span className="text-sm md:text-base">Add Article</span>
             </Button>
+          </div>
+          
+          {/* Progress Indicators */}
+          <div className="flex items-center gap-4 mt-6">
+            <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
+              <span className="text-sm font-medium">Articles: {formData.articles.length}</span>
+            </div>
+            <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
+              <span className="text-sm font-medium">Current: {currentArticleIndex + 1}</span>
+            </div>
+          </div>
+        </div>
+
+        <Card className="p-8 border-l-4 border-l-blue-500 bg-blue-50/30">
+          <div className="flex items-center gap-3 mb-8">
+            <span className="text-2xl">📋</span>
+            <h3 className="text-xl font-bold text-gray-900">Article Configuration</h3>
           </div>
 
           {/* Article Tabs */}
@@ -447,6 +466,27 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
           )}
 
           {/* Current Article Form */}
+          {/* Batch Number - Only show for first article */}
+          {currentArticleIndex === 0 && (
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xl">🏷️</span>
+                <h4 className="font-semibold text-yellow-900">Batch Information</h4>
+              </div>
+              <Input
+                label="Batch Number *"
+                placeholder="e.g., BATCH-001-2024, WIP-DEC-001"
+                value={formData.bundleNumber}
+                onChange={(e) => setFormData(prev => ({ ...prev, bundleNumber: e.target.value }))}
+                error={errors.bundleNumber}
+                className="bg-white"
+              />
+              <p className="text-sm text-yellow-700 mt-1">
+                💡 This batch number will be used for all articles in this cutting session
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Input
@@ -605,173 +645,272 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   };
 
   const renderStep2 = () => {
-    const currentArticle = formData.articles[currentArticleIndex];
-    
     return (
-      <div className="space-y-6">
-        {/* Batch Cutting Setup */}
-        <Card className="p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="bg-orange-100 p-2 rounded-lg">
-              <CubeIcon className="h-6 w-6 text-orange-600" />
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Step Header */}
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl p-8 shadow-lg">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="bg-white/20 backdrop-blur rounded-xl p-3">
+              <CubeIcon className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Step 2: Fabric Rolls & Batch Cutting</h3>
-              <p className="text-sm text-gray-500">Configure fabric rolls and layering for multi-article cutting</p>
+              <h2 className="text-3xl font-bold">Step 2: Fabric & Cutting Setup</h2>
+              <p className="text-orange-100 text-lg">Configure your fabric rolls for batch cutting</p>
             </div>
           </div>
-
-          {/* Layer Configuration */}
-          <div className="bg-blue-50 p-4 rounded-lg mb-6">
-            <h4 className="font-medium text-blue-900 mb-3">Batch Cutting Configuration</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Input
-                  type="number"
-                  step="0.1"
-                  label="Layer Length (meters)"
-                  value={formData.batchCuttingInfo.layerLength}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    batchCuttingInfo: {
-                      ...prev.batchCuttingInfo,
-                      layerLength: parseFloat(e.target.value) || 0
-                    }
-                  }))}
-                  placeholder="4.7"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Total Layers</label>
-                <div className="text-2xl font-bold text-blue-600">{formData.batchCuttingInfo.totalLayers}</div>
-                <p className="text-xs text-gray-500">Auto-calculated from rolls</p>
-              </div>
-              <div>
-                <Input
-                  type="number"
-                  label="Overall Efficiency (%)"
-                  value={formData.batchCuttingInfo.cuttingEfficiency}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    batchCuttingInfo: {
-                      ...prev.batchCuttingInfo,
-                      cuttingEfficiency: parseInt(e.target.value) || 95
-                    }
-                  }))}
-                  placeholder="95"
-                />
-              </div>
+          
+          {/* Progress Indicators */}
+          <div className="flex items-center gap-4 mt-6">
+            <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
+              <span className="text-sm font-medium">Articles: {formData.articles.length}</span>
+            </div>
+            <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
+              <span className="text-sm font-medium">Fabric Rolls: {formData.fabricRolls.length}</span>
+            </div>
+            <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
+              <span className="text-sm font-medium">Total Layers: {formData.batchCuttingInfo.totalLayers}</span>
             </div>
           </div>
+        </div>
 
-          {/* Add Fabric Roll */}
-          <div className="bg-gray-50 p-4 rounded-lg mb-6">
-            <h4 className="font-medium text-gray-900 mb-3">Add Fabric Roll</h4>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <Input
-                placeholder="Roll Number (e.g., R001)"
-                value={newRoll.rollNumber}
-                onChange={(e) => {
-                  setNewRoll(prev => ({ ...prev, rollNumber: e.target.value }));
-                  // Clear errors when user types
-                  if (rollErrors.length > 0) {
-                    setRollErrors([]);
-                  }
-                }}
-              />
-              <Input
-                placeholder="Color (e.g., Red, Green)"
-                value={newRoll.color}
-                onChange={(e) => {
-                  setNewRoll(prev => ({ ...prev, color: e.target.value }));
-                  // Clear errors when user types
-                  if (rollErrors.length > 0) {
-                    setRollErrors([]);
-                  }
-                }}
-              />
-              <Input
-                type="number"
-                step="0.1"
-                placeholder="Weight (kg)"
-                value={newRoll.weight}
-                onChange={(e) => {
-                  setNewRoll(prev => ({ ...prev, weight: e.target.value }));
-                  // Clear errors when user types
-                  if (rollErrors.length > 0) {
-                    setRollErrors([]);
-                  }
-                }}
-              />
-              <Input
-                type="number"
-                placeholder="Layer Count"
-                value={newRoll.layerCount}
-                onChange={(e) => {
-                  setNewRoll(prev => ({ ...prev, layerCount: e.target.value }));
-                  // Clear errors when user types
-                  if (rollErrors.length > 0) {
-                    setRollErrors([]);
-                  }
-                }}
-              />
-              <Button 
-                onClick={addFabricRoll}
-                className="w-full bg-orange-600 hover:bg-orange-700"
-              >
-                Add Roll
-              </Button>
-            </div>
-            
-            {/* Roll Validation Errors */}
-            {rollErrors.length > 0 && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm font-medium text-red-800 mb-1">Please fix the following errors:</p>
-                <ul className="text-sm text-red-700 list-disc list-inside">
-                  {rollErrors.map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-                </ul>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Left Column: Cutting Configuration */}
+          <div className="space-y-6">
+            <Card className="p-6 border-l-4 border-l-blue-500 bg-blue-50/30">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-2xl">📏</span>
+                <h3 className="text-xl font-bold text-gray-900">Cutting Specifications</h3>
               </div>
-            )}
-          </div>
+              
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Layer Length (meters) *
+                  </label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={formData.batchCuttingInfo.layerLength}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      batchCuttingInfo: {
+                        ...prev.batchCuttingInfo,
+                        layerLength: parseFloat(e.target.value) || 0
+                      }
+                    }))}
+                    placeholder="4.7"
+                    className="text-lg font-semibold"
+                  />
+                  <p className="text-sm text-gray-600 mt-1">
+                    💡 Standard cutting table length (usually 4.5 - 5.0 meters)
+                  </p>
+                </div>
 
-          {/* Fabric Rolls List */}
-          {formData.fabricRolls.length > 0 && (
-            <div className="space-y-3 mb-6">
-              <h4 className="font-medium text-gray-900">Fabric Rolls Ready for Cutting ({formData.fabricRolls.length})</h4>
-              {formData.fabricRolls.map((roll) => (
-                <div key={roll.id} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-6">
-                    <Badge variant="secondary" className="font-mono">{roll.rollNumber}</Badge>
-                    <div className="flex items-center space-x-2">
-                      <div 
-                        className="w-4 h-4 rounded-full border border-gray-300" 
-                        style={{ backgroundColor: roll.color.toLowerCase() }}
-                      ></div>
-                      <span className="text-sm font-medium">{roll.color}</span>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Cutting Efficiency (%)
+                  </label>
+                  <Input
+                    type="number"
+                    value={formData.batchCuttingInfo.cuttingEfficiency}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      batchCuttingInfo: {
+                        ...prev.batchCuttingInfo,
+                        cuttingEfficiency: parseInt(e.target.value) || 95
+                      }
+                    }))}
+                    placeholder="95"
+                    className="text-lg font-semibold"
+                  />
+                  <p className="text-sm text-gray-600 mt-1">
+                    ⚡ Fabric utilization efficiency (recommended: 90-98%)
+                  </p>
+                </div>
+
+                {/* Total Layers Display */}
+                <div className="bg-blue-100 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-blue-900">Total Fabric Layers:</span>
+                    <div className="text-3xl font-bold text-blue-600">
+                      {formData.batchCuttingInfo.totalLayers}
                     </div>
-                    <span className="text-sm text-gray-600">{roll.weight}kg</span>
-                    <span className="text-sm text-gray-600"><strong>{roll.layerCount}</strong> layers</span>
-                    <span className="text-sm text-gray-600">{roll.layerLength}m each</span>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeFabricRoll(roll.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Remove
-                  </Button>
+                  <p className="text-sm text-blue-700 mt-1">
+                    ✨ Automatically calculated from your fabric rolls
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Right Column: Fabric Roll Management */}
+          <div className="space-y-6">
+            <Card className="p-6 border-l-4 border-l-green-500 bg-green-50/30">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-2xl">🧵</span>
+                <h3 className="text-xl font-bold text-gray-900">Add Fabric Roll</h3>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Roll Number *</label>
+                    <Input
+                      placeholder="R001, F-123, etc."
+                      value={newRoll.rollNumber}
+                      onChange={(e) => {
+                        setNewRoll(prev => ({ ...prev, rollNumber: e.target.value }));
+                        if (rollErrors.length > 0) setRollErrors([]);
+                      }}
+                      className="font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fabric Color *</label>
+                    <Input
+                      placeholder="Red, Blue, Navy..."
+                      value={newRoll.color}
+                      onChange={(e) => {
+                        setNewRoll(prev => ({ ...prev, color: e.target.value }));
+                        if (rollErrors.length > 0) setRollErrors([]);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Weight (kg) *</label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      placeholder="15.5"
+                      value={newRoll.weight}
+                      onChange={(e) => {
+                        setNewRoll(prev => ({ ...prev, weight: e.target.value }));
+                        if (rollErrors.length > 0) setRollErrors([]);
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Layers Count *</label>
+                    <Input
+                      type="number"
+                      placeholder="50"
+                      value={newRoll.layerCount}
+                      onChange={(e) => {
+                        setNewRoll(prev => ({ ...prev, layerCount: e.target.value }));
+                        if (rollErrors.length > 0) setRollErrors([]);
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={addFabricRoll}
+                  className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 py-3 font-semibold"
+                  size="lg"
+                >
+                  <PlusIcon className="w-5 h-5 mr-2" />
+                  Add This Roll
+                </Button>
+
+                {/* Roll Validation Errors */}
+                {rollErrors.length > 0 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-red-500">⚠️</span>
+                      <span className="font-semibold text-red-800">Please fix these errors:</span>
+                    </div>
+                    <ul className="text-sm text-red-700 space-y-1">
+                      {rollErrors.map((error, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className="text-red-400">•</span>
+                          <span>{error}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Enhanced Fabric Rolls List */}
+            {formData.fabricRolls.length > 0 && (
+          <Card className="p-6 border-l-4 border-l-purple-500 bg-purple-50/30">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="text-2xl">📦</span>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Fabric Rolls Ready for Cutting ({formData.fabricRolls.length})
+                </h3>
+                <p className="text-purple-700">Total layers: {formData.batchCuttingInfo.totalLayers}</p>
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              {formData.fabricRolls.map((roll, index) => (
+                <div key={roll.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold text-gray-600">
+                          {index + 1}
+                        </div>
+                        <Badge variant="secondary" className="font-mono text-lg px-3 py-1">
+                          {roll.rollNumber}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-6 h-6 rounded-full border-2 border-gray-300 shadow-sm" 
+                          style={{ backgroundColor: roll.color.toLowerCase() }}
+                        ></div>
+                        <span className="font-semibold text-gray-900">{roll.color}</span>
+                      </div>
+                      
+                      <div className="text-sm text-gray-600 space-x-6">
+                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
+                          {roll.weight}kg
+                        </span>
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
+                          <strong>{roll.layerCount}</strong> layers
+                        </span>
+                        <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-medium">
+                          {roll.layerLength}m each
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeFabricRoll(roll.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                    >
+                      <XMarkIcon className="w-4 h-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
-          )}
+          </Card>
+        )}
 
-          {errors.fabricRolls && (
-            <p className="text-red-500 text-sm">{errors.fabricRolls}</p>
-          )}
-        </Card>
+        {/* Fabric Rolls Error */}
+        {errors.fabricRolls && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center gap-2">
+              <span className="text-red-500">⚠️</span>
+              <p className="text-red-700 font-medium">{errors.fabricRolls}</p>
+            </div>
+          </div>
+        )}
 
         {/* Size Breakdown for Articles */}
         <Card className="p-6">
@@ -1030,161 +1169,424 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
             </div>
           </div>
         </Card>
+          </div>
+        </div>
       </div>
     );
   };
 
   const renderStep3 = () => (
-    <Card className="p-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="bg-purple-100 p-2 rounded-lg">
-          <CheckCircleIcon className="h-6 w-6 text-purple-600" />
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Step Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl p-8 shadow-lg">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="bg-white/20 backdrop-blur rounded-xl p-3">
+            <CheckCircleIcon className="h-8 w-8 text-white" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-bold">Step 3: Final Review & Confirmation</h2>
+            <p className="text-purple-100 text-lg">Review all settings and complete batch setup</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Step 3: Template Selection & Confirmation</h3>
-          <p className="text-sm text-gray-500">Choose sewing template and finalize batch</p>
+        
+        {/* Progress Indicators */}
+        <div className="flex items-center gap-4 mt-6">
+          <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
+            <span className="text-sm font-medium">Batch: {formData.bundleNumber || 'Not set'}</span>
+          </div>
+          <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
+            <span className="text-sm font-medium">Articles: {formData.articles.length}</span>
+          </div>
+          <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
+            <span className="text-sm font-medium">Total Pieces: {getTotalPieces()}</span>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-6">
-        {/* Bundle Number */}
-        <div>
-          <Input
-            label="Bundle Number *"
-            placeholder="e.g., BND-001-2024"
-            value={formData.bundleNumber}
-            onChange={(e) => setFormData(prev => ({ ...prev, bundleNumber: e.target.value }))}
-            error={errors.bundleNumber}
-          />
-        </div>
+      {/* Visual Infographic Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Left: Production Overview Infographic */}
+        <Card className="p-6 border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-3xl">📊</span>
+            <h3 className="text-xl font-bold text-gray-900">Production Overview</h3>
+          </div>
 
-        {/* Templates Summary */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Assigned Templates Summary</h4>
-          <div className="space-y-2">
-            {formData.articles.map((article) => {
-              const template = availableTemplates.find(t => t.id === article.selectedTemplateId);
-              return (
-                <div key={article.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">{article.articleNumber}</p>
-                    <p className="text-sm text-gray-500">{article.style}</p>
+          {/* Key Metrics Circles */}
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="text-center">
+              <div className="relative w-24 h-24 mx-auto mb-3">
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="text-white text-center">
+                    <div className="text-2xl font-bold">{getTotalPieces()}</div>
+                    <div className="text-xs">PIECES</div>
                   </div>
-                  <div className="text-right text-sm">
-                    <p className="font-medium text-gray-900">
-                      {template ? template.templateName : 'No template selected'}
-                    </p>
-                    <p className="text-gray-500">
-                      {template ? `${template.operations.length} ops, ${template.totalSmv}min` : ''}
-                    </p>
+                </div>
+              </div>
+              <p className="text-sm font-medium text-gray-700">Total Production</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="relative w-24 h-24 mx-auto mb-3">
+                <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                  <div className="text-white text-center">
+                    <div className="text-lg font-bold">Rs.{Math.round(getTotalValue())}</div>
+                    <div className="text-xs">VALUE</div>
+                  </div>
+                </div>
+              </div>
+              <p className="text-sm font-medium text-gray-700">Batch Value</p>
+            </div>
+          </div>
+
+          {/* Production Flow */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                  <span className="text-orange-600 font-bold">1</span>
+                </div>
+                <span className="font-medium text-gray-700">Articles Setup</span>
+              </div>
+              <Badge variant="success">{formData.articles.length} Articles</Badge>
+            </div>
+            
+            <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 font-bold">2</span>
+                </div>
+                <span className="font-medium text-gray-700">Fabric Cutting</span>
+              </div>
+              <Badge variant="secondary">{formData.batchCuttingInfo.totalLayers} Layers</Badge>
+            </div>
+            
+            <div className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                  <span className="text-purple-600 font-bold">3</span>
+                </div>
+                <span className="font-medium text-gray-700">Sewing Operations</span>
+              </div>
+              <Badge variant="warning">
+                {formData.articles.reduce((total, article) => {
+                  const template = availableTemplates.find(t => t.id === article.selectedTemplateId);
+                  return total + (template?.operations.length || 0);
+                }, 0)} Operations
+              </Badge>
+            </div>
+          </div>
+        </Card>
+
+        {/* Right: Article Distribution Infographic */}
+        <Card className="p-6 border-l-4 border-l-green-500 bg-gradient-to-br from-green-50 to-emerald-50">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-3xl">🎯</span>
+            <h3 className="text-xl font-bold text-gray-900">Article Breakdown</h3>
+          </div>
+
+          <div className="space-y-4">
+            {formData.articles.map((article, index) => {
+              const template = availableTemplates.find(t => t.id === article.selectedTemplateId);
+              const articlePieces = article.sizes.reduce((sum, size) => sum + size.quantity, 0);
+              const articleValue = article.sizes.reduce((sum, size) => sum + (size.quantity * size.rate), 0);
+              const percentage = getTotalPieces() > 0 ? Math.round((articlePieces / getTotalPieces()) * 100) : 0;
+              
+              return (
+                <div key={article.id} className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
+                        index % 4 === 0 ? 'bg-blue-500' : 
+                        index % 4 === 1 ? 'bg-green-500' :
+                        index % 4 === 2 ? 'bg-orange-500' : 'bg-purple-500'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{article.articleNumber}</p>
+                        <p className="text-sm text-gray-600">{article.style}</p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-sm">
+                      {percentage}%
+                    </Badge>
+                  </div>
+                  
+                  {/* Progress bar showing article's share */}
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        index % 4 === 0 ? 'bg-blue-500' : 
+                        index % 4 === 1 ? 'bg-green-500' :
+                        index % 4 === 2 ? 'bg-orange-500' : 'bg-purple-500'
+                      }`}
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">{articlePieces}</div>
+                      <div className="text-gray-600">Pieces</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">{template?.operations.length || 0}</div>
+                      <div className="text-gray-600">Operations</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-bold text-gray-900">Rs.{Math.round(articleValue)}</div>
+                      <div className="text-gray-600">Value</div>
+                    </div>
+                  </div>
+                  
+                  {/* Size breakdown mini chart */}
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex flex-wrap gap-1">
+                      {article.sizes.map((size, sizeIndex) => (
+                        <div key={sizeIndex} className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">
+                          {size.size}: {size.quantity}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
+        </Card>
+      </div>
+
+      {/* Fabric & Cutting Infographic */}
+      <Card className="p-6 border-l-4 border-l-orange-500 bg-gradient-to-br from-orange-50 to-red-50">
+        <div className="flex items-center gap-3 mb-6">
+          <span className="text-3xl">🧵</span>
+          <h3 className="text-xl font-bold text-gray-900">Fabric & Cutting Layout</h3>
         </div>
 
-        {/* Final Summary */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h4 className="font-medium text-gray-900 mb-3">Batch Cutting Summary</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-            <div>
-              <h5 className="font-medium mb-2">Batch Details</h5>
-              <p><span className="text-gray-600">Bundle Number:</span> <span className="font-medium">{formData.bundleNumber || 'Not set'}</span></p>
-              <p><span className="text-gray-600">Articles:</span> <span className="font-medium">{formData.articles.length}</span></p>
-              <p><span className="text-gray-600">Fabric Rolls:</span> <span className="font-medium">{formData.fabricRolls.length}</span></p>
-              <p><span className="text-gray-600">Total Layers:</span> <span className="font-medium">{formData.batchCuttingInfo.totalLayers}</span></p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Fabric Rolls Visual */}
+          <div className="text-center">
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center shadow-lg transform rotate-45">
+                <div className="text-white text-center transform -rotate-45">
+                  <div className="text-lg font-bold">{formData.fabricRolls.length}</div>
+                  <div className="text-xs">ROLLS</div>
+                </div>
+              </div>
             </div>
-            <div>
-              <h5 className="font-medium mb-2">Production Summary</h5>
-              <p><span className="text-gray-600">Total Pieces:</span> <span className="font-medium">{getTotalPieces()}</span></p>
-              <p><span className="text-gray-600">Total Value:</span> <span className="font-medium">Rs. {getTotalValue().toFixed(2)}</span></p>
-              <p><span className="text-gray-600">Templates:</span> <span className="font-medium">{formData.articles.length} different templates assigned</span></p>
-              <p><span className="text-gray-600">Layer Length:</span> <span className="font-medium">{formData.batchCuttingInfo.layerLength}m</span></p>
+            <p className="font-medium text-gray-700">Fabric Rolls</p>
+            <div className="mt-2 space-y-1">
+              {formData.fabricRolls.slice(0, 3).map((roll) => (
+                <div key={roll.id} className="flex items-center justify-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full border border-gray-300" 
+                    style={{ backgroundColor: roll.color.toLowerCase() }}
+                  ></div>
+                  <span className="text-xs text-gray-600">{roll.rollNumber}</span>
+                </div>
+              ))}
+              {formData.fabricRolls.length > 3 && (
+                <div className="text-xs text-gray-500">+{formData.fabricRolls.length - 3} more</div>
+              )}
+            </div>
+          </div>
+
+          {/* Cutting Layout */}
+          <div className="text-center">
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                <div className="text-white text-center">
+                  <div className="text-lg font-bold">{formData.batchCuttingInfo.totalLayers}</div>
+                  <div className="text-xs">LAYERS</div>
+                </div>
+              </div>
+            </div>
+            <p className="font-medium text-gray-700">Total Layers</p>
+            <div className="mt-2 space-y-1 text-xs text-gray-600">
+              <p>{formData.batchCuttingInfo.layerLength}m length</p>
+              <p>{formData.batchCuttingInfo.cuttingEfficiency}% efficiency</p>
+            </div>
+          </div>
+
+          {/* Production Output */}
+          <div className="text-center">
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
+                <div className="text-white text-center">
+                  <div className="text-lg font-bold">{getTotalPieces()}</div>
+                  <div className="text-xs">OUTPUT</div>
+                </div>
+              </div>
+            </div>
+            <p className="font-medium text-gray-700">Total Pieces</p>
+            <div className="mt-2 text-xs text-gray-600">
+              <p>Across {formData.articles.length} articles</p>
+              <p>Rs. {getTotalValue().toFixed(0)} value</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Cutting Process Flow */}
+        <div className="mt-6 pt-6 border-t border-orange-200">
+          <h4 className="font-medium text-gray-700 mb-3 text-center">Batch Cutting Process</h4>
+          <div className="flex items-center justify-center space-x-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center">
+                <span className="text-orange-600 text-xs font-bold">1</span>
+              </div>
+              <span>Layer Setup</span>
+            </div>
+            <div className="text-gray-400">→</div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 text-xs font-bold">2</span>
+              </div>
+              <span>Multi-Article Cut</span>
+            </div>
+            <div className="text-gray-400">→</div>
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-green-600 text-xs font-bold">3</span>
+              </div>
+              <span>Bundle Ready</span>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Final Ready-to-Go Summary */}
+      <Card className="p-6 bg-gradient-to-r from-green-100 to-blue-100 border border-green-200">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <span className="text-4xl">🚀</span>
+            <h3 className="text-2xl font-bold text-gray-900">Batch Ready for Production!</h3>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-lg p-3 shadow-sm">
+              <div className="text-2xl font-bold text-blue-600">{formData.bundleNumber}</div>
+              <div className="text-sm text-gray-600">Batch Number</div>
+            </div>
+            <div className="bg-white rounded-lg p-3 shadow-sm">
+              <div className="text-2xl font-bold text-green-600">{getTotalPieces()}</div>
+              <div className="text-sm text-gray-600">Total Pieces</div>
+            </div>
+            <div className="bg-white rounded-lg p-3 shadow-sm">
+              <div className="text-2xl font-bold text-orange-600">{formData.articles.length}</div>
+              <div className="text-sm text-gray-600">Articles</div>
+            </div>
+            <div className="bg-white rounded-lg p-3 shadow-sm">
+              <div className="text-2xl font-bold text-purple-600">Rs. {Math.round(getTotalValue())}</div>
+              <div className="text-sm text-gray-600">Batch Value</div>
             </div>
           </div>
           
-          <div className="mt-4 pt-3 border-t">
-            <h5 className="font-medium mb-2">Articles in Batch</h5>
-            <div className="space-y-1">
-              {formData.articles.map((article) => (
-                <div key={article.id} className="flex items-center justify-between text-sm">
-                  <span>
-                    <strong>{article.articleNumber}</strong> ({article.style})
-                  </span>
-                  <span>
-                    {article.sizes.reduce((sum, size) => sum + size.quantity, 0)} pieces
-                  </span>
-                </div>
-              ))}
-            </div>
+          <p className="text-gray-700 mb-4">
+            Your multi-article batch is configured and ready to proceed to cutting operations. 
+            All articles, sizes, templates, and fabric rolls have been validated.
+          </p>
+          
+          <div className="inline-flex items-center gap-2 bg-green-200 text-green-800 px-4 py-2 rounded-full">
+            <CheckCircleIcon className="w-5 h-5" />
+            <span className="font-medium">All systems validated - Ready to proceed!</span>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      {/* Progress Indicator */}
-      <div className="flex items-center justify-center mb-8">
-        {[1, 2, 3].map((step) => (
-          <React.Fragment key={step}>
-            <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-              step === currentStep 
-                ? 'bg-blue-600 text-white' 
-                : step < currentStep 
-                  ? 'bg-green-500 text-white' 
-                  : 'bg-gray-200 text-gray-600'
-            }`}>
-              {step < currentStep ? (
-                <CheckCircleIcon className="h-5 w-5" />
-              ) : (
-                <span className="font-semibold">{step}</span>
+    <div className="min-h-screen bg-gray-50 md:p-4 lg:p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Mobile-Optimized Progress Indicator */}
+        <div className="sticky top-0 z-20 bg-white shadow-sm border-b border-gray-200 px-4 py-3 mb-4">
+          <div className="flex items-center justify-between">
+            {[1, 2, 3].map((step) => (
+              <React.Fragment key={step}>
+                <div className="flex items-center">
+                  <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full transition-all ${
+                    step === currentStep 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : step < currentStep 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {step < currentStep ? (
+                      <CheckCircleIcon className="h-4 w-4 md:h-5 md:w-5" />
+                    ) : (
+                      <span className="font-bold text-sm md:text-base">{step}</span>
+                    )}
+                  </div>
+                  <div className="ml-2 hidden sm:block">
+                    <p className={`text-xs font-medium ${
+                      step === currentStep ? 'text-blue-600' : 
+                      step < currentStep ? 'text-green-600' : 'text-gray-500'
+                    }`}>
+                      {step === 1 ? 'Info' : step === 2 ? 'Fabric' : 'Review'}
+                    </p>
+                  </div>
+                </div>
+                {step < 3 && (
+                  <div className={`flex-1 h-1 mx-2 md:mx-4 rounded-full transition-all ${
+                    step < currentStep ? 'bg-green-500' : 'bg-gray-200'
+                  }`} />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+
+        {/* Step Content - Mobile Optimized */}
+        <div className="px-4 md:px-6 pb-20">
+          {currentStep === 1 && renderStep1()}
+          {currentStep === 2 && renderStep2()}
+          {currentStep === 3 && renderStep3()}
+        </div>
+
+        {/* Touch-Friendly Sticky Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-30 p-4">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div>
+              {currentStep > 1 && (
+                <Button 
+                  variant="outline" 
+                  onClick={handleBack}
+                  className="min-h-[48px] px-6 text-base font-medium"
+                >
+                  ← Back
+                </Button>
               )}
             </div>
-            {step < 3 && (
-              <div className={`w-12 h-1 mx-2 ${
-                step < currentStep ? 'bg-green-500' : 'bg-gray-200'
-              }`} />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
-
-      {/* Step Content */}
-      {currentStep === 1 && renderStep1()}
-      {currentStep === 2 && renderStep2()}
-      {currentStep === 3 && renderStep3()}
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between mt-8">
-        <div>
-          {currentStep > 1 && (
-            <Button variant="outline" onClick={handleBack}>
-              Back
-            </Button>
-          )}
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
+            
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                onClick={onCancel}
+                className="min-h-[48px] px-6 text-base font-medium border-red-200 text-red-600 hover:bg-red-50"
+              >
+                Cancel
+              </Button>
           
-          {currentStep < 3 ? (
-            <Button onClick={handleNext}>
-              Next
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleComplete} 
-              disabled={isLoading}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              {isLoading ? 'Creating Batch...' : 'Complete Multi-Article WIP Entry'}
-            </Button>
-          )}
+              {currentStep < 3 ? (
+                <Button 
+                  onClick={handleNext}
+                  className="min-h-[48px] px-8 text-base font-medium bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Next →
+                </Button>
+              ) : (
+                <Button 
+                  onClick={handleComplete} 
+                  disabled={isLoading}
+                  className="min-h-[48px] px-8 text-base font-medium bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400"
+                >
+                  {isLoading ? 'Creating...' : '✓ Complete'}
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

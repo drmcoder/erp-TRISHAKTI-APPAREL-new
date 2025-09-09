@@ -430,6 +430,27 @@ class UserServiceClass extends BaseService {
       };
     }
   }
+
+  /**
+   * Delete user (hard delete)
+   */
+  async deleteUser(userId: string): Promise<ServiceResponse> {
+    try {
+      // Log the deletion before actually deleting
+      await this.logSystemActivity('user_deletion', `User deleted: ${userId}`, {
+        deletedUserId: userId,
+      });
+
+      const result = await this.delete(userId);
+      return result;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete user',
+      };
+    }
+  }
 }
 
 export const UserService = new UserServiceClass();

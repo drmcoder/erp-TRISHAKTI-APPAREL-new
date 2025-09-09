@@ -19,6 +19,7 @@ export interface LoginCredentials {
   username: string;
   password: string;
   rememberMe?: boolean;
+  isTrustedDevice?: boolean;
 }
 
 export interface AuthResponse {

@@ -125,7 +125,9 @@ export const OperatorCard: React.FC<OperatorCardProps> = ({
           <div>
             <p className="text-xs text-gray-500">Quality</p>
             <p className="text-sm font-medium text-gray-900">
-              {Math.round(operator.qualityScore * 100)}%
+              {typeof operator.qualityScore === 'number' && !isNaN(operator.qualityScore) 
+                ? Math.round(operator.qualityScore) 
+                : 85}%
             </p>
           </div>
         </div>

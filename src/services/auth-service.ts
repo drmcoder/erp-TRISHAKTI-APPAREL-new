@@ -28,6 +28,7 @@ interface LoginCredentials {
   username: string;
   password: string;
   rememberMe?: boolean;
+  isTrustedDevice?: boolean;
 }
 
 interface AuthServiceResponse<T = any> {
@@ -122,7 +123,7 @@ export class AuthService {
     }
   }
 
-  // Login with username/password
+  // Login with username/password or trusted device auto-login
   static async login(credentials: LoginCredentials): Promise<AuthServiceResponse<User>> {
     try {
       // First, find the user document
@@ -145,16 +146,32 @@ export class AuthService {
         };
       }
 
-      // Validate password using stored hash
-      // For demo purposes, using base64 encoding (NOT secure for production)
-      const storedPasswordHash = (user as any).passwordHash;
-      const providedPasswordHash = btoa(credentials.password);
-      
-      if (!storedPasswordHash || storedPasswordHash !== providedPasswordHash) {
-        return {
-          success: false,
-          error: 'Invalid username or password'
-        };
+      // Handle trusted device auto-login
+      if (credentials.isTrustedDevice && credentials.password === 'auto_trusted_login') {
+        // Import trusted device service for validation
+        const { trustedDeviceService } = await import('./trusted-device-service');
+        
+        // Double-check device is still trusted
+        const isTrusted = await trustedDeviceService.isDeviceTrusted(credentials.username);
+        if (!isTrusted) {
+          return {
+            success: false,
+            error: '🔒 Device trust has expired. Please login normally.'
+          };
+        }
+
+        console.log('🛡️ Trusted device auto-login successful for:', user.name);
+      } else {
+        // Regular password validation
+        const storedPasswordHash = (user as any).passwordHash;
+        const providedPasswordHash = btoa(credentials.password);
+        
+        if (!storedPasswordHash || storedPasswordHash !== providedPasswordHash) {
+          return {
+            success: false,
+            error: 'Invalid username or password'
+          };
+        }
       }
 
       // Update last login timestamp

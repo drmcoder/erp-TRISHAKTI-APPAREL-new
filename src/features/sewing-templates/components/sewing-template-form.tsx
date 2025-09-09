@@ -24,6 +24,7 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
   });
 
   const [operationErrors, setOperationErrors] = useState<string[]>([]);
+  const [operationAdded, setOperationAdded] = useState(false);
   const [newOperation, setNewOperation] = useState<Partial<SewingOperation>>({
     name: '',
     nameNepali: '',
@@ -88,25 +89,32 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
         operations: [...prev.operations, operation]
       }));
 
-      // Clear form after successful addition
-      setNewOperation({
+      // Clear form after successful addition - with immediate state reset
+      const clearedOperation = {
         name: '',
         nameNepali: '',
         description: '',
         machineType: '',
         smvMinutes: 0,
         pricePerPiece: 0,
-        processingType: 'sequential',
+        processingType: 'sequential' as const,
         sequenceOrder: formData.operations.length + 2,
         prerequisites: [],
         qualityCheckRequired: false,
         defectTolerance: 5,
         isOptional: false,
         notes: ''
-      });
+      };
+      
+      setNewOperation(clearedOperation);
       
       // Clear any previous errors
       setOperationErrors([]);
+      
+      // Show success feedback
+      setOperationAdded(true);
+      setTimeout(() => setOperationAdded(false), 2000); // Clear success message after 2 seconds
+      console.log('✓ Operation added successfully, form cleared');
     }
   };
 
@@ -279,9 +287,12 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                   value={newOperation.name || ''}
                   onChange={(e) => {
                     setNewOperation(prev => ({ ...prev, name: e.target.value }));
-                    // Clear errors when user types
+                    // Clear errors and success feedback when user types
                     if (operationErrors.length > 0) {
                       setOperationErrors([]);
+                    }
+                    if (operationAdded) {
+                      setOperationAdded(false);
                     }
                   }}
                   placeholder="e.g., Shoulder Join"
@@ -291,6 +302,11 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   SMV (auto) *
+                  {newOperation.pricePerPiece > 0 && (
+                    <span className="ml-2 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      Auto: {(newOperation.pricePerPiece * 1.9).toFixed(2)}
+                    </span>
+                  )}
                 </label>
                 <Input
                   type="number"
@@ -304,14 +320,20 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                       setOperationErrors([]);
                     }
                   }}
-                  placeholder="Auto-calculated"
+                  placeholder="Auto-calculated from price"
                   title="Auto-calculated from price × 1.9, but editable"
+                  className={newOperation.pricePerPiece > 0 ? 'bg-blue-50 border-blue-300' : ''}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Price (Rs.) *
+                  {newOperation.pricePerPiece > 0 && (
+                    <span className="ml-2 text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                      → SMV: {(newOperation.pricePerPiece * 1.9).toFixed(2)}
+                    </span>
+                  )}
                 </label>
                 <Input
                   type="number"
@@ -319,20 +341,33 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                   step="0.1"
                   value={newOperation.pricePerPiece || ''}
                   onChange={(e) => {
-                    const price = parseFloat(e.target.value) || 0;
-                    const autoSmv = price > 0 ? parseFloat((price * 1.9).toFixed(2)) : 0; // Auto-calculate SMV with 2 decimal places
+                    const inputValue = e.target.value;
+                    const price = inputValue === '' ? 0 : parseFloat(inputValue);
+                    
+                    // Only calculate SMV if we have a valid price > 0
+                    const autoSmv = price > 0 ? parseFloat((price * 1.9).toFixed(2)) : 0;
+                    
+                    console.log(`Price changed: ${price} → SMV: ${autoSmv}`); // Debug log
+                    
                     setNewOperation(prev => ({ 
                       ...prev, 
                       pricePerPiece: price,
                       smvMinutes: autoSmv 
                     }));
+                    
                     // Clear errors when user types
                     if (operationErrors.length > 0) {
                       setOperationErrors([]);
                     }
                   }}
                   placeholder="2.5"
+                  className="focus:ring-2 focus:ring-green-500"
                 />
+                {newOperation.pricePerPiece > 0 && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✓ SMV auto-calculated: {newOperation.pricePerPiece} × 1.9 = {(newOperation.pricePerPiece * 1.9).toFixed(2)}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -436,10 +471,21 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                 type="button"
                 variant="outline"
                 onClick={addOperation}
-                className="w-full md:w-auto"
+                className={`w-full md:w-auto transition-all duration-200 ${
+                  operationAdded 
+                    ? 'bg-green-100 border-green-500 text-green-700' 
+                    : 'hover:bg-blue-50'
+                }`}
               >
-                Add Operation
+                {operationAdded ? '✓ Added Successfully!' : 'Add Operation'}
               </Button>
+              
+              {operationAdded && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                  ✓ Operation added! Form cleared and ready for next operation.
+                </div>
+              )}
+              
               <p className="text-xs text-gray-500 mt-1">
                 SMV will auto-calculate from price (Price × 1.9), but you can edit it manually
               </p>

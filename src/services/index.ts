@@ -30,7 +30,6 @@ export type { NotificationPayload } from './notification-service';
 export { permissionService } from './permission-service';
 export { realtimeService } from './realtime-service';
 export { authService } from './auth-service';
-export { mockDataService } from './mock-data-service';
 export { avatarService } from './avatar-service';
 export { OptimisticUpdates } from './optimistic-updates';
 export { ConnectionMonitor } from './connection-monitor';

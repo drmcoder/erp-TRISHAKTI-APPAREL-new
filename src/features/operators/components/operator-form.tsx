@@ -157,7 +157,7 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
       setSelectedAvatar({
         type: initialData.avatar.type,
         value: initialData.avatar.value,
-        backgroundColor: initialData.avatar.backgroundColor,
+        backgroundColor: initialData.avatar.backgroundColor || '#3B82F6', // Ensure backgroundColor is always defined
         label: initialData.avatar.type === 'emoji' ? initialData.avatar.value : 
                initialData.avatar.type === 'initials' ? initialData.avatar.value : 'Photo'
       });
@@ -390,7 +390,15 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
         cleanedData.avatar = {
           type: selectedAvatar.type,
           value: selectedAvatar.value,
-          backgroundColor: selectedAvatar.backgroundColor
+          backgroundColor: selectedAvatar.backgroundColor || '#3B82F6' // Ensure backgroundColor is never undefined
+        };
+      } else {
+        // Provide default avatar if none selected
+        const initials = (data.name || data.username || 'OP').slice(0, 2).toUpperCase();
+        cleanedData.avatar = {
+          type: 'initials',
+          value: initials,
+          backgroundColor: '#3B82F6'
         };
       }
 

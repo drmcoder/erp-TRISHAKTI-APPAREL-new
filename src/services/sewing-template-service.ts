@@ -467,6 +467,50 @@ export class SewingTemplateService extends BaseService {
       };
     }
   }
+
+  /**
+   * Export template to JSON
+   */
+  async exportTemplate(templateId: string): Promise<ServiceResponse<{ data: string; filename: string }>> {
+    try {
+      const templateResult = await this.getTemplate(templateId);
+      if (!templateResult.success || !templateResult.data) {
+        return { success: false, error: 'Template not found' };
+      }
+
+      const template = templateResult.data;
+      const exportData = {
+        templateName: template.templateName,
+        templateCode: template.templateCode,
+        category: template.category,
+        operations: template.operations,
+        totalSmv: template.totalSmv,
+        totalPricePerPiece: template.totalPricePerPiece,
+        complexityLevel: template.complexityLevel,
+        version: template.version,
+        notes: template.notes,
+        setupInstructions: template.setupInstructions,
+        exportedAt: new Date().toISOString(),
+        exportedBy: this.getCurrentUserId?.() || 'unknown'
+      };
+
+      const filename = `${template.templateCode}_${template.templateName}_${new Date().toISOString().split('T')[0]}.json`;
+      const jsonData = JSON.stringify(exportData, null, 2);
+
+      return {
+        success: true,
+        data: {
+          data: jsonData,
+          filename: filename
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to export template'
+      };
+    }
+  }
 }
 
 // Export singleton instance

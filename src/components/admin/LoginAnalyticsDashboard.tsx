@@ -50,20 +50,26 @@ const LoginAnalyticsDashboard: React.FC = () => {
 
   useEffect(() => {
     loadLoginData();
-    startRealTimeMonitoring();
+    const cleanup = startRealTimeMonitoring();
+    return cleanup;
   }, []);
 
-  const loadLoginData = () => {
-    const allDevices = JSON.parse(localStorage.getItem('tsaerp_trusted_devices') || '[]');
-    setDevices(allDevices);
-    setLastRefresh(new Date());
+  const loadLoginData = async () => {
+    try {
+      const allDevices = await trustedDeviceService.getTrustedDevices();
+      setDevices(allDevices);
+      setLastRefresh(new Date());
+    } catch (error) {
+      console.error('Failed to load login data from Firebase:', error);
+      setDevices([]);
+    }
   };
 
-  // Real-time monitoring system
+  // Real-time monitoring system with Firebase integration
   const startRealTimeMonitoring = () => {
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       if (isMonitoring) {
-        checkForNewLogins();
+        await checkForNewLogins();
         detectSuspiciousActivity();
         setLastRefresh(new Date());
       }
@@ -72,26 +78,30 @@ const LoginAnalyticsDashboard: React.FC = () => {
     return () => clearInterval(interval);
   };
 
-  const checkForNewLogins = () => {
-    const allDevices = JSON.parse(localStorage.getItem('tsaerp_trusted_devices') || '[]');
-    const newDevices = allDevices.filter((device: TrustedDevice) => 
-      new Date(device.lastLoginDate).getTime() > lastRefresh.getTime()
-    );
+  const checkForNewLogins = async () => {
+    try {
+      const allDevices = await trustedDeviceService.getTrustedDevices();
+      const newDevices = allDevices.filter((device: TrustedDevice) => 
+        device.lastLoginDate.getTime() > lastRefresh.getTime()
+      );
 
-    if (newDevices.length > 0) {
-      const alerts = newDevices.map((device: TrustedDevice) => ({
-        id: `login_${Date.now()}_${device.deviceId}`,
-        type: 'new_login',
-        severity: 'info',
-        message: `New login: ${device.operatorName}`,
-        timestamp: new Date(),
-        operatorId: device.operatorId,
-        deviceId: device.deviceId,
-        trusted: device.isTrusted
-      }));
-      
-      setRealTimeAlerts(prev => [...alerts, ...prev].slice(0, 50)); // Keep latest 50 alerts
-      setDevices(allDevices);
+      if (newDevices.length > 0) {
+        const alerts = newDevices.map((device: TrustedDevice) => ({
+          id: `login_${Date.now()}_${device.deviceId}`,
+          type: 'new_login',
+          severity: 'info',
+          message: `🔐 New login detected: ${device.operatorName}`,
+          timestamp: new Date(),
+          operatorId: device.operatorId,
+          deviceId: device.deviceId,
+          trusted: device.isTrusted
+        }));
+        
+        setRealTimeAlerts(prev => [...alerts, ...prev].slice(0, 50));
+        setDevices(allDevices);
+      }
+    } catch (error) {
+      console.error('Failed to check for new logins:', error);
     }
   };
 
@@ -331,9 +341,9 @@ const LoginAnalyticsDashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Login Analytics Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">🛡️ TSA Intelligence Hub</h1>
           <p className="text-gray-600 mt-1">
-            Comprehensive login frequency and pattern analysis
+            Advanced Security Analytics & Real-Time Login Intelligence Platform
           </p>
         </div>
         
@@ -341,7 +351,7 @@ const LoginAnalyticsDashboard: React.FC = () => {
           <Button 
             variant="outline" 
             leftIcon={<RefreshCw className="w-4 h-4" />}
-            onClick={loadLoginData}
+            onClick={() => loadLoginData()}
           >
             Refresh
           </Button>

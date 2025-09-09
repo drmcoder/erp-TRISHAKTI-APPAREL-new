@@ -11,6 +11,7 @@ import { useAuthStore, useUser } from '@/app/store/auth-store';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { useThemeStore } from '@/app/store/theme-store';
 import { LanguageSwitcherCompact } from '@/components/common/language-switcher';
+import { NotificationCenter } from '@/components/notifications/notification-center';
 import { cn } from '@/shared/utils';
 
 interface HeaderProps {
@@ -234,20 +235,18 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </Button>
 
-            {/* Notifications - only show to users with notification permissions */}
-            <PermissionGate permissions={['notifications:send']}>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative"
-                aria-label="Notifications"
-              >
-                <NotificationBadge count={3}>
-                  <Bell className="w-4 h-4" />
-                </NotificationBadge>
-              </Button>
-            </PermissionGate>
+            {/* Notifications - accessible to all users */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative"
+              aria-label="Notifications"
+            >
+              <NotificationBadge count={3}>
+                <Bell className="w-4 h-4" />
+              </NotificationBadge>
+            </Button>
 
             {/* User Menu */}
             {user ? (
@@ -323,6 +322,17 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
       </div>
+
+      {/* Notification Center - Desktop */}
+      {showNotifications && (
+        <div className="hidden md:block">
+          <NotificationCenter 
+            open={showNotifications} 
+            onClose={() => setShowNotifications(false)}
+            className="fixed top-16 right-4 z-50"
+          />
+        </div>
+      )}
     </header>
   );
 };

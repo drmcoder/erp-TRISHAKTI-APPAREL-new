@@ -66,23 +66,27 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   useEffect(() => {
     clearError();
     
-    // Load remembered credentials from localStorage
-    const savedUsername = localStorage.getItem('tsaerp_remembered_username');
-    const savedRememberMe = localStorage.getItem('tsaerp_remember_me') === 'true';
-    
-    if (savedUsername && savedRememberMe) {
-      setUsername(savedUsername);
-      setRememberMe(true);
+    const initializeTrustedDevice = async () => {
+      // Load remembered credentials from localStorage
+      const savedUsername = localStorage.getItem('tsaerp_remembered_username');
+      const savedRememberMe = localStorage.getItem('tsaerp_remember_me') === 'true';
       
-      // Check if this device is trusted for this user
-      const stats = trustedDeviceService.getDeviceStats(savedUsername);
-      setDeviceStats(stats);
-      
-      // If device is trusted, show quick login option
-      if (stats && stats.isTrusted) {
-        setShowTrustedLogin(true);
+      if (savedUsername && savedRememberMe) {
+        setUsername(savedUsername);
+        setRememberMe(true);
+        
+        // Check if this device is trusted for this user
+        const stats = await trustedDeviceService.getDeviceStats(savedUsername);
+        setDeviceStats(stats);
+        
+        // If device is trusted, show quick login option
+        if (stats && stats.isTrusted) {
+          setShowTrustedLogin(true);
+        }
       }
-    }
+    };
+    
+    initializeTrustedDevice();
   }, [clearError]);
 
   const handleSubmit = withLoading(async (e: React.FormEvent) => {
@@ -107,7 +111,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       
       // Record successful login attempt for trusted device tracking
       const operatorName = username.trim(); // In real app, get from user object
-      trustedDeviceService.recordLoginAttempt(username.trim(), operatorName, true);
+      await trustedDeviceService.recordLoginAttempt(username.trim(), operatorName, true);
       
       // Handle remember me persistence
       if (rememberMe) {
@@ -123,7 +127,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       navigate(from, { replace: true });
     } catch (error) {
       // Record failed login attempt
-      trustedDeviceService.recordLoginAttempt(username.trim(), username.trim(), false);
+      await trustedDeviceService.recordLoginAttempt(username.trim(), username.trim(), false);
       // Error is handled by the auth store and error handler
       console.error('Login failed:', error);
     }
@@ -134,24 +138,30 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     if (!username) return;
     
     try {
-      // Auto-login with saved credentials since device is trusted
-      await login({ 
-        username: username.trim(), 
-        password: 'auto_trusted_login', // Special token for trusted devices
-        rememberMe: true,
-        isTrustedDevice: true
-      });
+      // Verify device is still trusted and perform auto-login
+      const canAutoLogin = await trustedDeviceService.performTrustedLogin(username.trim());
       
-      // Record successful trusted login
-      trustedDeviceService.recordLoginAttempt(username.trim(), username.trim(), true);
-      
-      const from = (location.state as any)?.from?.pathname || redirectTo || '/dashboard';
-      navigate(from, { replace: true });
+      if (canAutoLogin) {
+        // Use trusted device auto-login
+        await login({ 
+          username: username.trim(), 
+          password: 'auto_trusted_login', // Special token for trusted devices
+          rememberMe: true,
+          isTrustedDevice: true
+        });
+        
+        const from = (location.state as any)?.from?.pathname || redirectTo || '/dashboard';
+        navigate(from, { replace: true });
+      } else {
+        // Trust expired, show regular login
+        setShowTrustedLogin(false);
+        handleError('🔒 Device trust has expired. Please login normally to re-establish trust.');
+      }
     } catch (error) {
       // If trusted login fails, revoke trust and show regular login
-      trustedDeviceService.revokeTrust(username.trim());
+      await trustedDeviceService.revokeTrust(username.trim());
       setShowTrustedLogin(false);
-      handleError('Trusted login expired. Please login normally.');
+      handleError('⚠️ Trusted login failed. Please login normally.');
     }
   });
 

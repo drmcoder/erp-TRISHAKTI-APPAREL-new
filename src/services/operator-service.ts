@@ -11,6 +11,7 @@ import type {
   OperatorStatistics
 } from '@/types/operator-types';
 import { MACHINE_TYPES } from '@/types/operator-types';
+import { safeOperator, safeArray } from '@/utils/null-safety';
 import { 
   doc, 
   writeBatch, 
@@ -75,12 +76,30 @@ export class OperatorService extends BaseService {
         Object.entries(operatorData).filter(([_, value]) => value !== undefined)
       );
 
+      // Ensure avatar has proper default values
+      const defaultAvatar = {
+        type: 'initials' as const,
+        value: (operatorData.name || operatorData.username || 'OP').slice(0, 2).toUpperCase(),
+        backgroundColor: '#3B82F6' // Default blue background
+      };
+
+      // Clean and validate avatar data
+      let avatarData = defaultAvatar;
+      if (operatorData.avatar) {
+        avatarData = {
+          type: operatorData.avatar.type || defaultAvatar.type,
+          value: operatorData.avatar.value || defaultAvatar.value,
+          backgroundColor: operatorData.avatar.backgroundColor || defaultAvatar.backgroundColor
+        };
+      }
+
       const operator: Omit<Operator, 'id'> = {
         ...cleanOperatorData,
         employeeId, // Use auto-generated or provided ID
         email: operatorData.email || '', // Ensure email is never undefined
         phone: operatorData.phone || '',
         address: operatorData.address || '',
+        avatar: avatarData, // Always include properly structured avatar
         role: 'operator',
         averageEfficiency: 0,
         qualityScore: 0,
@@ -95,7 +114,20 @@ export class OperatorService extends BaseService {
         updatedAt: Timestamp.now()
       };
 
-      const result = await this.create<Operator>(operator);
+      console.log('🔍 Creating operator with avatar data:', avatarData);
+
+      // Double-check that no undefined values exist before saving
+      const sanitizedOperator = JSON.parse(JSON.stringify(operator, (key, value) => {
+        return value === undefined ? null : value;
+      }));
+      
+      // Remove null values (Firebase allows null but not undefined)
+      const finalOperator = Object.fromEntries(
+        Object.entries(sanitizedOperator).filter(([_, value]) => value !== null)
+      );
+
+      console.log('💾 Final operator data being saved:', finalOperator);
+      const result = await this.create<Operator>(finalOperator);
       
       if (result.success && result.data) {
         // Initialize operator status in Realtime Database
@@ -142,6 +174,42 @@ export class OperatorService extends BaseService {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get operator',
         code: 'FETCH_FAILED'
+      };
+    }
+  }
+
+  /**
+   * Get all operators with null-safe data handling
+   */
+  async getAllOperators(): Promise<ServiceResponse<Operator[]>> {
+    try {
+      const result = await this.getAll<Operator>();
+      
+      if (result.success && result.data) {
+        const operators = Array.isArray(result.data) ? result.data : [result.data];
+        
+        // Apply null-safe transformation to all operators
+        const safeOperators = operators
+          .filter(op => op != null) // Remove null/undefined operators
+          .map(op => safeOperator(op)); // Apply null-safe patterns
+        
+        return {
+          success: true,
+          data: safeOperators
+        };
+      }
+      
+      return {
+        success: true,
+        data: [] // Return empty array instead of failing
+      };
+    } catch (error) {
+      console.error('Error getting all operators:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get operators',
+        code: 'FETCH_ERROR',
+        data: [] // Provide safe fallback
       };
     }
   }
