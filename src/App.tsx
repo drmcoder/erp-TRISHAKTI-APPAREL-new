@@ -43,7 +43,7 @@ const SupervisorPartsDashboard = lazy(() => import('./features/bundles/component
 const MultiStrategyAssignmentDashboard = lazy(() => import('./features/work-assignment/components/multi-strategy-assignment-dashboard').then(m => ({ default: m.MultiStrategyAssignmentDashboard })));
 const BundleBatchTrackingDashboard = lazy(() => import('./features/analytics/components/bundle-batch-tracking-dashboard').then(m => ({ default: m.BundleBatchTrackingDashboard })));
 const DragDropAssignmentDashboard = lazy(() => import('./features/work-assignment/components/drag-drop-assignment-dashboard').then(m => ({ default: m.DragDropAssignmentDashboard })));
-const KanbanMappingAssignment = lazy(() => import('./features/work-assignment/components/kanban-mapping-assignment').then(m => ({ default: m.KanbanMappingAssignment })));
+// KanbanMappingAssignment temporarily removed due to syntax issues
 const SupervisorOperatorBuckets = lazy(() => import('./features/work-assignment/components/supervisor-operator-buckets').then(m => ({ default: m.SupervisorOperatorBuckets })));
 const SmartWorkAssignmentDashboard = lazy(() => import('./features/work-assignment/components/smart-work-assignment-dashboard').then(m => ({ default: m.SmartWorkAssignmentDashboard })));
 const OperatorProfileAssignment = lazy(() => import('./features/operators/components/operator-profile-assignment').then(m => ({ default: m.OperatorProfileAssignment })));
@@ -450,7 +450,7 @@ Ready for supervisor assignment!`);
         return <DragDropAssignmentDashboard userRole={userRole} />;
       
       case 'kanban-assignment':
-        return <KanbanMappingAssignment userRole={userRole} />;
+        return <DragDropAssignmentDashboard userRole={userRole} />; // Temporarily use drag-drop instead of kanban
       
       case 'operator-buckets':
         return <SupervisorOperatorBuckets userRole={userRole} />;

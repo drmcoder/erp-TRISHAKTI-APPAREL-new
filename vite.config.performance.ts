@@ -55,7 +55,7 @@ export default defineConfig({
           // Work assignment features
           'work-assignment': [
             './src/features/work-assignment/components/smart-work-assignment-dashboard',
-            './src/features/work-assignment/components/kanban-mapping-assignment',
+            // './src/features/work-assignment/components/kanban-mapping-assignment', // Temporarily disabled
             './src/features/work-assignment/components/sequential-workflow-assignment',
             './src/features/work-assignment/components/drag-drop-assignment-dashboard'
           ],
