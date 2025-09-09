@@ -2,8 +2,18 @@
 // Handles real-time push notifications for work assignments and sequential operations
 
 import { NotificationService } from './entities/notification-service';
-import { Notification } from '../types/entities';
 import { toast } from 'sonner';
+
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  timestamp: Date;
+  userId?: string;
+  operatorId?: string;
+  data?: any;
+}
 
 interface PushNotificationConfig {
   enableSound: boolean;

@@ -44,14 +44,101 @@ const LoginAnalyticsDashboard: React.FC = () => {
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
   const [searchTerm, setSearchTerm] = useState('');
   const [showDetails, setShowDetails] = useState<string | null>(null);
+  const [realTimeAlerts, setRealTimeAlerts] = useState<any[]>([]);
+  const [isMonitoring, setIsMonitoring] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState(new Date());
 
   useEffect(() => {
     loadLoginData();
+    startRealTimeMonitoring();
   }, []);
 
   const loadLoginData = () => {
     const allDevices = JSON.parse(localStorage.getItem('tsaerp_trusted_devices') || '[]');
     setDevices(allDevices);
+    setLastRefresh(new Date());
+  };
+
+  // Real-time monitoring system
+  const startRealTimeMonitoring = () => {
+    const interval = setInterval(() => {
+      if (isMonitoring) {
+        checkForNewLogins();
+        detectSuspiciousActivity();
+        setLastRefresh(new Date());
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  };
+
+  const checkForNewLogins = () => {
+    const allDevices = JSON.parse(localStorage.getItem('tsaerp_trusted_devices') || '[]');
+    const newDevices = allDevices.filter((device: TrustedDevice) => 
+      new Date(device.lastLoginDate).getTime() > lastRefresh.getTime()
+    );
+
+    if (newDevices.length > 0) {
+      const alerts = newDevices.map((device: TrustedDevice) => ({
+        id: `login_${Date.now()}_${device.deviceId}`,
+        type: 'new_login',
+        severity: 'info',
+        message: `New login: ${device.operatorName}`,
+        timestamp: new Date(),
+        operatorId: device.operatorId,
+        deviceId: device.deviceId,
+        trusted: device.isTrusted
+      }));
+      
+      setRealTimeAlerts(prev => [...alerts, ...prev].slice(0, 50)); // Keep latest 50 alerts
+      setDevices(allDevices);
+    }
+  };
+
+  const detectSuspiciousActivity = () => {
+    const recentLogins = devices.flatMap(device => 
+      device.loginHistory
+        .filter(login => new Date(login.timestamp).getTime() > Date.now() - 600000) // Last 10 minutes
+        .map(login => ({ ...login, deviceId: device.deviceId, operatorName: device.operatorName }))
+    );
+
+    // Detect multiple failed logins
+    const failedLogins = recentLogins.filter(login => !login.success);
+    if (failedLogins.length > 5) {
+      const alert = {
+        id: `suspicious_${Date.now()}`,
+        type: 'suspicious_activity',
+        severity: 'warning',
+        message: `${failedLogins.length} failed login attempts in last 10 minutes`,
+        timestamp: new Date(),
+        details: failedLogins
+      };
+      setRealTimeAlerts(prev => [alert, ...prev].slice(0, 50));
+    }
+
+    // Detect multiple device logins for same operator
+    const operatorDevices = new Map();
+    recentLogins.forEach(login => {
+      if (!operatorDevices.has(login.operatorId)) {
+        operatorDevices.set(login.operatorId, new Set());
+      }
+      operatorDevices.get(login.operatorId).add(login.deviceId);
+    });
+
+    operatorDevices.forEach((devices, operatorId) => {
+      if (devices.size > 2) {
+        const alert = {
+          id: `multi_device_${Date.now()}_${operatorId}`,
+          type: 'multi_device_login',
+          severity: 'warning',
+          message: `Operator logged in from ${devices.size} different devices recently`,
+          timestamp: new Date(),
+          operatorId,
+          deviceCount: devices.size
+        };
+        setRealTimeAlerts(prev => [alert, ...prev].slice(0, 50));
+      }
+    });
   };
 
   // Calculate comprehensive login frequency statistics
@@ -117,7 +204,7 @@ const LoginAnalyticsDashboard: React.FC = () => {
       stats.loginStreak = calculateLoginStreak(stats.loginDates);
 
       // Detect suspicious activity
-      stats.suspiciousActivity = detectSuspiciousActivity(stats, device);
+      stats.suspiciousActivity = checkOperatorSuspiciousActivity(stats, device);
     });
 
     return Array.from(operatorMap.values())
@@ -191,7 +278,7 @@ const LoginAnalyticsDashboard: React.FC = () => {
     return maxStreak;
   };
 
-  const detectSuspiciousActivity = (stats: LoginFrequencyStats, device: TrustedDevice): boolean => {
+  const checkOperatorSuspiciousActivity = (stats: LoginFrequencyStats, device: TrustedDevice): boolean => {
     // Multiple rapid logins
     if (stats.failedLogins > 10) return true;
     
@@ -341,6 +428,90 @@ const LoginAnalyticsDashboard: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Real-Time Security Alerts */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Shield className="w-5 h-5" />
+              Real-Time Security Alerts
+              {realTimeAlerts.length > 0 && (
+                <Badge className="bg-red-100 text-red-800">
+                  {realTimeAlerts.length}
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsMonitoring(!isMonitoring)}
+                className={isMonitoring ? "text-green-600" : "text-gray-600"}
+              >
+                {isMonitoring ? "● Live" : "○ Paused"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setRealTimeAlerts([])}
+              >
+                Clear All
+              </Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {realTimeAlerts.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Shield className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No security alerts</p>
+                <p className="text-sm">System monitoring active</p>
+              </div>
+            ) : (
+              realTimeAlerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={cn(
+                    "p-3 rounded-lg border-l-4 flex items-start justify-between",
+                    alert.severity === 'warning' ? "bg-yellow-50 border-yellow-400" :
+                    alert.severity === 'error' ? "bg-red-50 border-red-400" :
+                    "bg-blue-50 border-blue-400"
+                  )}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      {alert.type === 'new_login' && <UserCheck className="w-4 h-4 text-blue-600" />}
+                      {alert.type === 'suspicious_activity' && <AlertTriangle className="w-4 h-4 text-yellow-600" />}
+                      {alert.type === 'multi_device_login' && <Smartphone className="w-4 h-4 text-orange-600" />}
+                      <span className="font-medium text-sm">{alert.message}</span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {alert.timestamp.toLocaleTimeString()}
+                    </p>
+                    {alert.operatorId && (
+                      <Badge className="mt-1 text-xs">
+                        ID: {alert.operatorId}
+                      </Badge>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setRealTimeAlerts(prev => prev.filter(a => a.id !== alert.id))}
+                    className="text-gray-400 hover:text-gray-600 ml-2"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="mt-4 text-xs text-gray-500 flex justify-between">
+            <span>Last refresh: {lastRefresh.toLocaleTimeString()}</span>
+            <span>Monitoring: {isMonitoring ? "Active" : "Paused"}</span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Daily Login Trends Chart */}
       <Card>

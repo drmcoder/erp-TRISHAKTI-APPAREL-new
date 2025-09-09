@@ -2,7 +2,7 @@
 // Handles sequential workflow operations, capacity checking, and smart work assignment
 
 import { pushNotificationService } from './push-notification-service';
-import { BaseService } from '../shared/services/base-service';
+import { BaseService } from './base-service';
 
 interface OperatorCapacity {
   operatorId: string;

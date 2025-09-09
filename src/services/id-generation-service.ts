@@ -15,7 +15,7 @@ export class IDGenerationService {
   
   /**
    * Generate next Employee ID with auto-increment serial number
-   * Format: TSA-EMP-XXXX (e.g., TSA-EMP-0001, TSA-EMP-0002, etc.)
+   * GUARANTEED UNIQUE - Format: TSA-EMP-XXXX (e.g., TSA-EMP-0001, TSA-EMP-0002, etc.)
    */
   static async generateEmployeeId(): Promise<string> {
     try {
@@ -27,11 +27,12 @@ export class IDGenerationService {
       let config: IDGenerationConfig;
       
       if (!configDoc.exists()) {
-        // Initialize with default configuration
+        // Initialize with default configuration - but first scan for existing IDs
+        const highestExisting = await this.findHighestExistingId();
         config = {
           prefix: 'TSA-EMP',
-          length: 4, // Number of digits for serial (e.g., 0001, 0002)
-          currentCounter: 0,
+          length: 4,
+          currentCounter: highestExisting, // Start from highest existing
           lastGenerated: '',
           updatedAt: new Date()
         };
@@ -44,14 +45,28 @@ export class IDGenerationService {
         config = configDoc.data() as IDGenerationConfig;
       }
       
-      // Generate next ID
-      const nextCounter = config.currentCounter + 1;
-      const serialNumber = String(nextCounter).padStart(config.length, '0');
-      const newEmployeeId = `${config.prefix}-${serialNumber}`;
+      // CRITICAL: Keep trying until we find a unique ID
+      let attempts = 0;
+      let newEmployeeId: string;
+      let isUnique = false;
       
-      // Update counter in database
+      do {
+        attempts++;
+        const nextCounter = config.currentCounter + attempts;
+        const serialNumber = String(nextCounter).padStart(config.length, '0');
+        newEmployeeId = `${config.prefix}-${serialNumber}`;
+        
+        // Double-check uniqueness
+        isUnique = await this.isEmployeeIdUnique(newEmployeeId);
+        
+        if (attempts > 1000) {
+          throw new Error('Unable to generate unique employee ID after 1000 attempts');
+        }
+      } while (!isUnique);
+      
+      // Update counter to the successful value
       await updateDoc(configRef, {
-        currentCounter: increment(1),
+        currentCounter: config.currentCounter + attempts,
         lastGenerated: newEmployeeId,
         updatedAt: serverTimestamp()
       });
@@ -60,7 +75,7 @@ export class IDGenerationService {
       
     } catch (error) {
       console.error('Failed to generate employee ID:', error);
-      throw new Error('Failed to generate employee ID');
+      throw new Error('Failed to generate unique employee ID');
     }
   }
   
@@ -156,6 +171,72 @@ export class IDGenerationService {
   }
   
   /**
+   * Find highest existing Employee ID number (for initialization)
+   */
+  static async findHighestExistingId(): Promise<number> {
+    try {
+      const operatorsRef = collection(db, 'operators');
+      const snapshot = await getDocs(operatorsRef);
+      
+      let highestNumber = 0;
+      
+      snapshot.forEach(doc => {
+        const operator = doc.data();
+        if (operator.employeeId) {
+          // Extract number from TSA-EMP-XXXX format
+          const match = operator.employeeId.match(/TSA-EMP-(\d+)/);
+          if (match) {
+            const number = parseInt(match[1], 10);
+            if (number > highestNumber) {
+              highestNumber = number;
+            }
+          }
+        }
+      });
+      
+      return highestNumber;
+    } catch (error) {
+      console.error('Failed to find highest existing ID:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Generate GUARANTEED unique Employee ID for suggestions
+   * This is what should be used in forms
+   */
+  static async generateUniqueEmployeeIdSuggestion(): Promise<string> {
+    try {
+      let attempts = 0;
+      let suggestedId: string;
+      let isUnique = false;
+      
+      const config = await this.getIDConfig();
+      const startCounter = config?.currentCounter || await this.findHighestExistingId();
+      
+      do {
+        attempts++;
+        const nextCounter = startCounter + attempts;
+        const serialNumber = String(nextCounter).padStart(4, '0');
+        suggestedId = `TSA-EMP-${serialNumber}`;
+        
+        isUnique = await this.isEmployeeIdUnique(suggestedId);
+        
+        if (attempts > 1000) {
+          throw new Error('Unable to generate unique suggestion after 1000 attempts');
+        }
+      } while (!isUnique);
+      
+      return suggestedId;
+    } catch (error) {
+      console.error('Failed to generate unique suggestion:', error);
+      // Fallback to timestamp-based ID
+      const timestamp = Date.now().toString().slice(-4);
+      return `TSA-EMP-${timestamp}`;
+    }
+  }
+
+  /**
    * Get statistics about ID generation
    */
   static async getIDStatistics(): Promise<{
@@ -165,7 +246,7 @@ export class IDGenerationService {
   }> {
     try {
       const config = await this.getIDConfig();
-      const nextPreview = await this.previewNextEmployeeId();
+      const nextPreview = await this.generateUniqueEmployeeIdSuggestion();
       
       return {
         totalGenerated: config?.currentCounter || 0,

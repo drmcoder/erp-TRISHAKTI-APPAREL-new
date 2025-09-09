@@ -4,7 +4,7 @@
 import { 
   doc, 
   writeBatch, 
-  transaction, 
+  runTransaction, 
   serverTimestamp, 
   increment,
   DocumentReference,
@@ -109,7 +109,7 @@ export class AtomicOperationsService {
     conflictedWith?: string;
     retryAfter?: number;
   }> {
-    return transaction(db, async (t) => {
+    return runTransaction(db, async (t) => {
       const lockRef = doc(db, 'distributed_locks', resourceId);
       const lockDoc = await t.get(lockRef);
 
@@ -166,7 +166,7 @@ export class AtomicOperationsService {
     operation: AtomicAssignmentOperation,
     lockId: string
   ): Promise<AtomicOperationResult> {
-    return transaction(db, async (t) => {
+    return runTransaction(db, async (t) => {
       // References
       const workItemRef = doc(db, 'workItems', operation.workItemId);
       const operatorRef = doc(db, 'operators', operation.operatorId);
@@ -437,7 +437,7 @@ export class AtomicOperationsService {
         };
       }
 
-      const result = await transaction(db, async (t) => {
+      const result = await runTransaction(db, async (t) => {
         const assignmentRef = doc(db, 'assignments', assignmentId);
         const assignmentDoc = await t.get(assignmentRef);
 
@@ -537,7 +537,7 @@ export class AtomicOperationsService {
         };
       }
 
-      const result = await transaction(db, async (t) => {
+      const result = await runTransaction(db, async (t) => {
         // Get current assignment
         const assignmentRef = doc(db, 'assignments', currentAssignmentId);
         const assignmentDoc = await t.get(assignmentRef);

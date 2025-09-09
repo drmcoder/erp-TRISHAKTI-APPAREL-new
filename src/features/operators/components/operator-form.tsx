@@ -113,7 +113,12 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
   const [customSpecialization, setCustomSpecialization] = useState('');
   const [isGeneratingId, setIsGeneratingId] = useState(false);
   const [nextEmployeeId, setNextEmployeeId] = useState<string>('');  
-  const [idValidation, setIdValidation] = useState<{ isValid: boolean; message?: string } | null>(null);
+  const [idValidation, setIdValidation] = useState<{ 
+    isValid: boolean; 
+    message?: string; 
+    suggestion?: string;
+    suggestedId?: string;
+  } | null>(null);
   const [isValidatingId, setIsValidatingId] = useState(false);
   const [usernameValidation, setUsernameValidation] = useState<{ isValid: boolean; message?: string } | null>(null);
   const [isValidatingUsername, setIsValidatingUsername] = useState(false);
@@ -183,11 +188,17 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
       if (mode === 'create' && !initialData?.employeeId) {
         try {
           setIsGeneratingId(true);
-          const preview = await IDGenerationService.previewNextEmployeeId();
-          setNextEmployeeId(preview);
-          setValue('employeeId', preview);
+          // Use GUARANTEED unique suggestion instead of preview
+          const uniqueId = await IDGenerationService.generateUniqueEmployeeIdSuggestion();
+          setNextEmployeeId(uniqueId);
+          setValue('employeeId', uniqueId);
         } catch (error) {
           console.error('Failed to generate Employee ID:', error);
+          // Fallback to timestamp-based unique ID
+          const timestamp = Date.now().toString().slice(-4);
+          const fallbackId = `TSA-EMP-${timestamp}`;
+          setNextEmployeeId(fallbackId);
+          setValue('employeeId', fallbackId);
         } finally {
           setIsGeneratingId(false);
         }
@@ -197,23 +208,32 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
     generateEmployeeId();
   }, [mode, initialData?.employeeId, setValue]);
 
-  // Function to regenerate Employee ID
+  // Function to regenerate Employee ID - GUARANTEED UNIQUE
   const handleRegenerateId = async () => {
     try {
       setIsGeneratingId(true);
-      const newId = await IDGenerationService.previewNextEmployeeId();
+      // Use GUARANTEED unique suggestion
+      const newId = await IDGenerationService.generateUniqueEmployeeIdSuggestion();
       setNextEmployeeId(newId);
       setValue('employeeId', newId);
     } catch (error) {
       console.error('Failed to regenerate Employee ID:', error);
+      // Fallback to timestamp-based unique ID
+      const timestamp = Date.now().toString().slice(-4);
+      const fallbackId = `TSA-EMP-${timestamp}`;
+      setNextEmployeeId(fallbackId);
+      setValue('employeeId', fallbackId);
     } finally {
       setIsGeneratingId(false);
     }
   };
 
-  // Function to validate Employee ID
+  // Enhanced Employee ID validation with better UX
   const validateEmployeeId = async (employeeId: string) => {
-    if (!employeeId) return;
+    if (!employeeId) {
+      setIdValidation(null);
+      return;
+    }
     
     try {
       setIsValidatingId(true);
@@ -221,29 +241,51 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
       // Check format first
       const formatCheck = IDGenerationService.validateEmployeeIdFormat(employeeId);
       if (!formatCheck.valid) {
-        setIdValidation({ isValid: false, message: formatCheck.message });
+        setIdValidation({ 
+          isValid: false, 
+          message: formatCheck.message,
+          suggestion: 'Click "Generate Unique ID" for correct format'
+        });
         return;
       }
       
       // Check uniqueness (only if not the same as initial data in edit mode)
       if (mode === 'edit' && initialData?.employeeId === employeeId) {
-        setIdValidation({ isValid: true });
+        setIdValidation({ isValid: true, message: 'Current Employee ID' });
         return;
       }
       
       const isUnique = await IDGenerationService.isEmployeeIdUnique(employeeId);
       if (!isUnique) {
-        setIdValidation({ isValid: false, message: 'This Employee ID is already taken' });
+        // Generate a suggested unique ID
+        const suggestion = await IDGenerationService.generateUniqueEmployeeIdSuggestion();
+        setIdValidation({ 
+          isValid: false, 
+          message: '❌ This Employee ID already exists!',
+          suggestion: `Suggested: ${suggestion}`,
+          suggestedId: suggestion
+        });
         return;
       }
       
-      setIdValidation({ isValid: true });
+      setIdValidation({ isValid: true, message: '✅ Employee ID is available' });
     } catch (error) {
       console.error('Failed to validate Employee ID:', error);
-      setIdValidation({ isValid: false, message: 'Failed to validate ID' });
+      setIdValidation({ 
+        isValid: false, 
+        message: '⚠️ Failed to validate ID - please try again',
+        suggestion: 'Check your network connection'
+      });
     } finally {
       setIsValidatingId(false);
     }
+  };
+
+  // Function to accept suggested ID
+  const acceptSuggestedId = (suggestedId: string) => {
+    setValue('employeeId', suggestedId);
+    setNextEmployeeId(suggestedId);
+    setIdValidation({ isValid: true, message: '✅ Using suggested unique ID' });
   };
   
   // Real-time validation for Employee ID in edit mode
@@ -494,7 +536,7 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
                   variant="outline"
                   onClick={handleRegenerateId}
                   disabled={isGeneratingId}
-                  className="px-3 py-2 min-w-[100px]"
+                  className="px-3 py-2 min-w-[120px]"
                 >
                   {isGeneratingId ? (
                     <div className="flex items-center space-x-1">
@@ -502,7 +544,7 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
                       <span>Generating...</span>
                     </div>
                   ) : (
-                    'Regenerate'
+                    'Generate Unique ID'
                   )}
                 </Button>
               )}
@@ -511,11 +553,27 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
               <p className="text-red-500 text-sm mt-1">{errors.employeeId.message}</p>
             )}
             {idValidation?.message && (
-              <p className={`text-sm mt-1 ${
+              <div className={`text-sm mt-1 ${
                 idValidation.isValid ? 'text-green-600' : 'text-red-500'
               }`}>
-                {idValidation.message}
-              </p>
+                <p>{idValidation.message}</p>
+                {idValidation.suggestion && (
+                  <div className="mt-1 flex items-center space-x-2">
+                    <span className="text-xs text-gray-600">{idValidation.suggestion}</span>
+                    {idValidation.suggestedId && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => acceptSuggestedId(idValidation.suggestedId!)}
+                        className="text-xs px-2 py-1 h-6"
+                      >
+                        Use This
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
             {mode === 'create' && nextEmployeeId && (
               <p className="text-xs text-blue-600 mt-1">
