@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { webSocketClient } from '../services/websocket-client';
 import type { ConnectionState } from '../services/websocket-client';
-import { OperatorStatus, LiveMetrics } from '../services/core/realtime-service';
+import type { OperatorStatus, LiveMetrics } from '../services/core/realtime-service';
 
 export interface WebSocketHookState {
   connectionState: ConnectionState;
