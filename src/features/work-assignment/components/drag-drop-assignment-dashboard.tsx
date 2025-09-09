@@ -156,11 +156,48 @@ export const DragDropAssignmentDashboard: React.FC<DragDropAssignmentDashboardPr
   // Assignment logic
   const handleAssignment = async (operation: BundleOperation & { bundleInfo: ProductionBundle }, operator: OperatorProfile) => {
     try {
-      const result = await EnhancedBundleService.selfAssignOperation(
-        operator.id,
-        operator.name,
-        operation.id
-      );
+      // Use atomic operations service for proper validation
+      const { atomicOperationsService } = await import('../services/atomic-operations');
+      
+      // Convert operation to WorkItem format for validation
+      const workItem = {
+        id: operation.id,
+        machineType: operation.machineType || operation.machineRequired || operation.bundleInfo.machineType || 'singleNeedle',
+        operation: operation.name || operation.operation,
+        skillLevelRequired: operation.skillLevel || 'intermediate',
+        status: 'pending',
+        assignedOperatorId: null,
+        targetPieces: operation.quantity || 100,
+        ratePerPiece: operation.pricePerPiece || 10
+      };
+
+      // Convert operator to format expected by validation
+      const operatorData = {
+        id: operator.id,
+        name: operator.name,
+        machineTypes: [operator.machineType],
+        primaryMachine: operator.machineType,
+        skillLevel: operator.experience,
+        currentStatus: operator.status,
+        currentAssignments: operator.currentWorkload,
+        maxConcurrentWork: 5
+      };
+
+      const atomicOperation = {
+        workItemId: operation.id,
+        operatorId: operator.id,
+        supervisorId: 'current-supervisor', // This should come from auth context
+        assignmentData: {
+          workItemId: operation.id,
+          operatorId: operator.id,
+          assignmentMethod: 'drag_drop',
+          estimatedStartTime: new Date(),
+          estimatedCompletionTime: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours
+        },
+        timestamp: new Date()
+      };
+
+      const result = await atomicOperationsService.atomicAssignWork(atomicOperation);
 
       if (result.success) {
         // Remove assigned operation from available list
@@ -175,10 +212,13 @@ export const DragDropAssignmentDashboard: React.FC<DragDropAssignmentDashboardPr
 
         // Show success feedback
         showSuccessMessage(`✅ ${operation.name} assigned to ${operator.name}`);
+      } else {
+        // Show detailed error message from validation
+        showErrorMessage(`❌ ${result.error || `Failed to assign ${operation.name} to ${operator.name}`}`);
       }
     } catch (error) {
       console.error('Assignment failed:', error);
-      showErrorMessage('❌ Assignment failed. Please try again.');
+      showErrorMessage(`❌ Assignment failed: ${error instanceof Error ? error.message : 'Please try again.'}`);
     }
   };
 

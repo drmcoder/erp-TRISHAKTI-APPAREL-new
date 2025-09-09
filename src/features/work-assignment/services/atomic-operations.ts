@@ -319,30 +319,40 @@ export class AtomicOperationsService {
     const operatorMachines = (operator.machineTypes || []).map((m: string) => m.toLowerCase());
     const primaryMachine = operator.primaryMachine?.toLowerCase() || '';
 
+    console.log('🔍 Machine validation:', {
+      workItemMachine,
+      operatorMachines,
+      primaryMachine,
+      operatorId: operator.id,
+      workItemId: workItem.id
+    });
+
     // Prevent overlock work assignment to single needle operators
-    if (workItemMachine.includes('overlock') || workItemMachine.includes('over lock')) {
+    if (workItemMachine.includes('overlock') || workItemMachine.includes('over_lock')) {
       const canDoOverlock = operatorMachines.some(m => 
-        m.includes('overlock') || m.includes('over lock') || m.includes('serger')
-      ) || primaryMachine.includes('overlock') || primaryMachine.includes('over lock');
+        m.includes('overlock') || m.includes('over_lock') || m.includes('serger')
+      ) || primaryMachine.includes('overlock') || primaryMachine.includes('over_lock');
       
       if (!canDoOverlock) {
+        console.log('❌ Overlock validation failed:', { workItemMachine, operatorMachines, primaryMachine });
         return {
           valid: false,
-          error: 'Overlock work cannot be assigned to single needle operator'
+          error: `Overlock work cannot be assigned to single needle operator (Work: ${workItem.machineType}, Operator: ${operator.primaryMachine})`
         };
       }
     }
 
     // Prevent single needle work assignment to overlock-only operators  
-    if (workItemMachine.includes('single') || workItemMachine.includes('straight')) {
+    if (workItemMachine.includes('single') || workItemMachine.includes('straight') || workItemMachine.includes('singleneedle')) {
       const canDoSingle = operatorMachines.some(m =>
-        m.includes('single') || m.includes('straight') || m.includes('lockstitch')
-      ) || primaryMachine.includes('single') || primaryMachine.includes('straight');
+        m.includes('single') || m.includes('straight') || m.includes('lockstitch') || m.includes('singleneedle')
+      ) || primaryMachine.includes('single') || primaryMachine.includes('straight') || primaryMachine.includes('singleneedle');
       
       if (!canDoSingle) {
+        console.log('❌ Single needle validation failed:', { workItemMachine, operatorMachines, primaryMachine });
         return {
           valid: false,
-          error: 'Single needle work cannot be assigned to overlock-only operator'
+          error: `Single needle work cannot be assigned to overlock-only operator (Work: ${workItem.machineType}, Operator: ${operator.primaryMachine})`
         };
       }
     }

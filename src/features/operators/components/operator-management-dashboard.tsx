@@ -331,7 +331,7 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
               
               try {
                 // Import the operator service
-                const { operatorService } = await import('../../services');
+                const { operatorService } = await import('../../../services/operator-service');
                 
                 if (selectedOperatorId) {
                   // Update existing operator
