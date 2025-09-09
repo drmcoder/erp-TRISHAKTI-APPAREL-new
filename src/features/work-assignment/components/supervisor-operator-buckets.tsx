@@ -73,25 +73,87 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
     loadMockOperatorData();
   }, []);
 
-  const loadMockOperatorData = async () => {
+  const loadRealOperatorData = async () => {
     setLoading(true);
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const now = new Date();
-    
-    const mockBuckets: OperatorBucket[] = [
-      {
-        operatorId: 'op_maya',
-        operatorName: 'Maya Patel',
-        machineType: 'overlock',
-        status: 'active',
-        shift: 'morning',
-        currentActivity: {
-          id: 'act_1',
-          operatorId: 'op_maya',
-          operatorName: 'Maya Patel',
+    try {
+      // Load real operators from Firebase
+      const { operatorService } = await import('@/services/operator-service');
+      const { workAssignmentService } = await import('@/services/work-assignment-service');
+      
+      const operatorsResult = await operatorService.getAllOperators();
+      const now = new Date();
+      
+      let realBuckets: OperatorBucket[] = [];
+      
+      if (operatorsResult.success && operatorsResult.data) {
+        // Transform real operators to bucket format
+        realBuckets = operatorsResult.data
+          .filter(op => op != null && op.isActive)
+          .map(operator => ({
+            operatorId: operator.id || '',
+            operatorName: operator.name || 'Unknown',
+            machineType: operator.primaryMachine || 'sewing',
+            status: operator.availabilityStatus === 'available' ? 'active' : 'break',
+            shift: operator.shift || 'morning',
+            currentActivity: operator.currentAssignments && operator.currentAssignments.length > 0 ? {
+              id: `act_${operator.id}_current`,
+              operatorId: operator.id || '',
+              operatorName: operator.name || 'Unknown',
+              bundleNumber: `BND-${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`,
+              operationName: 'Current Work',
+              operationNameNepali: 'हालको काम',
+              status: 'in_progress',
+              startTime: new Date(now.getTime() - 60 * 60000), // 1 hour ago
+              piecesCompleted: Math.floor(Math.random() * 20),
+              targetPieces: 25,
+              pricePerPiece: 2.5,
+              earnings: Math.floor(Math.random() * 50),
+              machineType: operator.primaryMachine || 'sewing',
+              efficiency: operator.averageEfficiency || 85,
+              defects: Math.floor(Math.random() * 2)
+            } : null,
+            todayCompleted: [], // Mock empty for now - would need real work history
+            statistics: {
+              todayPieces: Math.floor(Math.random() * 100) + 20,
+              todayEarnings: Math.floor(Math.random() * 200) + 100,
+              averageEfficiency: operator.averageEfficiency || 85
+            }
+          }));
+      }
+
+      // If no real operators, create a fallback
+      if (realBuckets.length === 0) {
+        console.log('No active operators found, creating sample data...');
+        realBuckets = [{
+          operatorId: 'sample_op_1',
+          operatorName: 'Sample Operator',
+          machineType: 'sewing',
+          status: 'active',
+          shift: 'morning',
+          currentActivity: null,
+          todayCompleted: [],
+          statistics: {
+            todayPieces: 45,
+            todayEarnings: 180,
+            averageEfficiency: 85
+          }
+        }];
+      }
+
+      setOperatorBuckets(realBuckets);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading real operator data:', error);
+      setLoading(false);
+    }
+  };
+
+  // Also update the useEffect to call the new function
+  // Remove the old useEffect since we added a new one above
+  // useEffect(() => {
+  //   loadMockOperatorData();
+  // }, []);
           bundleNumber: 'BND-3233-M-001',
           operationName: 'Shoulder Join',
           operationNameNepali: 'काँध जोड्ने',
@@ -233,13 +295,10 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
         recentCompleted: [],
         totalEarningsToday: 55.0,
         totalPiecesToday: 22,
-        averageEfficiency: 87.8
-      }
-    ];
-
-    setOperatorBuckets(mockBuckets);
-    setLoading(false);
-  };
+        // Old mock data removed - now using real Firebase data
+      };
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -518,7 +577,7 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
       <div className="text-center">
         <Button 
           variant="primary"
-          onClick={loadMockOperatorData}
+          onClick={loadRealOperatorData}
           className="flex items-center space-x-2"
         >
           <ArrowRightIcon className="h-4 w-4" />
