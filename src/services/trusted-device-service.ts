@@ -1,6 +1,22 @@
 // Trusted Device Service
 // Handles automatic login for frequently used devices
 
+import { 
+  collection, 
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  getDocs, 
+  getDoc, 
+  query, 
+  where, 
+  orderBy,
+  serverTimestamp,
+  Timestamp 
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
+
 interface DeviceFingerprint {
   userAgent: string;
   screenResolution: string;
@@ -32,7 +48,7 @@ interface TrustedDevice {
 }
 
 class TrustedDeviceService {
-  private storageKey = 'tsaerp_trusted_devices';
+  private collectionName = 'trusted_devices';
   private deviceKey = 'tsaerp_device_id';
   private minLoginCount = 5; // Minimum logins to become trusted
   private maxTrustedDevices = 3; // Max trusted devices per operator

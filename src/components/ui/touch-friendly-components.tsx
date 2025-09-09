@@ -47,6 +47,12 @@ export const TouchButton: React.FC<TouchButtonProps> = ({
   ...props
 }) => {
   const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    // Enhanced security: Prevent rapid-fire clicks that might bypass security
+    if (loading) {
+      e.preventDefault();
+      return;
+    }
+
     // Haptic feedback for mobile devices
     if (hapticFeedback && 'vibrate' in navigator) {
       navigator.vibrate(50); // Light vibration

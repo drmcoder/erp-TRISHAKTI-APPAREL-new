@@ -49,6 +49,11 @@ const SmartWorkAssignmentDashboard = lazy(() => import('./features/work-assignme
 const OperatorProfileAssignment = lazy(() => import('./features/operators/components/operator-profile-assignment').then(m => ({ default: m.OperatorProfileAssignment })));
 const SequentialWorkflowAssignment = lazy(() => import('./features/work-assignment/components/sequential-workflow-assignment').then(m => ({ default: m.SequentialWorkflowAssignment })));
 
+// ADMIN & SECURITY COMPONENTS - NEW FEATURES
+const LoginAnalyticsDashboard = lazy(() => import('./components/admin/LoginAnalyticsDashboard'));
+const TrustedDeviceManager = lazy(() => import('./components/admin/TrustedDeviceManager'));
+const WorkflowNotificationDemo = lazy(() => import('./components/examples/WorkflowNotificationDemo'));
+
 // Loading component
 // Optimized Loading component with better UX
 const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
@@ -466,6 +471,17 @@ Ready for supervisor assignment!`);
       
       case 'mobile-test':
         return <MobileTest />;
+      
+      // ADMIN & SECURITY FEATURES
+      case 'login-analytics':
+        return <LoginAnalyticsDashboard />;
+      
+      case 'trusted-devices':
+        return <TrustedDeviceManager />;
+      
+      case 'workflow-notifications':
+        return <WorkflowNotificationDemo />;
+      
       default:
         return <OperatorDashboard operatorId={userId} />;
     }
