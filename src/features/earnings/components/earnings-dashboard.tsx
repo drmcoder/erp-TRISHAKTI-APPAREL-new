@@ -19,7 +19,7 @@ interface EarningsDashboardProps {
   operatorId?: string;
 }
 
-export const EarningsDashboard: React.FC<EarningsDashboardProps> = ({
+const EarningsDashboard: React.FC<EarningsDashboardProps> = ({
   userRole = 'supervisor',
   operatorId
 }) => {
@@ -296,3 +296,6 @@ export const EarningsDashboard: React.FC<EarningsDashboardProps> = ({
     </div>
   );
 };
+
+export default EarningsDashboard;
+export { EarningsDashboard };

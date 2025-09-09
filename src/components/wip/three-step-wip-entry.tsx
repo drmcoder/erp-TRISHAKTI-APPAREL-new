@@ -86,10 +86,10 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [availableTemplates, setAvailableTemplates] = useState<SewingTemplate[]>([]);
-  const [newSize, setNewSize] = useState({ size: '', quantity: '', rate: '', smv: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
   const [newRoll, setNewRoll] = useState({ rollNumber: '', color: '', weight: '', layerCount: '' });
+  const [rollErrors, setRollErrors] = useState<string[]>([]);
 
   // Load available templates when component mounts (needed for Step 1)
   React.useEffect(() => {
@@ -153,13 +153,32 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     }));
   };
 
+  // Validate fabric roll input
+  const validateFabricRoll = () => {
+    const errors: string[] = [];
+    if (!newRoll.rollNumber.trim()) errors.push('Roll number is required');
+    if (!newRoll.color.trim()) errors.push('Color is required');
+    if (!newRoll.weight.trim() || parseFloat(newRoll.weight) <= 0) errors.push('Weight must be greater than 0');
+    if (!newRoll.layerCount.trim() || parseInt(newRoll.layerCount) <= 0) errors.push('Layer count must be greater than 0');
+    
+    // Check for duplicate roll numbers
+    if (newRoll.rollNumber.trim() && formData.fabricRolls.some(roll => roll.rollNumber.toLowerCase() === newRoll.rollNumber.trim().toLowerCase())) {
+      errors.push('Roll number already exists');
+    }
+    
+    return errors;
+  };
+
   // Add fabric roll
   const addFabricRoll = () => {
-    if (newRoll.rollNumber && newRoll.color && newRoll.weight && newRoll.layerCount) {
+    const validationErrors = validateFabricRoll();
+    setRollErrors(validationErrors);
+    
+    if (validationErrors.length === 0) {
       const roll: FabricRoll = {
         id: `roll_${Date.now()}`,
-        rollNumber: newRoll.rollNumber,
-        color: newRoll.color,
+        rollNumber: newRoll.rollNumber.trim(),
+        color: newRoll.color.trim(),
         weight: parseFloat(newRoll.weight),
         layerCount: parseInt(newRoll.layerCount),
         layerLength: formData.batchCuttingInfo.layerLength,
@@ -176,6 +195,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
       }));
       
       setNewRoll({ rollNumber: '', color: '', weight: '', layerCount: '' });
+      setRollErrors([]);
     }
   };
 
@@ -274,13 +294,18 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
       return;
     }
     
-    // Clear existing sizes and generate new ones
+    // Get template data for pricing/SMV - all sizes use same template values
+    const selectedTemplate = availableTemplates.find(t => t.id === article.selectedTemplateId);
+    const templateRate = selectedTemplate ? selectedTemplate.totalPricePerPiece : 0;
+    const templateSmv = selectedTemplate ? selectedTemplate.totalSmv : 0;
+    
+    // Clear existing sizes and generate new ones - no per-size variation
     const newSizes = sizeNames.map((sizeName, index) => ({
       size: sizeName,
       quantity: parseInt(sizeRatios[index]) || 1,
       completed: 0,
-      rate: 0, // Will be set manually later
-      smv: 0 // Will be calculated when rate is set
+      rate: templateRate, // Same rate for all sizes from template
+      smv: templateSmv // Same SMV for all sizes from template
     }));
     
     const updatedArticles = formData.articles.map((art, index) => 
@@ -297,71 +322,6 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     setErrors(prev => ({ ...prev, sizeGeneration: '' }));
   };
 
-  const addSize = () => {
-    if (newSize.size && newSize.quantity && newSize.rate) {
-      const rate = parseFloat(newSize.rate);
-      const smv = newSize.smv ? parseFloat(newSize.smv) : rate * 1.9; // Auto-calculate if not provided
-      
-      const updatedArticles = formData.articles.map((article, index) => 
-        index === currentArticleIndex 
-          ? {
-              ...article,
-              sizes: [...article.sizes, {
-                size: newSize.size,
-                quantity: parseInt(newSize.quantity),
-                completed: 0,
-                rate: rate,
-                smv: smv
-              }]
-            }
-          : article
-      );
-      
-      setFormData(prev => ({
-        ...prev,
-        articles: updatedArticles
-      }));
-      
-      setNewSize({ size: '', quantity: '', rate: '', smv: '' });
-    }
-  };
-  
-  const updateSizeRate = (sizeIndex: number, rate: number) => {
-    const autoSmv = rate * 1.9; // Auto-calculate SMV
-    const updatedArticles = formData.articles.map((article, index) => 
-      index === currentArticleIndex 
-        ? {
-            ...article,
-            sizes: article.sizes.map((size, idx) => 
-              idx === sizeIndex ? { ...size, rate, smv: autoSmv } : size
-            )
-          }
-        : article
-    );
-    
-    setFormData(prev => ({
-      ...prev,
-      articles: updatedArticles
-    }));
-  };
-  
-  const updateSizeSmv = (sizeIndex: number, smv: number) => {
-    const updatedArticles = formData.articles.map((article, index) => 
-      index === currentArticleIndex 
-        ? {
-            ...article,
-            sizes: article.sizes.map((size, idx) => 
-              idx === sizeIndex ? { ...size, smv } : size
-            )
-          }
-        : article
-    );
-    
-    setFormData(prev => ({
-      ...prev,
-      articles: updatedArticles
-    }));
-  };
 
   const removeSize = (sizeIndex: number) => {
     const updatedArticles = formData.articles.map((article, index) => 
@@ -460,7 +420,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
           {/* Article Tabs */}
           {formData.articles.length > 1 && (
             <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b">
-              {formData.articles.map((article) => (
+              {formData.articles.map((article, index) => (
                 <div key={article.id} className="flex items-center">
                   <button
                     onClick={() => setCurrentArticleIndex(index)}
@@ -612,7 +572,21 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                     </div>
                   </div>
                   <div className="text-right">
-                    <Badge variant="outline">{article.sizes.length} sizes</Badge>
+                    <Badge variant="outline">
+                      {(() => {
+                        if (article.sizes.length > 0) {
+                          // If sizes are already generated, show actual total pieces
+                          return `${article.sizes.reduce((sum, size) => sum + size.quantity, 0)} pieces`;
+                        } else if (article.sizeRatios) {
+                          // If ratios are set but sizes not generated yet, calculate preview
+                          const ratios = article.sizeRatios.split(':').map(r => parseInt(r.trim()) || 0);
+                          const totalRatio = ratios.reduce((sum, ratio) => sum + ratio, 0);
+                          return `${totalRatio} pieces (preview)`;
+                        } else {
+                          return '0 pieces';
+                        }
+                      })()}
+                    </Badge>
                     <div className="text-xs text-gray-500 mt-1">
                       <p>Ratios: {article.sizeRatios || 'Not set'}</p>
                       <p>Template: {(() => {
@@ -697,34 +671,69 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
               <Input
                 placeholder="Roll Number (e.g., R001)"
                 value={newRoll.rollNumber}
-                onChange={(e) => setNewRoll(prev => ({ ...prev, rollNumber: e.target.value }))}
+                onChange={(e) => {
+                  setNewRoll(prev => ({ ...prev, rollNumber: e.target.value }));
+                  // Clear errors when user types
+                  if (rollErrors.length > 0) {
+                    setRollErrors([]);
+                  }
+                }}
               />
               <Input
                 placeholder="Color (e.g., Red, Green)"
                 value={newRoll.color}
-                onChange={(e) => setNewRoll(prev => ({ ...prev, color: e.target.value }))}
+                onChange={(e) => {
+                  setNewRoll(prev => ({ ...prev, color: e.target.value }));
+                  // Clear errors when user types
+                  if (rollErrors.length > 0) {
+                    setRollErrors([]);
+                  }
+                }}
               />
               <Input
                 type="number"
                 step="0.1"
                 placeholder="Weight (kg)"
                 value={newRoll.weight}
-                onChange={(e) => setNewRoll(prev => ({ ...prev, weight: e.target.value }))}
+                onChange={(e) => {
+                  setNewRoll(prev => ({ ...prev, weight: e.target.value }));
+                  // Clear errors when user types
+                  if (rollErrors.length > 0) {
+                    setRollErrors([]);
+                  }
+                }}
               />
               <Input
                 type="number"
                 placeholder="Layer Count"
                 value={newRoll.layerCount}
-                onChange={(e) => setNewRoll(prev => ({ ...prev, layerCount: e.target.value }))}
+                onChange={(e) => {
+                  setNewRoll(prev => ({ ...prev, layerCount: e.target.value }));
+                  // Clear errors when user types
+                  if (rollErrors.length > 0) {
+                    setRollErrors([]);
+                  }
+                }}
               />
               <Button 
                 onClick={addFabricRoll}
-                disabled={!newRoll.rollNumber || !newRoll.color || !newRoll.weight || !newRoll.layerCount}
                 className="w-full bg-orange-600 hover:bg-orange-700"
               >
                 Add Roll
               </Button>
             </div>
+            
+            {/* Roll Validation Errors */}
+            {rollErrors.length > 0 && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm font-medium text-red-800 mb-1">Please fix the following errors:</p>
+                <ul className="text-sm text-red-700 list-disc list-inside">
+                  {rollErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Fabric Rolls List */}
@@ -779,7 +788,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
           {/* Article Tabs */}
           {formData.articles.length > 1 && (
             <div className="flex flex-wrap gap-2 mb-6 pb-4 border-b">
-              {formData.articles.map((article) => (
+              {formData.articles.map((article, index) => (
                 <button
                   key={article.id}
                   onClick={() => setCurrentArticleIndex(index)}
@@ -826,48 +835,17 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
             </div>
           </div>
 
-          {/* Add Size Form */}
-          <div className="bg-gray-50 p-4 rounded-lg mb-4">
-            <h4 className="font-medium text-gray-900 mb-3">Add Individual Size (Optional)</h4>
-            <p className="text-sm text-gray-500 mb-3">Use "Generate Sizes" above for automatic creation, or add individual sizes manually</p>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <Input
-                placeholder="Size (e.g., M, L, XL)"
-                value={newSize.size}
-                onChange={(e) => setNewSize(prev => ({ ...prev, size: e.target.value }))}
-              />
-              <Input
-                type="number"
-                placeholder="Quantity"
-                value={newSize.quantity}
-                onChange={(e) => setNewSize(prev => ({ ...prev, quantity: e.target.value }))}
-              />
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="Rate per piece"
-                value={newSize.rate}
-                onChange={(e) => {
-                  const rate = e.target.value;
-                  const autoSmv = rate ? (parseFloat(rate) * 1.9).toFixed(2) : '';
-                  setNewSize(prev => ({ ...prev, rate, smv: autoSmv }));
-                }}
-              />
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="SMV (auto-calculated)"
-                value={newSize.smv}
-                onChange={(e) => setNewSize(prev => ({ ...prev, smv: e.target.value }))}
-              />
-              <Button 
-                onClick={addSize}
-                disabled={!newSize.size || !newSize.quantity || !newSize.rate}
-                className="w-full"
-              >
-                Add Size
-              </Button>
-            </div>
+          {/* Instructions for size generation */}
+          <div className="bg-blue-50 p-4 rounded-lg mb-4">
+            <h4 className="font-medium text-blue-900 mb-2">📋 How to Add Sizes</h4>
+            <p className="text-sm text-blue-800 mb-2">
+              Sizes are automatically generated from your Step 1 configuration using the selected template's pricing.
+            </p>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>• <strong>Same rate & SMV</strong> for all sizes (from template)</li>
+              <li>• <strong>Different quantities</strong> based on your ratios</li>
+              <li>• Click "Generate Sizes" to create from your size names and ratios</li>
+            </ul>
             {errors.sizeGeneration && (
               <p className="text-red-500 text-sm mt-2">{errors.sizeGeneration}</p>
             )}
@@ -875,60 +853,76 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
 
           {/* Current Article Sizes */}
           {currentArticle.sizes.length > 0 && (
-            <div className="space-y-2 mb-4">
-              <h4 className="font-medium text-gray-900">Article Sizes ({currentArticle.sizes.length})</h4>
-              {currentArticle.sizes.map((size, index) => (
-                <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-                    <div>
-                      <Badge variant="secondary" className="font-mono">{size.size}</Badge>
-                      <p className="text-xs text-gray-500 mt-1">Qty: {size.quantity}</p>
+            <div className="space-y-4 mb-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-900">Article Sizes ({currentArticle.sizes.length})</h4>
+                {(() => {
+                  const template = availableTemplates.find(t => t.id === currentArticle.selectedTemplateId);
+                  return template ? (
+                    <div className="text-sm text-gray-600 bg-blue-50 px-3 py-1 rounded">
+                      Template: <span className="font-medium text-blue-700">Rs. {template.totalPricePerPiece}/pc</span> | 
+                      <span className="font-medium text-blue-700"> {template.totalSmv}min SMV</span>
                     </div>
-                    
-                    <div>
-                      <label className="text-xs text-gray-500 block">Rate (Rs.)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={size.rate}
-                        onChange={(e) => updateSizeRate(index, parseFloat(e.target.value) || 0)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="0.00"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-xs text-gray-500 block">SMV (auto)</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={size.smv || 0}
-                        onChange={(e) => updateSizeSmv(index, parseFloat(e.target.value) || 0)}
-                        className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="Auto-calc"
-                        title="Auto-calculated from rate × 1.9, but editable"
-                      />
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="mb-2">
-                        <p className="text-xs text-gray-500">Total Value</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          Rs. {(size.quantity * size.rate).toFixed(2)}
-                        </p>
-                      </div>
+                  ) : null;
+                })()}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {currentArticle.sizes.map((size, index) => (
+                  <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <Badge variant="secondary" className="text-lg font-mono">{size.size}</Badge>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => removeSize(index)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 text-xs px-2 py-1"
                       >
                         Remove
                       </Button>
                     </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Quantity:</span>
+                        <span className="font-semibold text-gray-900">{size.quantity} pieces</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">Rate:</span>
+                        <span className="font-medium text-gray-900">Rs. {size.rate}/pc</span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-600">SMV:</span>
+                        <span className="font-medium text-gray-900">{size.smv} min/pc</span>
+                      </div>
+                      
+                      <div className="pt-2 border-t">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-700">Total Value:</span>
+                          <span className="font-bold text-green-600">Rs. {(size.quantity * size.rate).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Article Total Summary */}
+              <div className="bg-green-50 p-3 rounded-lg">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-green-700">Article Total:</span>
+                  <div className="text-right">
+                    <div className="font-semibold text-green-900">
+                      {currentArticle.sizes.reduce((sum, size) => sum + size.quantity, 0)} pieces
+                    </div>
+                    <div className="font-bold text-green-600">
+                      Rs. {currentArticle.sizes.reduce((sum, size) => sum + (size.quantity * size.rate), 0).toFixed(2)}
+                    </div>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
           )}
 
@@ -974,7 +968,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                     <h5 className="font-medium text-gray-900 flex items-center space-x-2">
                       <span>{article.articleNumber}</span>
                       <Badge variant="outline" size="sm">
-                        {article.targetAgeGroup === 'adult' ? 'Adult' : 'Teen'}
+                        Article
                       </Badge>
                     </h5>
                     <p className="text-sm text-gray-600">{article.style}</p>
@@ -1116,7 +1110,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
               {formData.articles.map((article) => (
                 <div key={article.id} className="flex items-center justify-between text-sm">
                   <span>
-                    <strong>{article.articleNumber}</strong> ({article.targetAgeGroup})
+                    <strong>{article.articleNumber}</strong> ({article.style})
                   </span>
                   <span>
                     {article.sizes.reduce((sum, size) => sum + size.quantity, 0)} pieces

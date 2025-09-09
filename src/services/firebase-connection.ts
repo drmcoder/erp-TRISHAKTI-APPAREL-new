@@ -30,6 +30,8 @@ export class FirebaseConnectionService {
   private reconnectTimeout?: NodeJS.Timeout;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private isEnablingNetwork = false; // Track enableNetwork calls
+  private isNetworkEnabled = true; // Track current network state
 
   private constructor() {
     this.initializeConnectionMonitoring();
@@ -77,12 +79,20 @@ export class FirebaseConnectionService {
   private async checkConnections(): Promise<void> {
     this.connectionState.lastCheck = new Date();
 
-    // Check Firestore connection
+    // Check Firestore connection - avoid redundant enableNetwork calls
     try {
-      await enableNetwork(db);
+      // Only call enableNetwork if we're not already enabling and network is disabled
+      if (!this.isEnablingNetwork && !this.isNetworkEnabled) {
+        this.isEnablingNetwork = true;
+        await enableNetwork(db);
+        this.isNetworkEnabled = true;
+        this.isEnablingNetwork = false;
+      }
+      
       this.updateConnectionState('firestore', 'connected');
       this.reconnectAttempts = 0; // Reset on successful connection
     } catch (error) {
+      this.isEnablingNetwork = false;
       console.error('Firestore connection check failed:', error);
       this.updateConnectionState('firestore', 'error');
       this.handleConnectionError('firestore');
@@ -164,8 +174,13 @@ export class FirebaseConnectionService {
     console.log(`🔄 Attempting reconnection (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
 
     try {
-      // Re-enable network connections
-      await enableNetwork(db);
+      // Re-enable network connections only if needed
+      if (!this.isEnablingNetwork && !this.isNetworkEnabled) {
+        this.isEnablingNetwork = true;
+        await enableNetwork(db);
+        this.isNetworkEnabled = true;
+        this.isEnablingNetwork = false;
+      }
       goOnline(rtdb);
       
       // Check connections
@@ -174,6 +189,7 @@ export class FirebaseConnectionService {
       console.log('✅ Reconnection successful');
       
     } catch (error) {
+      this.isEnablingNetwork = false;
       console.error('❌ Reconnection failed:', error);
       this.handleConnectionError('reconnection');
     }
@@ -223,7 +239,10 @@ export class FirebaseConnectionService {
   public async goOffline(): Promise<void> {
     console.log('📴 Going offline manually');
     try {
-      await disableNetwork(db);
+      if (this.isNetworkEnabled) {
+        await disableNetwork(db);
+        this.isNetworkEnabled = false;
+      }
       goOffline(rtdb);
       this.updateConnectionState('firestore', 'disconnected');
       this.updateConnectionState('realtimedb', 'disconnected');
@@ -235,10 +254,16 @@ export class FirebaseConnectionService {
   public async goOnline(): Promise<void> {
     console.log('🌐 Going online manually');
     try {
-      await enableNetwork(db);
+      if (!this.isEnablingNetwork && !this.isNetworkEnabled) {
+        this.isEnablingNetwork = true;
+        await enableNetwork(db);
+        this.isNetworkEnabled = true;
+        this.isEnablingNetwork = false;
+      }
       goOnline(rtdb);
       await this.checkConnections();
     } catch (error) {
+      this.isEnablingNetwork = false;
       console.error('Error going online:', error);
     }
   }

@@ -38,7 +38,7 @@ export const OperatorList: React.FC<OperatorListProps> = ({
   const [skillFilter, setSkillFilter] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch operators data
+  // Fetch operators data using real service
   const { 
     data: operatorsResult, 
     isLoading, 

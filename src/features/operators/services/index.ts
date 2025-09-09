@@ -1,2 +1,2 @@
 // Feature services exports
-export * from '../../../services/operator-service';
+export { operatorService } from '../../../services/operator-service';

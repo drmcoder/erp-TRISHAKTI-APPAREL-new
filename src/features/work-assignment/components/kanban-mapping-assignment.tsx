@@ -1,4 +1,5 @@
 // Kanban-Style Mapping Assignment System
+// Fixed TypeScript compilation issues
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';

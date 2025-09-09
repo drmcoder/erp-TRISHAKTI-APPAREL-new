@@ -10,7 +10,7 @@ import { SewingTemplateForm } from './sewing-template-form';
 import { SewingTemplateView } from './sewing-template-view';
 import { useAuthStore } from '@/app/store/auth-store';
 
-export const SewingTemplateManager: React.FC = () => {
+const SewingTemplateManager: React.FC = () => {
   const [templates, setTemplates] = useState<SewingTemplate[]>([]);
   const [filteredTemplates, setFilteredTemplates] = useState<SewingTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ export const SewingTemplateManager: React.FC = () => {
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      const result = await sewingTemplateService.getAllTemplates();
+      const result = await sewingTemplateService.getActiveTemplates();
       if (result.success && result.data) {
         setTemplates(result.data);
       } else {
@@ -55,14 +55,13 @@ export const SewingTemplateManager: React.FC = () => {
       filtered = filtered.filter(template => 
         template.templateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         template.templateCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.articleCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        template.articleName.toLowerCase().includes(searchTerm.toLowerCase())
+        template.category.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Garment type filter
+    // Category filter
     if (selectedGarmentType !== 'all') {
-      filtered = filtered.filter(template => template.garmentType === selectedGarmentType);
+      filtered = filtered.filter(template => template.category === selectedGarmentType);
     }
 
     setFilteredTemplates(filtered);
@@ -428,15 +427,21 @@ export const SewingTemplateManager: React.FC = () => {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">
-                {Math.round(filteredTemplates.reduce((sum, t) => sum + t.totalEstimatedTime, 0) / filteredTemplates.length)}
+                {filteredTemplates.length > 0 
+                  ? Math.round(filteredTemplates.reduce((sum, t) => sum + (t.totalSmv || 0), 0) / filteredTemplates.length)
+                  : 0
+                }
               </div>
-              <div className="text-sm text-gray-600">Avg. Time (min)</div>
+              <div className="text-sm text-gray-600">Avg. SMV (min)</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
-                Rs. {Math.round(filteredTemplates.reduce((sum, t) => sum + t.totalEstimatedCost, 0) / filteredTemplates.length)}
+                Rs. {filteredTemplates.length > 0 
+                  ? Math.round(filteredTemplates.reduce((sum, t) => sum + (t.totalPricePerPiece || 0), 0) / filteredTemplates.length)
+                  : 0
+                }
               </div>
-              <div className="text-sm text-gray-600">Avg. Cost</div>
+              <div className="text-sm text-gray-600">Avg. Cost per Piece</div>
             </div>
           </div>
         </div>
@@ -444,3 +449,6 @@ export const SewingTemplateManager: React.FC = () => {
     </div>
   );
 };
+
+export default SewingTemplateManager;
+export { SewingTemplateManager };

@@ -3,7 +3,7 @@
 
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import { RealtimeEvent, OperatorStatus, LiveMetrics } from './realtime-service';
+import type { RealtimeEvent, OperatorStatus, LiveMetrics } from './realtime-service';
 
 export interface WebSocketConfig {
   port: number;

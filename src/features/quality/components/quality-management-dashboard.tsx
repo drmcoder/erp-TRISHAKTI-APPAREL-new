@@ -18,7 +18,7 @@ interface QualityManagementDashboardProps {
   userRole?: string;
 }
 
-export const QualityManagementDashboard: React.FC<QualityManagementDashboardProps> = ({
+const QualityManagementDashboard: React.FC<QualityManagementDashboardProps> = ({
   userRole = 'supervisor'
 }) => {
   const [activeView, setActiveView] = useState<'overview' | 'reports' | 'approvals' | 'new-report'>('overview');
@@ -231,3 +231,6 @@ export const QualityManagementDashboard: React.FC<QualityManagementDashboardProp
     </div>
   );
 };
+
+export default QualityManagementDashboard;
+export { QualityManagementDashboard };

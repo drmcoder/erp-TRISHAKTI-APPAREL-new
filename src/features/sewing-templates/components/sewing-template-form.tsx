@@ -23,6 +23,7 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
     setupInstructions: template?.setupInstructions || ''
   });
 
+  const [operationErrors, setOperationErrors] = useState<string[]>([]);
   const [newOperation, setNewOperation] = useState<Partial<SewingOperation>>({
     name: '',
     nameNepali: '',
@@ -51,23 +52,35 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
     return 'simple';
   };
 
+  const validateOperation = () => {
+    const errors: string[] = [];
+    if (!newOperation.name?.trim()) errors.push('Operation name is required');
+    if (!newOperation.machineType?.trim()) errors.push('Machine type is required');
+    if (!newOperation.smvMinutes || newOperation.smvMinutes <= 0) errors.push('SMV must be greater than 0');
+    if (!newOperation.pricePerPiece || newOperation.pricePerPiece <= 0) errors.push('Price must be greater than 0');
+    return errors;
+  };
+
   const addOperation = () => {
-    if (newOperation.name && newOperation.smvMinutes && newOperation.pricePerPiece) {
+    const validationErrors = validateOperation();
+    setOperationErrors(validationErrors);
+    
+    if (validationErrors.length === 0) {
       const operation: SewingOperation = {
         id: `op_${Date.now()}`,
-        name: newOperation.name!,
-        nameNepali: newOperation.nameNepali || '',
-        description: newOperation.description,
+        name: newOperation.name!.trim(),
+        nameNepali: newOperation.nameNepali?.trim() || '',
+        description: newOperation.description?.trim(),
         machineType: newOperation.machineType!,
         smvMinutes: newOperation.smvMinutes!,
         pricePerPiece: newOperation.pricePerPiece!,
         processingType: newOperation.processingType!,
-        sequenceOrder: newOperation.sequenceOrder!,
+        sequenceOrder: formData.operations.length + 1,
         prerequisites: newOperation.prerequisites || [],
         qualityCheckRequired: newOperation.qualityCheckRequired || false,
         defectTolerance: newOperation.defectTolerance || 5,
         isOptional: newOperation.isOptional || false,
-        notes: newOperation.notes
+        notes: newOperation.notes?.trim()
       };
 
       setFormData(prev => ({
@@ -75,6 +88,7 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
         operations: [...prev.operations, operation]
       }));
 
+      // Clear form after successful addition
       setNewOperation({
         name: '',
         nameNepali: '',
@@ -90,6 +104,9 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
         isOptional: false,
         notes: ''
       });
+      
+      // Clear any previous errors
+      setOperationErrors([]);
     }
   };
 
@@ -260,7 +277,13 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                 </label>
                 <Input
                   value={newOperation.name || ''}
-                  onChange={(e) => setNewOperation(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => {
+                    setNewOperation(prev => ({ ...prev, name: e.target.value }));
+                    // Clear errors when user types
+                    if (operationErrors.length > 0) {
+                      setOperationErrors([]);
+                    }
+                  }}
                   placeholder="e.g., Shoulder Join"
                 />
               </div>
@@ -274,7 +297,13 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                   min="0.1"
                   step="0.1"
                   value={newOperation.smvMinutes || ''}
-                  onChange={(e) => setNewOperation(prev => ({ ...prev, smvMinutes: parseFloat(e.target.value) || 0 }))}
+                  onChange={(e) => {
+                    setNewOperation(prev => ({ ...prev, smvMinutes: parseFloat(e.target.value) || 0 }));
+                    // Clear errors when user types
+                    if (operationErrors.length > 0) {
+                      setOperationErrors([]);
+                    }
+                  }}
                   placeholder="Auto-calculated"
                   title="Auto-calculated from price × 1.9, but editable"
                 />
@@ -291,12 +320,16 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                   value={newOperation.pricePerPiece || ''}
                   onChange={(e) => {
                     const price = parseFloat(e.target.value) || 0;
-                    const autoSmv = price * 1.9; // Auto-calculate SMV
+                    const autoSmv = price > 0 ? parseFloat((price * 1.9).toFixed(2)) : 0; // Auto-calculate SMV with 2 decimal places
                     setNewOperation(prev => ({ 
                       ...prev, 
                       pricePerPiece: price,
                       smvMinutes: autoSmv 
                     }));
+                    // Clear errors when user types
+                    if (operationErrors.length > 0) {
+                      setOperationErrors([]);
+                    }
                   }}
                   placeholder="2.5"
                 />
@@ -311,7 +344,13 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
                 <select
                   className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={newOperation.machineType || ''}
-                  onChange={(e) => setNewOperation(prev => ({ ...prev, machineType: e.target.value }))}
+                  onChange={(e) => {
+                    setNewOperation(prev => ({ ...prev, machineType: e.target.value }));
+                    // Clear errors when user selects
+                    if (operationErrors.length > 0) {
+                      setOperationErrors([]);
+                    }
+                  }}
                 >
                   <option value="">Select Machine Type</option>
                   <option value="overlock">Overlock</option>
@@ -380,15 +419,30 @@ export const SewingTemplateForm: React.FC<SewingTemplateFormProps> = ({
               </div>
             </div>
 
+            {/* Operation Validation Errors */}
+            {operationErrors.length > 0 && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm font-medium text-red-800 mb-1">Please fix the following errors:</p>
+                <ul className="text-sm text-red-700 list-disc list-inside">
+                  {operationErrors.map((error, index) => (
+                    <li key={index}>{error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            
             <div className="mt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={addOperation}
-                disabled={!newOperation.name || !newOperation.smvMinutes || !newOperation.pricePerPiece || !newOperation.machineType}
+                className="w-full md:w-auto"
               >
                 Add Operation
               </Button>
+              <p className="text-xs text-gray-500 mt-1">
+                SMV will auto-calculate from price (Price × 1.9), but you can edit it manually
+              </p>
             </div>
           </div>
         </div>

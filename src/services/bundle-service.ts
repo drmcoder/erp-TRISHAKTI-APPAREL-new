@@ -15,6 +15,13 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import type { 
+  ProductionBundle, 
+  BundleOperation, 
+  BundleCreationData 
+} from '../shared/types/bundle-types';
+import type { SewingTemplate } from '../shared/types/sewing-template-types';
+import { sewingTemplateService } from './sewing-template-service';
 
 export interface Bundle {
   id: string;
@@ -94,6 +101,7 @@ export interface UpdateBundleData {
 
 class BundleService {
   private readonly collection = 'bundles';
+  private readonly productionBundlesCollection = 'production_bundles';
 
   // Create a new bundle
   async createBundle(bundleData: CreateBundleData, userId: string): Promise<string> {
@@ -411,6 +419,141 @@ class BundleService {
     } catch (error) {
       console.error('Error deleting bundle:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Generate production bundles from WIP entry data
+   * Creates individual production bundles with mapped operations
+   */
+  async generateBundles(data: BundleCreationData): Promise<{success: boolean; data?: ProductionBundle[]; error?: string; message?: string}> {
+    try {
+      const bundles: ProductionBundle[] = [];
+      
+      // Load all required templates
+      const templatePromises = data.articles.map(article => 
+        sewingTemplateService.getTemplate(article.templateId)
+      );
+      
+      const templateResults = await Promise.all(templatePromises);
+      const templates = new Map<string, SewingTemplate>();
+      
+      for (let i = 0; i < templateResults.length; i++) {
+        const result = templateResults[i];
+        if (result.success && result.data) {
+          templates.set(data.articles[i].templateId, result.data);
+        }
+      }
+
+      let bundleCounter = 1;
+      
+      // Generate bundles for each article × size × roll combination
+      for (const article of data.articles) {
+        const template = templates.get(article.templateId);
+        if (!template) {
+          return { 
+            success: false, 
+            error: `Template not found for article ${article.articleNumber}` 
+          };
+        }
+
+        for (const sizeInfo of article.sizes) {
+          for (const roll of data.fabricRolls) {
+            // Create bundles based on size quantity and roll layer count
+            const bundlesPerSize = sizeInfo.quantity;
+            
+            for (let bundleIndex = 0; bundleIndex < bundlesPerSize; bundleIndex++) {
+              const bundleNumber = `${data.bundlePrefix || 'BND'}-${article.articleNumber}-${sizeInfo.size}-${String(bundleCounter).padStart(3, '0')}`;
+              
+              // Create bundle operations from template
+              const bundleOperations: BundleOperation[] = template.operations.map((templateOp, index) => ({
+                id: `${bundleNumber}-OP-${index + 1}`,
+                bundleId: '', // Will be set after bundle creation
+                operationId: templateOp.id,
+                name: templateOp.name,
+                nameNepali: templateOp.nameNepali || '',
+                description: templateOp.description,
+                machineType: templateOp.machineType,
+                sequenceOrder: templateOp.sequenceOrder || index + 1,
+                pricePerPiece: templateOp.pricePerPiece,
+                smvMinutes: templateOp.smvMinutes,
+                status: 'pending',
+                prerequisites: templateOp.prerequisites || [],
+                isOptional: templateOp.isOptional || false,
+                qualityCheckRequired: templateOp.qualityCheckRequired || false,
+                defectTolerance: templateOp.defectTolerance || 5,
+                notes: templateOp.notes
+              }));
+
+              const bundle: ProductionBundle = {
+                id: `bundle_${Date.now()}_${bundleCounter}`,
+                bundleNumber,
+                articleId: article.articleId,
+                articleNumber: article.articleNumber,
+                articleStyle: article.articleStyle,
+                size: sizeInfo.size,
+                rollId: roll.rollId,
+                rollNumber: roll.rollNumber,
+                rollColor: roll.color,
+                templateId: article.templateId,
+                templateName: template.templateName,
+                templateCode: template.templateCode,
+                status: 'created',
+                priority: 'normal',
+                operations: bundleOperations,
+                createdAt: new Date(),
+                createdBy: data.createdBy,
+                totalValue: template.totalPricePerPiece || 0,
+                totalSMV: template.totalSmv || 0
+              };
+
+              // Update operation bundle IDs
+              bundle.operations.forEach(op => {
+                op.bundleId = bundle.id;
+              });
+
+              bundles.push(bundle);
+              bundleCounter++;
+            }
+          }
+        }
+      }
+
+      // Save all bundles to database
+      const savePromises = bundles.map(async (bundle) => {
+        try {
+          const docRef = await addDoc(collection(db, this.productionBundlesCollection), {
+            ...bundle,
+            createdAt: serverTimestamp()
+          });
+          return { success: true, id: docRef.id };
+        } catch (error) {
+          return { success: false, error };
+        }
+      });
+      
+      const saveResults = await Promise.all(savePromises);
+      
+      // Check if any saves failed
+      const failedSaves = saveResults.filter(result => !result.success);
+      if (failedSaves.length > 0) {
+        return {
+          success: false,
+          error: `Failed to save ${failedSaves.length} bundles to database`
+        };
+      }
+
+      return {
+        success: true,
+        data: bundles,
+        message: `Successfully generated ${bundles.length} production bundles`
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate bundles'
+      };
     }
   }
 

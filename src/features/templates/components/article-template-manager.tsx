@@ -75,7 +75,7 @@ interface ArticleTemplateManagerProps {
   initialData?: ArticleTemplate;
 }
 
-export const ArticleTemplateManager: React.FC<ArticleTemplateManagerProps> = ({
+const ArticleTemplateManager: React.FC<ArticleTemplateManagerProps> = ({
   onSave,
   onCancel,
   initialData
@@ -464,3 +464,6 @@ export const ArticleTemplateManager: React.FC<ArticleTemplateManagerProps> = ({
     </div>
   );
 };
+
+export default ArticleTemplateManager;
+export { ArticleTemplateManager, SEWING_OPERATIONS_LIBRARY };

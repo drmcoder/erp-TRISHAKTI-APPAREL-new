@@ -625,3 +625,6 @@ class RealtimeService extends SimpleEventEmitter {
 // Export singleton instance
 export const realtimeService = new RealtimeService();
 export default RealtimeService;
+
+// Export types
+export type { RealtimeEvent, LiveMetrics, OperatorStatus };

@@ -25,16 +25,18 @@ const getOperatorSchema = (mode: 'create' | 'edit') => z.object({
   password: mode === 'create' 
     ? z.string().min(6, 'Password must be at least 6 characters')
     : z.string().optional(), // Optional in edit mode
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+  name: z.string().min(2, 'Full Name must be at least 2 characters'),
   employeeId: z.string().min(1, 'Employee ID is required'),
   email: z.string().email('Invalid email format').optional().or(z.literal('')),
   phone: z.string().optional(),
   address: z.string().optional(),
-  primaryMachine: z.string().min(1, 'Primary machine is required'),
-  machineTypes: z.array(z.string()).min(1, 'At least one machine type required'),
-  skillLevel: z.enum(['beginner', 'intermediate', 'advanced', 'expert']),
+  primaryMachine: z.string().min(1, 'Primary machine selection is required'),
+  machineTypes: z.array(z.string()).min(1, 'At least one machine type must be selected'),
+  skillLevel: z.enum(['beginner', 'intermediate', 'advanced', 'expert'], {
+    required_error: 'Skill level selection is required'
+  }),
   specializations: z.array(z.string()).optional(),
-  maxConcurrentWork: z.number().min(1).max(10)
+  maxConcurrentWork: z.number().min(1, 'Must be at least 1').max(10, 'Cannot exceed 10')
 });
 
 type FormData = z.infer<ReturnType<typeof getOperatorSchema>>;
@@ -125,9 +127,9 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
       email: initialData?.email || '',
       phone: initialData?.phone || '',
       address: initialData?.address || '',
-      primaryMachine: initialData?.primaryMachine || '',
-      machineTypes: initialData?.machineTypes || [],
-      skillLevel: initialData?.skillLevel || 'beginner',
+      primaryMachine: initialData?.primaryMachine || '', // No default to force selection
+      machineTypes: initialData?.machineTypes || [], // No default to force selection
+      skillLevel: initialData?.skillLevel || 'beginner', // Keep default for better UX
       specializations: initialData?.specializations || [],
       maxConcurrentWork: initialData?.maxConcurrentWork || 1
     }
@@ -189,23 +191,67 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
     setValue('specializations', current.filter((_, i) => i !== index));
   };
 
-  const onFormSubmit = async (data: FormData) => {
-    const formattedData = {
-      ...data,
-      hiredDate: new Date(), // Set current date as default since field is removed
-      shift: 'morning' as const, // Default to morning since only one shift
-      avatar: selectedAvatar ? {
-        type: selectedAvatar.type,
-        value: selectedAvatar.value,
-        backgroundColor: selectedAvatar.backgroundColor
-      } : undefined,
-      email: data.email || undefined,
-      phone: data.phone || undefined,
-      address: data.address || undefined,
-      specializations: data.specializations?.filter(s => s.trim()) || []
-    };
+  const onFormSubmit = async (data: FormData, event?: React.FormEvent) => {
+    try {
+      // If form is invalid, provide detailed feedback
+      if (!isValid) {
+        event?.preventDefault();
+        
+        // Find the first field with an error
+        const errorFields = Object.keys(errors);
+        if (errorFields.length > 0) {
+          const firstErrorField = errorFields[0];
+          
+          // Scroll to the first error field
+          const errorElement = document.querySelector(`[name="${firstErrorField}"]`) ||
+                              document.querySelector(`input[name="${firstErrorField}"]`) ||
+                              document.querySelector(`select[name="${firstErrorField}"]`);
+          
+          if (errorElement) {
+            errorElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          }
+          
+          // Show detailed validation errors
+          const errorMessages = Object.entries(errors)
+            .map(([field, error]) => {
+              const fieldName = field === 'primaryMachine' ? 'Primary Machine' :
+                              field === 'machineTypes' ? 'Machine Types' :
+                              field === 'skillLevel' ? 'Skill Level' :
+                              field === 'maxConcurrentWork' ? 'Max Concurrent Work' :
+                              field === 'employeeId' ? 'Employee ID' :
+                              field.charAt(0).toUpperCase() + field.slice(1);
+              return `• ${fieldName}: ${error?.message || 'Required'}`;
+            })
+            .join('\n');
+          
+          alert(`Please fix the following required fields:\n\n${errorMessages}`);
+          return;
+        }
+      }
 
-    await onSubmit(formattedData);
+      const formattedData = {
+        ...data,
+        hiredDate: new Date(), // Set current date as default since field is removed
+        shift: 'morning' as const, // Default to morning since only one shift
+        avatar: selectedAvatar ? {
+          type: selectedAvatar.type,
+          value: selectedAvatar.value,
+          backgroundColor: selectedAvatar.backgroundColor
+        } : undefined,
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        address: data.address || undefined,
+        specializations: data.specializations?.filter(s => s.trim()) || []
+      };
+
+      await onSubmit(formattedData);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      alert('Failed to create operator. Please check all required fields and try again.');
+    }
   };
 
   const renderAvatarPreview = () => {
@@ -614,7 +660,7 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
         </Button>
         <Button
           type="submit"
-          disabled={!isValid || isLoading}
+          disabled={isLoading}
           className="flex items-center space-x-2"
         >
           {isLoading && <LoadingSpinner size="sm" />}

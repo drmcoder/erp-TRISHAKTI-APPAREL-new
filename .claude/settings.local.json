@@ -59,7 +59,9 @@
       "Bash(do echo:*)",
       "Bash(time npm run build:skip-check)",
       "Bash(/dev/null)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(for:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

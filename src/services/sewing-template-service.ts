@@ -115,6 +115,32 @@ export class SewingTemplateService extends BaseService {
   }
 
   /**
+   * Get only active templates
+   */
+  async getActiveTemplates(): Promise<ServiceResponse<SewingTemplate[]>> {
+    try {
+      // Get all templates first, then filter client-side to avoid index requirement
+      const allTemplates = await this.getAll<SewingTemplate>();
+      
+      if (!allTemplates.success || !allTemplates.data) {
+        return { success: false, error: 'Failed to fetch templates' };
+      }
+
+      // Filter active templates client-side and sort by templateName
+      const activeTemplates = allTemplates.data
+        .filter(template => template.isActive)
+        .sort((a, b) => a.templateName.localeCompare(b.templateName));
+
+      return { success: true, data: activeTemplates };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get active templates'
+      };
+    }
+  }
+
+  /**
    * Update template
    */
   async updateTemplate(templateId: string, updates: UpdateSewingTemplateData): Promise<ServiceResponse<SewingTemplate>> {

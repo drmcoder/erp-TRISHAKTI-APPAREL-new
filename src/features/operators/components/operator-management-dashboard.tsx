@@ -21,12 +21,13 @@ interface OperatorManagementDashboardProps {
   userRole?: string;
 }
 
-export const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = ({
+const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = ({
   userRole = 'supervisor'
 }) => {
   const [activeView, setActiveView] = useState<'overview' | 'list' | 'detail' | 'form'>('overview');
   const [selectedOperatorId, setSelectedOperatorId] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Handler for deleting an operator (supervisors only)
   const handleDeleteOperator = async (operatorId: string) => {
@@ -310,6 +311,7 @@ export const OperatorManagementDashboard: React.FC<OperatorManagementDashboardPr
           } : undefined}
           userRole={userRole}
           showActions={true}
+          key={refreshTrigger} // Force re-render when refreshTrigger changes
         />;
       case 'detail':
         return selectedOperatorId ? (
@@ -322,15 +324,50 @@ export const OperatorManagementDashboard: React.FC<OperatorManagementDashboardPr
       case 'form':
         return (
           <OperatorForm
-            operatorId={selectedOperatorId}
-            onSave={() => {
-              setActiveView('overview');
-              setSelectedOperatorId('');
+            mode={selectedOperatorId ? 'edit' : 'create'}
+            initialData={selectedOperatorId ? { username: '', name: '' } : undefined}
+            onSubmit={async (data) => {
+              console.log('Operator data submitted:', data);
+              
+              try {
+                // Import the operator service
+                const { operatorService } = await import('../../services');
+                
+                if (selectedOperatorId) {
+                  // Update existing operator
+                  const result = await operatorService.updateOperator(selectedOperatorId, data);
+                  
+                  if (result.success) {
+                    alert('✅ Operator updated successfully!');
+                    setRefreshTrigger(prev => prev + 1); // Trigger refresh
+                    setActiveView('overview');
+                    setSelectedOperatorId('');
+                  } else {
+                    alert(`❌ Failed to update operator: ${result.error}`);
+                  }
+                } else {
+                  // Create new operator
+                  const result = await operatorService.createOperator(data);
+                  
+                  if (result.success) {
+                    alert('✅ Operator created successfully!');
+                    setRefreshTrigger(prev => prev + 1); // Trigger refresh
+                    setActiveView('overview');
+                    setSelectedOperatorId('');
+                  } else {
+                    alert(`❌ Failed to create operator: ${result.error}`);
+                  }
+                }
+              } catch (error) {
+                console.error('Error saving operator:', error);
+                alert('❌ An unexpected error occurred. Please try again.');
+              }
             }}
             onCancel={() => {
               setActiveView('overview');
               setSelectedOperatorId('');
             }}
+            isLoading={false}
           />
         );
       default:
@@ -406,3 +443,6 @@ export const OperatorManagementDashboard: React.FC<OperatorManagementDashboardPr
     </div>
   );
 };
+
+export default OperatorManagementDashboard;
+export { OperatorManagementDashboard };
