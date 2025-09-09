@@ -50,12 +50,34 @@ const OperatorProfileAssignment = lazy(() => import('./features/operators/compon
 const SequentialWorkflowAssignment = lazy(() => import('./features/work-assignment/components/sequential-workflow-assignment').then(m => ({ default: m.SequentialWorkflowAssignment })));
 
 // Loading component
+// Optimized Loading component with better UX
 const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
-  <div className="flex items-center justify-center h-64">
-    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    <span className="ml-3 text-lg">{text}</span>
+  <div className="flex flex-col items-center justify-center h-64 space-y-4">
+    <div className="relative">
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent absolute top-0 left-0"></div>
+    </div>
+    <div className="text-center">
+      <p className="text-lg text-gray-700 animate-pulse">{text}</p>
+      <div className="text-sm text-gray-500 mt-1">Please wait...</div>
+    </div>
   </div>
 );
+
+// Quick loader for fast transitions
+const QuickLoader = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
+  const sizeClasses = {
+    sm: 'h-4 w-4 border-2',
+    md: 'h-6 w-6 border-2', 
+    lg: 'h-8 w-8 border-3'
+  };
+  
+  return (
+    <div className="flex items-center justify-center p-2">
+      <div className={`animate-spin rounded-full border-gray-200 border-t-blue-600 ${sizeClasses[size]}`}></div>
+    </div>
+  );
+};
 
 // Template initialization disabled for demo
 

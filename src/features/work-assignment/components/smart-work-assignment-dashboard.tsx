@@ -1,8 +1,12 @@
-// Smart Work Assignment Dashboard - Handles Lots of Bundles with Better UI/UX
-import React, { useState, useEffect } from 'react';
+// Smart Work Assignment Dashboard - Optimized for Performance & UX
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { Card } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
+import OptimizedSearch from '@/shared/components/ui/OptimizedSearch';
+import { SkeletonLoader, CardSkeleton } from '@/shared/components/ui/SkeletonLoader';
+import { useOptimizedList, useDebouncedSearch } from '@/shared/hooks/useVirtualization';
+import { debounce, performanceMonitor } from '@/shared/utils/performance-utils';
 import { 
   UserIcon,
   ClockIcon,

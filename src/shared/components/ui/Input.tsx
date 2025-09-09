@@ -134,7 +134,6 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             type={inputType}
             disabled={disabled}
-            value={value ?? ''}
             className={cn(
               // Base styles
               'block w-full border rounded-md shadow-sm',
@@ -166,7 +165,6 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               
               className
             )}
-            onChange={handleChange}
             {...props}
           />
           
