@@ -56,7 +56,7 @@ interface WorkItemWithScore extends WorkItem {
   isRecommended?: boolean;
 }
 
-export const SelfAssignmentInterface: React.FC<SelfAssignmentInterfaceProps> = ({
+const SelfAssignmentInterface: React.FC<SelfAssignmentInterfaceProps> = ({
   operatorId,
   operatorName,
   operatorSkills,
@@ -533,3 +533,6 @@ export const SelfAssignmentInterface: React.FC<SelfAssignmentInterfaceProps> = (
     </div>
   );
 };
+
+export default SelfAssignmentInterface;
+export { SelfAssignmentInterface };

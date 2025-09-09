@@ -15,14 +15,13 @@ const OperatorDashboard = lazy(() => import('./components/operator/OperatorDashb
 const SupervisorDashboard = lazy(() => import('./components/supervisor/SupervisorDashboard').then(m => ({ default: m.SupervisorDashboard })));
 const AssignmentDashboard = lazy(() => import('./features/work-assignment/components/assignment-dashboard').then(m => ({ default: m.AssignmentDashboard })));
 const BundleLifecycleManager = lazy(() => import('./features/bundles/components/bundle-lifecycle-manager').then(m => ({ default: m.BundleLifecycleManager })));
-const OperatorWorkDashboard = lazy(() => import('./features/work-assignment/components/operator-work-dashboard').then(m => ({ default: m.OperatorWorkDashboard })));
 const ProductionDashboard = lazy(() => import('./features/analytics/components/production-dashboard').then(m => ({ default: m.ProductionDashboard })));
 const QualityManagementDashboard = lazy(() => import('./features/quality/components/quality-management-dashboard').then(m => ({ default: m.QualityManagementDashboard })));
 const EarningsDashboard = lazy(() => import('./features/earnings/components/earnings-dashboard').then(m => ({ default: m.EarningsDashboard })));
 const OperatorManagementDashboard = lazy(() => import('./features/operators/components/operator-management-dashboard').then(m => ({ default: m.OperatorManagementDashboard })));
 const SelfAssignmentInterface = lazy(() => import('./features/work-assignment/components/self-assignment-interface').then(m => ({ default: m.SelfAssignmentInterface })));
 const ProductionTimer = lazy(() => import('./features/work-assignment/components/production-timer').then(m => ({ default: m.ProductionTimer })));
-const ArticleTemplateManager = lazy(() => import('./features/templates/components/article-template-manager').then(m => ({ default: m.ArticleTemplateManager })));
+// Removed ArticleTemplateManager - functionality integrated into WIP entry
 const WorkflowSequencer = lazy(() => import('./features/workflow/components/workflow-sequencer').then(m => ({ default: m.WorkflowSequencer })));
 const MobileFriendlyLayout = lazy(() => import('./components/layout/mobile-friendly-layout.tsx').then(m => ({ default: m.MobileFriendlyLayout })));
 const MobileTest = lazy(() => import('./components/mobile/mobile-test').then(m => ({ default: m.MobileTest })));
@@ -35,6 +34,20 @@ const EnhancedOperatorDashboard = lazy(() => import('./components/operator/Enhan
 const OperatorPieceTracker = lazy(() => import('./components/operator/OperatorPieceTracker'));
 const BundleAssignmentManager = lazy(() => import('./components/supervisor/BundleAssignmentManager'));
 const SewingTemplateManager = lazy(() => import('./features/sewing-templates/components/sewing-template-manager').then(m => ({ default: m.SewingTemplateManager })));
+const BundleAssignmentDashboard = lazy(() => import('./features/bundles/components/bundle-assignment-dashboard').then(m => ({ default: m.BundleAssignmentDashboard })));
+const OperatorWorkDashboard = lazy(() => import('./features/bundles/components/operator-work-dashboard').then(m => ({ default: m.OperatorWorkDashboard })));
+
+// NEW COMPONENTS - Enhanced Work Assignment & Analytics
+const OperatorSelfAssignment = lazy(() => import('./features/bundles/components/operator-self-assignment').then(m => ({ default: m.OperatorSelfAssignment })));
+const SupervisorPartsDashboard = lazy(() => import('./features/bundles/components/supervisor-parts-dashboard').then(m => ({ default: m.SupervisorPartsDashboard })));
+const MultiStrategyAssignmentDashboard = lazy(() => import('./features/work-assignment/components/multi-strategy-assignment-dashboard').then(m => ({ default: m.MultiStrategyAssignmentDashboard })));
+const BundleBatchTrackingDashboard = lazy(() => import('./features/analytics/components/bundle-batch-tracking-dashboard').then(m => ({ default: m.BundleBatchTrackingDashboard })));
+const DragDropAssignmentDashboard = lazy(() => import('./features/work-assignment/components/drag-drop-assignment-dashboard').then(m => ({ default: m.DragDropAssignmentDashboard })));
+const KanbanMappingAssignment = lazy(() => import('./features/work-assignment/components/kanban-mapping-assignment').then(m => ({ default: m.KanbanMappingAssignment })));
+const SupervisorOperatorBuckets = lazy(() => import('./features/work-assignment/components/supervisor-operator-buckets').then(m => ({ default: m.SupervisorOperatorBuckets })));
+const SmartWorkAssignmentDashboard = lazy(() => import('./features/work-assignment/components/smart-work-assignment-dashboard').then(m => ({ default: m.SmartWorkAssignmentDashboard })));
+const OperatorProfileAssignment = lazy(() => import('./features/operators/components/operator-profile-assignment').then(m => ({ default: m.OperatorProfileAssignment })));
+const SequentialWorkflowAssignment = lazy(() => import('./features/work-assignment/components/sequential-workflow-assignment').then(m => ({ default: m.SequentialWorkflowAssignment })));
 
 // Loading component
 const LoadingSpinner = ({ text = "Loading..." }: { text?: string }) => (
@@ -163,7 +176,7 @@ const LoginPage = ({ onLogin }: { onLogin: (username: string, role: string) => v
 };
 
 // Production Dashboard Component with Role-Based Routing
-const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
+const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onLogout?: () => void }) => {
   const [currentView, setCurrentView] = useState('dashboard');
   
   // Sample IDs for demo - in production these would come from authentication
@@ -199,7 +212,6 @@ const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
           <OperatorWorkDashboard 
             operatorId={userId} 
             operatorName="Current Operator"
-            operatorSkills={{ skillLevel: "intermediate", efficiency: 0.8, qualityScore: 0.85 }}
           /> : 
           <AssignmentDashboard />;
       case 'bundles':
@@ -255,9 +267,72 @@ const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
         return (
           <ThreeStepWipEntry
             onComplete={async (data) => {
-              // TODO: Implement actual WIP creation logic
               console.log('WIP Entry completed:', data);
-              alert(`WIP Entry created successfully!\nBundle: ${data.bundleNumber}\nTotal Pieces: ${data.sizes.reduce((sum, size) => sum + size.quantity, 0)}`);
+              
+              try {
+                // Import bundle generation service
+                const { bundleService } = await import('./services/bundle-service');
+                
+                // Prepare bundle creation data
+                const bundleCreationData = {
+                  wipEntryId: `wip_${Date.now()}`,
+                  batchNumber: data.bundleNumber,
+                  articles: data.articles.map(article => ({
+                    articleId: article.id,
+                    articleNumber: article.articleNumber,
+                    articleStyle: article.style,
+                    templateId: article.selectedTemplateId,
+                    sizes: article.sizes.map(size => ({
+                      size: size.size,
+                      quantity: size.quantity
+                    }))
+                  })),
+                  fabricRolls: data.fabricRolls.map(roll => ({
+                    rollId: roll.id,
+                    rollNumber: roll.rollNumber,
+                    color: roll.color,
+                    weight: roll.weight,
+                    layerCount: roll.layerCount
+                  })),
+                  bundlePrefix: 'BND',
+                  createdBy: userRole === 'operator' ? 'Maya Patel' : 
+                            userRole === 'supervisor' ? 'John Smith' : 'Admin User'
+                };
+                
+                // Generate production bundles
+                const bundleResult = await bundleService.generateBundles(bundleCreationData);
+                
+                if (bundleResult.success && bundleResult.data) {
+                  const bundles = bundleResult.data;
+                  
+                  // Calculate summary statistics
+                  const totalPieces = data.articles.reduce((totalSum, article) => {
+                    return totalSum + (article.sizes?.reduce((sum, size) => sum + size.quantity, 0) || 0);
+                  }, 0);
+                  
+                  const totalValue = bundles.reduce((sum, bundle) => sum + bundle.totalValue, 0);
+                  const totalOperations = bundles.reduce((sum, bundle) => sum + bundle.operations.length, 0);
+                  
+                  alert(`✅ Production Bundles Created Successfully!
+                  
+🎯 Batch: ${data.bundleNumber}
+📦 Bundles Generated: ${bundles.length}
+📋 Articles: ${data.articles.length} 
+🧵 Total Pieces: ${totalPieces}
+⚡ Total Operations: ${totalOperations}
+💰 Total Value: Rs. ${totalValue.toFixed(2)}
+
+Ready for supervisor assignment!`);
+                  
+                } else {
+                  alert(`❌ Failed to generate bundles: ${bundleResult.error}`);
+                }
+                
+              } catch (error) {
+                console.error('Bundle generation error:', error);
+                alert('❌ Failed to generate production bundles. Please try again.');
+              }
+              
               setCurrentView('dashboard');
             }}
             onCancel={() => setCurrentView('dashboard')}
@@ -306,13 +381,11 @@ const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
             console.log('🏷️ Label generated:', label);
           }}
         />;
-      case 'templates':
-        return <ArticleTemplateManager 
-          onSave={(template) => console.log('Template saved:', template)}
-          onCancel={() => setCurrentView('dashboard')}
-        />;
+      
+      // Sewing Templates Management
       case 'sewing-templates':
         return <SewingTemplateManager />;
+      
       case 'workflow':
         return <WorkflowSequencer 
           operations={[]}
@@ -340,6 +413,49 @@ const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
         />;
       case 'bundle-assignment':
         return <BundleAssignmentManager />;
+      
+      // New Bundle Production System
+      case 'bundle-assignments':
+        return <BundleAssignmentDashboard userRole={userRole} />;
+      case 'my-work':
+        return <OperatorWorkDashboard operatorId={userId} operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current Operator'} />;
+      
+      // NEW ENHANCED FEATURES
+      case 'self-assign':
+        return <OperatorSelfAssignment 
+          operatorId={userId}
+          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current Operator'}
+          operatorMachineType="overlock" // This would come from user profile in production
+        />;
+      
+      case 'parts-issues':
+        return <SupervisorPartsDashboard userRole={userRole} />;
+      
+      case 'multi-assignment':
+        return <MultiStrategyAssignmentDashboard userRole={userRole} />;
+      
+      case 'bundle-analytics':
+        return <BundleBatchTrackingDashboard userRole={userRole} />;
+      
+      // DRAG & DROP ASSIGNMENT SYSTEMS
+      case 'drag-drop-assignment':
+        return <DragDropAssignmentDashboard userRole={userRole} />;
+      
+      case 'kanban-assignment':
+        return <KanbanMappingAssignment userRole={userRole} />;
+      
+      case 'operator-buckets':
+        return <SupervisorOperatorBuckets userRole={userRole} />;
+      
+      case 'smart-assignment':
+        return <SmartWorkAssignmentDashboard userRole={userRole} />;
+      
+      case 'operator-profile':
+        return <OperatorProfileAssignment userRole={userRole} />;
+      
+      case 'sequential-workflow':
+        return <SequentialWorkflowAssignment userRole={userRole} />;
+      
       case 'mobile-test':
         return <MobileTest />;
       default:
@@ -361,6 +477,7 @@ const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
         }}
         currentView={currentView}
         onViewChange={setCurrentView}
+        onLogout={onLogout}
       >
         <ErrorBoundary>
           {renderMainContent()}
@@ -372,8 +489,44 @@ const Dashboard = ({ userRole = 'operator' }: { userRole?: string }) => {
 
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    // Check localStorage for authentication state on app initialization
+    return localStorage.getItem('tsa_auth_token') === 'authenticated';
+  });
+  const [userRole, setUserRole] = useState<string>(() => {
+    // Restore user role from localStorage
+    return localStorage.getItem('tsa_user_role') || '';
+  });
+
+  // Validate session on app initialization - temporarily disabled due to Firebase issues
+  useEffect(() => {
+    const validateSession = async () => {
+      const storedToken = localStorage.getItem('tsa_auth_token');
+      const storedRole = localStorage.getItem('tsa_user_role');
+      const storedUsername = localStorage.getItem('tsa_username');
+      
+      if (storedToken === 'authenticated' && storedRole && storedUsername) {
+        try {
+          // TODO: Re-enable when Firebase connection is stable
+          // const result = await AuthService.validateSession(storedUsername, storedRole);
+          // if (!result.success) {
+          //   console.log('Session validation failed, logging out');
+          //   handleLogout();
+          // }
+          console.log('Session validation temporarily disabled - using localStorage only');
+        } catch (error) {
+          console.error('Session validation error:', error);
+          // Temporarily don't logout on validation errors
+          // handleLogout();
+        }
+      }
+    };
+
+    // Only validate if user appears to be authenticated
+    if (isAuthenticated && userRole) {
+      validateSession();
+    }
+  }, []);
 
   // Add keyboard shortcut for force reload (Ctrl+Shift+R or Cmd+Shift+R)
   useEffect(() => {
@@ -399,13 +552,23 @@ function App() {
     // Set role from Firebase authentication result
     setUserRole(role as 'operator' | 'supervisor' | 'management' | 'admin');
     setIsAuthenticated(true);
+    
+    // Persist authentication state to localStorage
+    localStorage.setItem('tsa_auth_token', 'authenticated');
+    localStorage.setItem('tsa_user_role', role);
+    localStorage.setItem('tsa_username', username);
   };
 
-  // Logout handler is defined for future use
-  // const handleLogout = () => {
-  //   setIsAuthenticated(false);
-  //   setUserRole('');
-  // };
+  // Logout handler
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setUserRole('');
+    
+    // Clear authentication state from localStorage
+    localStorage.removeItem('tsa_auth_token');
+    localStorage.removeItem('tsa_user_role');
+    localStorage.removeItem('tsa_username');
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -414,7 +577,7 @@ function App() {
           <LoginPage onLogin={handleLogin} />
         ) : (
           <Suspense fallback={<LoadingSpinner text="Loading dashboard..." />}>
-            <Dashboard userRole={userRole} />
+            <Dashboard userRole={userRole} onLogout={handleLogout} />
           </Suspense>
         )}
       </BrowserRouter>

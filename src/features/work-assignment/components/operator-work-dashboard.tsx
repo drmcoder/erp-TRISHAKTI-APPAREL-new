@@ -68,7 +68,7 @@ interface DashboardStats {
   activeAssignments: number;
 }
 
-export const OperatorWorkDashboard: React.FC<OperatorWorkDashboardProps> = ({
+const OperatorWorkDashboard: React.FC<OperatorWorkDashboardProps> = ({
   operatorId,
   operatorName,
   operatorSkills
@@ -584,3 +584,6 @@ export const OperatorWorkDashboard: React.FC<OperatorWorkDashboardProps> = ({
     </div>
   );
 };
+
+export default OperatorWorkDashboard;
+export { OperatorWorkDashboard };

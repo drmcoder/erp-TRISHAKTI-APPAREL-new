@@ -54,7 +54,7 @@ interface BreakTimer {
   isActive: boolean;
 }
 
-export const ProductionTimer: React.FC<ProductionTimerProps> = ({
+const ProductionTimer: React.FC<ProductionTimerProps> = ({
   workItemId,
   operatorId,
   workItem,
@@ -566,3 +566,6 @@ export const ProductionTimer: React.FC<ProductionTimerProps> = ({
     </div>
   );
 };
+
+export default ProductionTimer;
+export { ProductionTimer };

@@ -18,7 +18,15 @@ import {
   ComputerDesktopIcon,
   DocumentTextIcon,
   PlayIcon,
-  TagIcon
+  TagIcon,
+  WrenchIcon,
+  AdjustmentsHorizontalIcon,
+  DocumentChartBarIcon,
+  UserIcon,
+  HandRaisedIcon,
+  RectangleStackIcon,
+  EyeIcon,
+  ArrowsUpDownIcon
 } from '@heroicons/react/24/outline';
 import { cn } from '../../lib/utils';
 
@@ -31,12 +39,14 @@ interface MobileFriendlyLayoutProps {
   };
   currentView?: string;
   onViewChange?: (view: string) => void;
+  onLogout?: () => void;
 }
 
 const navigationItems = {
   operator: [
     { icon: HomeIcon, label: 'Dashboard', href: '/operator', id: 'dashboard' },
-    { icon: ClipboardDocumentListIcon, label: 'Self Assignment', href: '/operator/self-assign', id: 'self-assignment' },
+    { icon: PlayIcon, label: 'My Work', href: '/operator/my-work', id: 'my-work' },
+    { icon: UserIcon, label: 'Pick Work', href: '/operator/self-assign', id: 'self-assign' },
     { icon: PlayIcon, label: 'Production Timer', href: '/operator/timer', id: 'timer' },
     { icon: QrCodeIcon, label: 'Barcode Scanner', href: '/operator/scanner', id: 'barcode-scanner' },
     { icon: ChartBarIcon, label: 'My Earnings', href: '/operator/earnings', id: 'earnings' },
@@ -45,32 +55,48 @@ const navigationItems = {
   supervisor: [
     { icon: HomeIcon, label: 'Dashboard', href: '/supervisor', id: 'dashboard' },
     { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/supervisor/complete-wip', id: 'complete-wip-entry' },
+    
+    // ASSIGNMENT SYSTEMS
+    { icon: AdjustmentsHorizontalIcon, label: '🧠 Smart Assignment', href: '/supervisor/smart', id: 'smart-assignment' },
+    { icon: HandRaisedIcon, label: '🤏 Drag & Drop', href: '/supervisor/drag-drop', id: 'drag-drop-assignment' },
+    { icon: RectangleStackIcon, label: '📋 Kanban Assign', href: '/supervisor/kanban', id: 'kanban-assignment' },
+    { icon: ArrowsUpDownIcon, label: '🔄 Sequential Workflow', href: '/supervisor/workflow', id: 'sequential-workflow' },
+    { icon: EyeIcon, label: '👥 Operator Buckets', href: '/supervisor/buckets', id: 'operator-buckets' },
+    { icon: UserIcon, label: '👤 Operator Profile', href: '/supervisor/profile', id: 'operator-profile' },
+    
+    // EXISTING FEATURES
+    { icon: CubeIcon, label: 'Bundle Assignments', href: '/supervisor/bundle-assignments', id: 'bundle-assignments' },
     { icon: UserGroupIcon, label: 'Work Assignment', href: '/supervisor/assignments', id: 'work-assignment' },
+    { icon: WrenchIcon, label: 'Parts Issues', href: '/supervisor/parts-issues', id: 'parts-issues' },
     { icon: CubeIcon, label: 'Bundle Management', href: '/supervisor/bundles', id: 'bundles' },
     { icon: UserGroupIcon, label: 'Operator Management', href: '/supervisor/operators', id: 'operators' },
     { icon: ComputerDesktopIcon, label: 'Live Dashboard', href: '/supervisor/live', id: 'live-dashboard' },
     { icon: QrCodeIcon, label: 'Barcode Scanner', href: '/supervisor/scanner', id: 'barcode-scanner' },
     { icon: TagIcon, label: 'Label Generator', href: '/supervisor/labels', id: 'label-generator' },
+    { icon: DocumentTextIcon, label: 'Sewing Templates', href: '/supervisor/sewing-templates', id: 'sewing-templates' },
+    { icon: DocumentChartBarIcon, label: 'Bundle Analytics', href: '/supervisor/bundle-analytics', id: 'bundle-analytics' },
     { icon: ChartBarIcon, label: 'Analytics', href: '/supervisor/analytics', id: 'analytics' },
-    { icon: CogIcon, label: 'Quality Control', href: '/supervisor/quality', id: 'quality' },
-    { icon: DocumentTextIcon, label: 'Templates', href: '/supervisor/templates', id: 'templates' },
-    { icon: DocumentTextIcon, label: 'Sewing Templates', href: '/supervisor/sewing-templates', id: 'sewing-templates' }
+    { icon: CogIcon, label: 'Quality Control', href: '/supervisor/quality', id: 'quality' }
   ],
   management: [
     { icon: HomeIcon, label: 'Dashboard', href: '/management', id: 'dashboard' },
     { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/management/complete-wip', id: 'complete-wip-entry' },
+    { icon: DocumentChartBarIcon, label: 'Bundle Analytics', href: '/management/bundle-analytics', id: 'bundle-analytics' },
     { icon: CubeIcon, label: 'Production Lots', href: '/management/production-lots', id: 'production-lots' },
     { icon: CubeIcon, label: 'Cutting Droplet', href: '/management/cutting', id: 'cutting-droplet' },
     { icon: CogIcon, label: 'Pricing Manager', href: '/management/pricing', id: 'pricing-manager' },
     { icon: ComputerDesktopIcon, label: 'Live Dashboard', href: '/management/live', id: 'live-dashboard' },
     { icon: TvIcon, label: 'TV Dashboard', href: '/management/tv', id: 'tv-dashboard' },
     { icon: ChartBarIcon, label: 'Analytics', href: '/management/analytics', id: 'analytics' },
-    { icon: UserGroupIcon, label: 'Users', href: '/management/users', id: 'operators' },
-    { icon: DocumentTextIcon, label: 'Templates', href: '/management/templates', id: 'templates' }
+    { icon: UserGroupIcon, label: 'Users', href: '/management/users', id: 'operators' }
   ],
   admin: [
     { icon: HomeIcon, label: 'Dashboard', href: '/admin', id: 'dashboard' },
     { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/admin/complete-wip', id: 'complete-wip-entry' },
+    { icon: AdjustmentsHorizontalIcon, label: 'Smart Assignment', href: '/admin/multi-assignment', id: 'multi-assignment' },
+    { icon: CubeIcon, label: 'Bundle Assignments', href: '/admin/bundle-assignments', id: 'bundle-assignments' },
+    { icon: WrenchIcon, label: 'Parts Issues', href: '/admin/parts-issues', id: 'parts-issues' },
+    { icon: DocumentChartBarIcon, label: 'Bundle Analytics', href: '/admin/bundle-analytics', id: 'bundle-analytics' },
     { icon: CubeIcon, label: 'Enhanced Operator', href: '/admin/enhanced-operator', id: 'enhanced-operator' },
     { icon: UserCircleIcon, label: 'Piece Tracker', href: '/admin/piece-tracker', id: 'piece-tracker' },
     { icon: CubeIcon, label: 'Bundle Assignment', href: '/admin/bundle-assignment', id: 'bundle-assignment' },
@@ -78,6 +104,7 @@ const navigationItems = {
     { icon: TvIcon, label: 'TV Dashboard', href: '/admin/tv', id: 'tv-dashboard' },
     { icon: QrCodeIcon, label: 'Barcode Scanner', href: '/admin/scanner', id: 'barcode-scanner' },
     { icon: TagIcon, label: 'Label Generator', href: '/admin/labels', id: 'label-generator' },
+    { icon: DocumentTextIcon, label: 'Sewing Templates', href: '/admin/sewing-templates', id: 'sewing-templates' },
     { icon: ChartBarIcon, label: 'Analytics', href: '/admin/analytics', id: 'analytics' },
     { icon: UserGroupIcon, label: 'Users', href: '/admin/users', id: 'operators' },
     { icon: CogIcon, label: 'Settings', href: '/admin/settings', id: 'settings' }
@@ -88,7 +115,8 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
   children,
   currentUser = { name: 'User', role: 'operator' },
   currentView = 'dashboard',
-  onViewChange
+  onViewChange,
+  onLogout
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeItem, setActiveItem] = useState(currentView);
@@ -162,7 +190,7 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
       <div
         id="mobile-sidebar"
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 flex flex-col",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
           "lg:w-64"
         )}
@@ -208,7 +236,7 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto min-h-0">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
@@ -246,6 +274,18 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-200">
+          {onLogout && (
+            <button
+              onClick={() => {
+                if (window.confirm('Are you sure you want to logout?')) {
+                  onLogout();
+                }
+              }}
+              className="w-full mb-3 px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors border border-red-200"
+            >
+              Logout
+            </button>
+          )}
           <div className="text-xs text-gray-500 text-center">
             TSA ERP System v2.0
             <br />
