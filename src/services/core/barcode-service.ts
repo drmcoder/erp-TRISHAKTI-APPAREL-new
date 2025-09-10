@@ -287,7 +287,7 @@ class BarcodeService {
       const config = { ...this.printerConfig, ...printerConfig };
       const labelHTML = this.generateLabelHTML(label, 'thermal');
       
-      if (window.print && document) {
+      if (typeof window.print === 'function' && document) {
         // Create a new window for printing
         const printWindow = window.open('', '_blank', 'width=400,height=300');
         if (!printWindow) {

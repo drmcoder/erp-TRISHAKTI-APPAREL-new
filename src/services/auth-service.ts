@@ -41,8 +41,11 @@ export class AuthService {
   // Find user by username across all user collections
   static async findUser(username: string): Promise<AuthServiceResponse<User>> {
     try {
+      // Normalize username to lowercase for case-insensitive lookup
+      const normalizedUsername = username.toLowerCase();
+      
       // Check in operators collection
-      const operatorsSnapshot = await getDoc(doc(db, COLLECTIONS.OPERATORS, username));
+      const operatorsSnapshot = await getDoc(doc(db, COLLECTIONS.OPERATORS, normalizedUsername));
       if (operatorsSnapshot.exists()) {
         return {
           success: true,
@@ -51,7 +54,7 @@ export class AuthService {
       }
 
       // Check in supervisors collection
-      const supervisorsSnapshot = await getDoc(doc(db, COLLECTIONS.SUPERVISORS, username));
+      const supervisorsSnapshot = await getDoc(doc(db, COLLECTIONS.SUPERVISORS, normalizedUsername));
       if (supervisorsSnapshot.exists()) {
         return {
           success: true,
@@ -60,7 +63,7 @@ export class AuthService {
       }
 
       // Check in management collection
-      const managementSnapshot = await getDoc(doc(db, COLLECTIONS.MANAGEMENT, username));
+      const managementSnapshot = await getDoc(doc(db, COLLECTIONS.MANAGEMENT, normalizedUsername));
       if (managementSnapshot.exists()) {
         return {
           success: true,

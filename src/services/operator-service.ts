@@ -9,9 +9,9 @@ import type {
   OperatorStatus,
   OperatorActivity,
   OperatorStatistics
-} from '@/types/operator-types';
-import { MACHINE_TYPES } from '@/types/operator-types';
-import { safeOperator, safeArray } from '@/utils/null-safety';
+} from '../types/operator-types';
+import { MACHINE_TYPES } from '../types/operator-types';
+import { safeOperator, safeArray } from '../utils/null-safety';
 import { 
   doc, 
   writeBatch, 

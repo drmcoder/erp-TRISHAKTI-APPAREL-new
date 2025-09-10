@@ -99,8 +99,8 @@ export async function setupFirebaseUsers() {
         });
       }
       
-      // Save to Firestore
-      await setDoc(doc(db, collection, userData.username), {
+      // Save to Firestore with normalized username as document ID
+      await setDoc(doc(db, collection, userData.username.toLowerCase()), {
         ...userDoc,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()

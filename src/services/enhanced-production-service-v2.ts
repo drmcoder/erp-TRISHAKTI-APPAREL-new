@@ -103,13 +103,14 @@ class EnhancedProductionServiceV2 {
 
 const enhancedProductionService = new EnhancedProductionServiceV2();
 
-// Export everything explicitly at the end
-export { 
+// Export types and service
+export type { 
   CuttingColorSize, 
   CuttingDroplet, 
   ProductionBundle, 
-  BundleProcessStep, 
-  enhancedProductionService 
+  BundleProcessStep
 };
+
+export { enhancedProductionService };
 
 export default enhancedProductionService;

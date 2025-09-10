@@ -2,7 +2,7 @@
 // Comprehensive checks before production deployment
 
 import { ENV_CONFIG } from '../config/environment';
-import { firebaseTestService, FirebaseTestResult } from './firebase-test';
+import { firebaseTestService, type FirebaseTestResult } from './firebase-test';
 
 export interface ChecklistItem {
   id: string;

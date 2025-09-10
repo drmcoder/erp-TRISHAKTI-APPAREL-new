@@ -1,13 +1,43 @@
 // AI Recommendation Engine for Work Assignment
 // Intelligent work assignment recommendations based on operator skills, performance, and workload
 
-import { 
-  WorkItem, 
-  OperatorSummary, 
-  AssignmentRecommendation,
-  WorkloadAnalysis,
-  SkillMatchScore 
-} from '../types';
+import type { WorkItem } from '../types';
+
+// Define missing types locally
+interface OperatorSummary {
+  id: string;
+  name: string;
+  skillLevel: string;
+  machineTypes: string[];
+  primaryMachine: string;
+  specializations: string[];
+  efficiency: number;
+  qualityScore: number;
+  currentWorkload: number;
+  currentStatus: 'available' | 'working' | 'break' | 'offline';
+  currentWork: number;
+  maxConcurrentWork: number;
+  totalWorkingDays: number;
+}
+
+interface AssignmentRecommendation {
+  operatorId: string;
+  confidenceScore: number;
+  reasoning: string[];
+}
+
+interface WorkloadAnalysis {
+  currentLoad: number;
+  capacity: number;
+  efficiency: number;
+}
+
+interface SkillMatchScore {
+  totalScore: number;
+  skillMatch: number;
+  experienceMatch: number;
+  machineMatch: number;
+}
 
 export interface RecommendationCriteria {
   workItemId: string;
@@ -162,7 +192,7 @@ export class AIRecommendationEngine {
 
     // Specialization match
     if (operator.specializations) {
-      const hasRelevantSpecialization = operator.specializations.some(spec =>
+      const hasRelevantSpecialization = operator.specializations.some((spec: string) =>
         criteria.requiredSkills.includes(spec)
       );
       if (hasRelevantSpecialization) {
@@ -207,7 +237,7 @@ export class AIRecommendationEngine {
   // Calculate availability score based on current status
   private calculateAvailabilityScore(operator: OperatorSummary): number {
     switch (operator.currentStatus) {
-      case 'idle':
+      case 'available':
         return 100;
       case 'working':
         // Check workload - if below capacity, can take more work
@@ -290,7 +320,7 @@ export class AIRecommendationEngine {
     }
 
     // Availability reasons
-    if (operator.currentStatus === 'idle') {
+    if (operator.currentStatus === 'available') {
       matchReasons.push('Currently available');
     } else if (operator.currentStatus === 'working') {
       if (scores.workloadScore > 60) {

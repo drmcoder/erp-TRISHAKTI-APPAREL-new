@@ -219,33 +219,28 @@ export class SupervisorService extends EnhancedBaseFirebaseService<Supervisor> {
       const fromTeamMembers = (fromSupervisor.teamMembers || []).filter(id => !operatorIds.includes(id));
       const toTeamMembers = [...(toSupervisor.teamMembers || []), ...operatorIds];
 
-      // Update both supervisors
-      const updateOperations = [
-        {
-          type: 'update' as const,
-          collection: this.collectionName,
-          id: fromSupervisorId,
-          data: {
-            teamMembers: fromTeamMembers,
-            managedOperatorCount: fromTeamMembers.length,
-          }
-        },
-        {
-          type: 'update' as const,
-          collection: this.collectionName,
-          id: toSupervisorId,
-          data: {
-            teamMembers: toTeamMembers,
-            managedOperatorCount: toTeamMembers.length,
-          }
-        }
-      ];
+      // Update both supervisors using individual updates instead of transaction
+      const fromUpdate = await this.update(fromSupervisorId, {
+        teamMembers: fromTeamMembers,
+        managedOperatorCount: fromTeamMembers.length,
+      }, userId);
 
-      const updateResult = await this.transaction(updateOperations, userId);
-      if (!updateResult.success) {
+      if (!fromUpdate.success) {
         return {
           success: false,
-          error: 'Failed to update supervisor assignments',
+          error: 'Failed to update source supervisor',
+        };
+      }
+
+      const toUpdate = await this.update(toSupervisorId, {
+        teamMembers: toTeamMembers,
+        managedOperatorCount: toTeamMembers.length,
+      }, userId);
+
+      if (!toUpdate.success) {
+        return {
+          success: false,
+          error: 'Failed to update target supervisor',
         };
       }
 

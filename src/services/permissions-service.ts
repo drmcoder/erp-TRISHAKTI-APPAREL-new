@@ -334,7 +334,7 @@ export class PermissionsService {
    * Check role hierarchy
    */
   static isHigherRole(userRole: string, targetRole: string): boolean {
-    const roleHierarchy = {
+    const roleHierarchy: Record<string, number> = {
       admin: 4,
       management: 3,
       supervisor: 2,

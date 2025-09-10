@@ -12,6 +12,7 @@ import {
 import { db, COLLECTIONS } from '../config/firebase';
 
 interface WalletBalance {
+  id?: string;
   operatorId: string;
   availableAmount: number;
   heldAmount: number;

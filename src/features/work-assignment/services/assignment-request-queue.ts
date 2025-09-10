@@ -4,6 +4,10 @@
 import { 
   collection, 
   doc, 
+  addDoc,
+  getDoc,
+  getDocs,
+  setDoc,
   query, 
   where, 
   orderBy, 
@@ -13,7 +17,18 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
-import type { AssignmentRequest, WorkItem, OperatorSummary } from '../types';
+import type { AssignmentRequest, WorkItem } from '../types';
+
+// Define OperatorSummary locally
+interface OperatorSummary {
+  id: string;
+  name: string;
+  skillLevel: string;
+  machineTypes: string[];
+  efficiency: number;
+  qualityScore: number;
+  currentWorkload: number;
+}
 import { atomicOperationsService } from './atomic-operations';
 import { aiRecommendationEngine } from './ai-recommendation-engine';
 
@@ -97,7 +112,8 @@ export class AssignmentRequestQueue {
 
       // Add to Firestore queue collection
       const queueRef = collection(db, 'assignment_queue');
-      await doc(queueRef).set({
+      const docRef = doc(queueRef);
+      await setDoc(docRef, {
         ...queuedRequest,
         enqueuedAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -167,7 +183,7 @@ export class AssignmentRequestQueue {
   }> {
     try {
       const requestRef = doc(db, 'assignment_queue', requestId);
-      const requestDoc = await requestRef.get();
+      const requestDoc = await getDoc(requestRef);
 
       if (!requestDoc.exists()) {
         return {
@@ -201,11 +217,10 @@ export class AssignmentRequestQueue {
       const queueRef = collection(db, 'assignment_queue');
       
       const [pendingSnapshot, processingSnapshot, completedSnapshot, failedSnapshot] = await Promise.all([
-        query(queueRef, where('processingStatus', '==', 'pending')).get(),
-        query(queueRef, where('processingStatus', '==', 'processing')).get(),
-        query(queueRef, where('processingStatus', '==', 'completed')).get(),
-        query(queueRef, where('processingStatus', '==', 'failed')).get()
-      ]);
+        getDocs(query(queueRef, where('processingStatus', '==', 'pending'))),
+        getDocs(query(queueRef, where('processingStatus', '==', 'processing'))),
+        getDocs(query(queueRef, where('processingStatus', '==', 'completed'))),
+        getDocs(query(queueRef, where('processingStatus', '==', 'failed')))      ]);
 
       const totalPending = pendingSnapshot.size;
       const totalProcessing = processingSnapshot.size;
@@ -300,7 +315,7 @@ export class AssignmentRequestQueue {
         orderBy('queuePosition', 'asc')
       );
 
-      const snapshot = await pendingQuery.get();
+      const snapshot = await getDocs(pendingQuery);
       const pendingRequests = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -429,7 +444,7 @@ export class AssignmentRequestQueue {
   private async calculateQueuePosition(request: AssignmentRequest): Promise<number> {
     const queueRef = collection(db, 'assignment_queue');
     const pendingQuery = query(queueRef, where('processingStatus', '==', 'pending'));
-    const snapshot = await pendingQuery.get();
+    const snapshot = await getDocs(pendingQuery);
     
     return snapshot.size + 1;
   }
@@ -482,9 +497,8 @@ export class AssignmentRequestQueue {
   ): Promise<[WorkItem | null, OperatorSummary | null]> {
     try {
       const [workItemDoc, operatorDoc] = await Promise.all([
-        doc(db, 'workItems', workItemId).get(),
-        doc(db, 'operators', operatorId).get()
-      ]);
+        getDoc(doc(db, 'workItems', workItemId)),
+        getDoc(doc(db, 'operators', operatorId))      ]);
 
       const workItem = workItemDoc.exists() ? 
         { id: workItemDoc.id, ...workItemDoc.data() } as WorkItem : null;

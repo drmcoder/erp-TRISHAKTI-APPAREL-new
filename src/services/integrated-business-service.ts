@@ -471,7 +471,7 @@ export class IntegratedBusinessService {
       
       // Get real supervisor data from Firebase
       const supervisorsRef = collection(db, 'supervisors');
-      const supervisorQuery = query(supervisorsRef, where('username', '==', supervisorId), limit(1));
+      const supervisorQuery = query(supervisorsRef, where('username', '==', supervisorId.toLowerCase()), limit(1));
       const supervisorSnapshot = await getDocs(supervisorQuery);
       
       let supervisor: any;

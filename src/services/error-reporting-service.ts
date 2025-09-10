@@ -356,7 +356,7 @@ class ErrorReportingService {
           unit: 'ms',
           timestamp: new Date(),
           tags: {
-            url: typeof args[0] === 'string' ? args[0] : args[0].url,
+            url: typeof args[0] === 'string' ? args[0] : (args[0] as any).url || args[0].toString(),
             method: args[1]?.method || 'GET',
             status: response.status.toString(),
           },
@@ -365,7 +365,7 @@ class ErrorReportingService {
         // Track failed requests
         if (!response.ok) {
           this.trackNetworkError(
-            typeof args[0] === 'string' ? args[0] : args[0].url,
+            typeof args[0] === 'string' ? args[0] : (args[0] as any).url || args[0].toString(),
             response.status,
             args[1]?.method || 'GET'
           );
@@ -382,14 +382,14 @@ class ErrorReportingService {
           unit: 'ms',
           timestamp: new Date(),
           tags: {
-            url: typeof args[0] === 'string' ? args[0] : args[0].url,
+            url: typeof args[0] === 'string' ? args[0] : (args[0] as any).url || args[0].toString(),
             method: args[1]?.method || 'GET',
             status: 'error',
           },
         });
 
         this.trackNetworkError(
-          typeof args[0] === 'string' ? args[0] : args[0].url,
+          typeof args[0] === 'string' ? args[0] : (args[0] as any).url || args[0].toString(),
           0,
           args[1]?.method || 'GET',
           error as Error
@@ -583,16 +583,17 @@ class ErrorReportingService {
   }
 
   private getPerformanceSnapshot() {
-    if (!performance.memory) return {};
+    const perf = performance as any;
+    if (!perf.memory) return {};
 
     return {
       memory: {
-        used: (performance as any).memory.usedJSHeapSize,
-        total: (performance as any).memory.totalJSHeapSize,
-        limit: (performance as any).memory.jsHeapSizeLimit,
+        used: perf.memory.usedJSHeapSize,
+        total: perf.memory.totalJSHeapSize,
+        limit: perf.memory.jsHeapSizeLimit,
       },
-      timing: performance.timing,
-      navigation: performance.navigation,
+      timing: perf.timing,
+      navigation: perf.navigation,
     };
   }
 

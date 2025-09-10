@@ -47,7 +47,7 @@ export class WorkItemService extends EnhancedBaseFirebaseService<WorkItem> {
 
   // Get work items assigned to operator
   async getAssignedToOperator(operatorId: string, options?: QueryOptions): Promise<ServiceResponse<WorkItem[]>> {
-    return this.getWhere('operatorId', '==', operatorId, {
+    return this.query({
       ...options,
       where: [
         { field: 'operatorId', operator: '==', value: operatorId },
@@ -365,12 +365,12 @@ export class WorkItemService extends EnhancedBaseFirebaseService<WorkItem> {
     onHold: number;
   }>> {
     try {
-      const whereConditions = operatorId 
+      const whereConditions: Array<{field: string; operator: string; value: any}> = operatorId 
         ? [{ field: 'operatorId', operator: '==', value: operatorId }]
         : [];
 
       const result = await this.query({
-        where: whereConditions,
+        where: whereConditions as any,
         limit: 10000,
       });
 

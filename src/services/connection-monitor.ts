@@ -330,7 +330,7 @@ class ConnectionMonitorService {
       const sessions = snapshot.val() || {};
       const onlineUsers = Object.entries(sessions)
         .filter(([_, status]: [string, any]) => status?.status === 'online')
-        .map(([userId, status]) => ({ userId, ...status }));
+        .map(([userId, status]) => ({ userId, ...(status as object) }));
       
       callback(onlineUsers);
     });

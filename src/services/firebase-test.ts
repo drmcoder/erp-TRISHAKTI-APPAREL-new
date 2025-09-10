@@ -5,6 +5,12 @@ import { db, rtdb } from '../config/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ref, set, get } from 'firebase/database';
 
+export interface FirebaseTestResult {
+  name: string;
+  status: 'success' | 'error' | 'warning';
+  message: string;
+}
+
 export class FirebaseTester {
   // Test Firestore connection and write/read
   static async testFirestore(): Promise<boolean> {
@@ -114,7 +120,7 @@ export class FirebaseTester {
     }
   }
   // Run all tests
-  static async runAllTests(): Promise<void> {
+  static async runAllTests(): Promise<FirebaseTestResult[]> {
     console.log('🚀 Starting TSA Production System Database Tests...');
     console.log('');
     
@@ -156,6 +162,13 @@ export class FirebaseTester {
       console.log('   3. Check database rules permissions');
       console.log('   4. Ensure environment variables are set correctly');
     }
+
+    // Return results in expected format
+    return [
+      { name: 'firestore', status: results.firestore ? 'success' : 'error', message: results.firestore ? 'Firestore connectivity passed' : 'Firestore connectivity failed' },
+      { name: 'realtime', status: results.realtime ? 'success' : 'error', message: results.realtime ? 'Realtime DB connectivity passed' : 'Realtime DB connectivity failed' },
+      { name: 'production', status: results.production ? 'success' : 'error', message: results.production ? 'Production flow test passed' : 'Production flow test failed' }
+    ];
   }
 
   // Clean up test data
@@ -176,3 +189,6 @@ export class FirebaseTester {
 
 // Export for use in components or manual testing
 export default FirebaseTester;
+
+// Export service instance for compatibility
+export const firebaseTestService = FirebaseTester;

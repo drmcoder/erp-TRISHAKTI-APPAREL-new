@@ -20,8 +20,7 @@ import type {
   ProductionBundle,
   PartsComplaint,
   PartsReplacementRequest,
-  OperatorEarnings,
-  BundleTrackingData 
+  OperatorEarnings
 } from '../shared/types/bundle-types';
 
 // Service response interface
@@ -29,6 +28,8 @@ interface ServiceResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+  message?: string;
+  code?: string;
 }
 
 // Assignment result interface
@@ -176,9 +177,7 @@ export class EnhancedBundleService {
         reportedAt: new Date(),
         status: 'reported',
         replacedParts: [],
-        resolution: 'parts_replaced',
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
+        resolution: 'parts_replaced'
       };
       
       const complaintDoc = await addDoc(complaintsRef, newComplaint);

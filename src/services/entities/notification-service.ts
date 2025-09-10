@@ -46,11 +46,11 @@ export class NotificationService extends EnhancedBaseFirebaseService<Notificatio
     options?: QueryOptions & { unreadOnly?: boolean }
   ): Promise<ServiceResponse<Notification[]>> {
     const whereConditions = [
-      { field: 'recipientId', operator: '==', value: userId }
+      { field: 'recipientId', operator: '==' as any, value: userId }
     ];
 
     if (options?.unreadOnly) {
-      whereConditions.push({ field: 'read', operator: '==', value: false });
+      whereConditions.push({ field: 'read', operator: '==' as any, value: false as any });
     }
 
     return this.query({

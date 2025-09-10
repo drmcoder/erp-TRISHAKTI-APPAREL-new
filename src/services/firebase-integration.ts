@@ -288,7 +288,15 @@ export class WorkAssignmentIntegrationService {
 
         // Run business logic validation
         const workAssignmentRule = operatorBusinessLogic.validateWorkAssignment(
-          operator, 
+          {
+            ...operator,
+            machineTypes: operator.machineTypes || [],
+            skillLevel: operator.skillLevel || 'beginner',
+            currentAssignments: operator.currentAssignments || [],
+            averageEfficiency: operator.averageEfficiency || 0,
+            qualityScore: operator.qualityScore || 0,
+            maxConcurrentWork: operator.maxConcurrentWork || 3
+          }, 
           {
             machineType: workItem?.machineType,
             estimatedDuration: workItem?.estimatedDuration || 30,
