@@ -103,6 +103,7 @@ const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ adminId }) =>
         name: formData.name,
         role: formData.role,
         department: formData.department,
+        permissions: [], // Will be set by permissionService.setUserRole
         active: true,
         settings: {
           theme: 'system',

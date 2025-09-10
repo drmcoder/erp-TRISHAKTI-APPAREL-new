@@ -14,7 +14,7 @@ import { BarcodeScanner } from './components/barcode/barcode-scanner';
 import { BundleLabelGenerator } from './components/barcode/bundle-label-generator';
 import { ThreeStepWipEntry } from './components/wip/three-step-wip-entry';
 import { AuthService } from './services/auth-service';
-import { notify } from './utils/notification-utils';
+import { notify } from '@/shared/utils/notification-utils';
 
 // Lazy loaded components - split into logical chunks
 const OperatorDashboard = lazy(() => 
@@ -264,6 +264,17 @@ const BundleAssignmentDashboard = lazy(() =>
         level: 'error'
       });
       return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Bundle Assignment Dashboard temporarily unavailable') };
+    })
+);
+const OldAssignSystem = lazy(() => 
+  import('./features/work-assignment/components/old-assign-system')
+    .then(m => ({ default: m.default }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'OldAssignSystem', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Old Assign System temporarily unavailable') };
     })
 );
 const OperatorWorkDashboard = lazy(() => 
@@ -617,6 +628,8 @@ const Dashboard = ({ userRole = 'operator', userData, onLogout }: { userRole?: s
             operatorName="Current Operator"
           /> : 
           <AssignmentDashboard />;
+      case 'old-assign-system':
+        return <OldAssignSystem />;
       case 'bundles':
         return <BundleLifecycleManager mode="view" />;
       case 'analytics':
@@ -949,7 +962,7 @@ function App() {
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'R') {
         event.preventDefault();
         try {
-          const { CacheManager } = await import('./utils/cache-manager');
+          const { CacheManager } = await import('@/shared/utils/cache-manager');
           CacheManager.forceReload();
         } catch (error) {
           console.error('Failed to load cache manager:', error);

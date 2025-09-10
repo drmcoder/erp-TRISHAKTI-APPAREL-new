@@ -68,6 +68,7 @@ const navigationGroups = {
         { icon: RectangleStackIcon, label: 'Kanban', href: '/supervisor/kanban', id: 'kanban-assignment' },
         { icon: ArrowsUpDownIcon, label: 'Sequential', href: '/supervisor/workflow', id: 'sequential-workflow' },
         { icon: EyeIcon, label: 'Operator Buckets', href: '/supervisor/buckets', id: 'operator-buckets' },
+        { icon: UserGroupIcon, label: '🎨 Old Assign System', href: '/supervisor/old-assign', id: 'old-assign-system' },
       ]
     },
     {
