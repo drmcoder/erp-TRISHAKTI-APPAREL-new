@@ -231,7 +231,7 @@ const BundleAssignmentManager = lazy(() =>
 );
 const SewingTemplateManager = lazy(() => 
   import('./features/sewing-templates/components/sewing-template-manager')
-    .then(m => ({ default: m.SewingTemplateManager }))
+    .then(m => ({ default: m.default || m.SewingTemplateManager }))
     .catch(err => {
       errorReportingService.captureException(err, {
         tags: { component: 'SewingTemplateManager', type: 'dynamic-import' },

@@ -6,8 +6,9 @@ import { Badge } from '@/shared/components/ui/Badge';
 import { Card } from '@/shared/components/ui/Card';
 import type { SewingTemplate } from '@/shared/types/sewing-template-types';
 import { sewingTemplateService } from '@/services/sewing-template-service';
-import { SewingTemplateForm } from './sewing-template-form';
-import { SewingTemplateView } from './sewing-template-view';
+// Temporarily disabled to fix loading issue
+// import { SewingTemplateForm } from './sewing-template-form';
+// import { SewingTemplateView } from './sewing-template-view';
 import { useAuthStore } from '@/app/store/auth-store';
 import { safeFormatDate } from '@/utils/nepali-date';
 
