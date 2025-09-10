@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
+import { useI18n } from '@/shared/hooks/useI18n';
 import { 
   UserIcon,
   ClockIcon,
@@ -46,11 +47,17 @@ interface DragState {
 export const DragDropAssignmentDashboard: React.FC<DragDropAssignmentDashboardProps> = ({
   userRole
 }) => {
+  const { currentLocale } = useI18n();
   const [availableOperations, setAvailableOperations] = useState<(BundleOperation & { bundleInfo: ProductionBundle })[]>([]);
   const [availableOperators, setAvailableOperators] = useState<OperatorProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignmentMode, setAssignmentMode] = useState<'drag' | 'tap'>('tap'); // Mobile-first: tap mode default
   const [selectedOperation, setSelectedOperation] = useState<(BundleOperation & { bundleInfo: ProductionBundle }) | null>(null);
+
+  // Helper function to get operation name in current language
+  const getOperationName = (operation: BundleOperation) => {
+    return currentLocale === 'ne' ? (operation.nameNepali || operation.name) : operation.name;
+  };
   
   // Drag state
   const [dragState, setDragState] = useState<DragState>({
@@ -319,7 +326,7 @@ export const DragDropAssignmentDashboard: React.FC<DragDropAssignmentDashboardPr
               <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
               <div>
                 <p className="font-semibold text-green-900">Selected Operation:</p>
-                <p className="text-green-800">{selectedOperation.name} - {selectedOperation.bundleInfo.bundleNumber}</p>
+                <p className="text-green-800">{getOperationName(selectedOperation)} - {selectedOperation.bundleInfo.bundleNumber}</p>
               </div>
             </div>
             <Button
@@ -368,8 +375,7 @@ export const DragDropAssignmentDashboard: React.FC<DragDropAssignmentDashboardPr
                       <BoltIcon className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{operation.name}</h3>
-                      <p className="text-sm text-gray-600">{operation.nameNepali}</p>
+                      <h3 className="font-semibold text-gray-900">{getOperationName(operation)}</h3>
                     </div>
                   </div>
                   {assignmentMode === 'drag' && (
