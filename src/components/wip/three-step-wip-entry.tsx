@@ -91,6 +91,9 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   const [newRoll, setNewRoll] = useState({ rollNumber: '', color: '', weight: '', layerCount: '' });
   const [rollErrors, setRollErrors] = useState<string[]>([]);
 
+  // Derived value for current article
+  const currentArticle = formData.articles[currentArticleIndex] || formData.articles[0];
+
   // Load available templates when component mounts (needed for Step 1)
   React.useEffect(() => {
     loadTemplates();
