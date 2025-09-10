@@ -14,6 +14,7 @@ import { BarcodeScanner } from './components/barcode/barcode-scanner';
 import { BundleLabelGenerator } from './components/barcode/bundle-label-generator';
 import { ThreeStepWipEntry } from './components/wip/three-step-wip-entry';
 import { AuthService } from './services/auth-service';
+import { notify } from './utils/notification-utils';
 
 // Lazy loaded components - split into logical chunks
 const OperatorDashboard = lazy(() => 
@@ -121,6 +122,17 @@ const ProductionTimer = lazy(() =>
     .catch(err => {
       errorReportingService.captureException(err, {
         tags: { component: 'ProductionTimer', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Production Timer temporarily unavailable') };
+    })
+);
+const ProductionTimerWrapper = lazy(() => 
+  import('./components/production-timer-wrapper')
+    .then(m => ({ default: m.ProductionTimerWrapper }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'ProductionTimerWrapper', type: 'dynamic-import' },
         level: 'error'
       });
       return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Production Timer temporarily unavailable') };
@@ -461,7 +473,7 @@ const queryClient = new QueryClient({
 });
 
 // Login Component
-const LoginPage = ({ onLogin }: { onLogin: (username: string, role: string) => void }) => {
+const LoginPage = ({ onLogin }: { onLogin: (username: string, role: string, user?: any) => void }) => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -476,13 +488,13 @@ const LoginPage = ({ onLogin }: { onLogin: (username: string, role: string) => v
       });
       
       if (result.success && result.data) {
-        onLogin(result.data.username, result.data.role);
+        onLogin(result.data.username, result.data.role, result.data);
       } else {
-        alert(result.error || 'Login failed');
+        notify.error(result.error || 'Login failed', 'Authentication Failed');
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('Login failed. Please try again.');
+      notify.error('Login failed. Please try again.', 'Login Error');
     } finally {
       setIsLoading(false);
     }
@@ -566,21 +578,22 @@ const LoginPage = ({ onLogin }: { onLogin: (username: string, role: string) => v
 };
 
 // Production Dashboard Component with Role-Based Routing
-const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onLogout?: () => void }) => {
+const Dashboard = ({ userRole = 'operator', userData, onLogout }: { userRole?: string; userData?: any; onLogout?: () => void }) => {
   const [currentView, setCurrentView] = useState('dashboard');
   
-  // Sample IDs for demo - in production these would come from authentication
-  const getSampleId = (role: string) => {
-    switch (role) {
-      case 'operator': return 'op-maya-001';
-      case 'supervisor': return 'sup-john-001';
-      case 'manager': return 'mgr-admin-001';
-      default: return 'op-maya-001';
+  // Get real user ID from authenticated user data
+  const getUserId = () => {
+    // Use real user ID from authentication, fallback to username-based ID
+    if (userData?.id) {
+      return userData.id;
     }
+    // Fallback: create ID from username for backward compatibility
+    const storedUsername = localStorage.getItem('tsa_username');
+    return storedUsername || 'unknown-user';
   };
 
   const renderMainContent = () => {
-    const userId = getSampleId(userRole);
+    const userId = getUserId();
     
     switch (currentView) {
       case 'dashboard':
@@ -609,7 +622,7 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
       case 'analytics':
         return <ProductionDashboard />;
       case 'quality':
-        return <QualityManagementDashboard userRole={userRole} />;
+        return <QualityManagementDashboard userRole={userRole} userData={userData} />;
       case 'earnings':
         return <EarningsDashboard userRole={userRole} operatorId={userRole === 'operator' ? userId : undefined} />;
       case 'operators':
@@ -617,39 +630,20 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
       case 'self-assignment':
         return <SelfAssignmentInterface 
           operatorId={userId}
-          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current User'}
+          operatorName={userData?.name || 'Current User'}
           operatorSkills={{
-            skillLevel: 'intermediate',
-            machineTypes: ['sewing', 'overlock', 'cutting'],
-            primaryMachine: 'sewing',
-            specializations: ['precision-work', 'quality-control']
+            skillLevel: userData?.skillLevel || 'intermediate',
+            machineTypes: userData?.machineTypes || ['sewing', 'overlock', 'cutting'],
+            primaryMachine: userData?.primaryMachine || 'sewing',
+            specializations: userData?.specializations || ['precision-work', 'quality-control']
           }}
           maxConcurrentWork={3}
         />;
       case 'timer':
+        // ✅ FIXED: Dynamic work item retrieval instead of hardcoded data
         return <div className="p-8">
           <h2 className="text-2xl font-bold mb-4">Production Timer</h2>
-          <ProductionTimer 
-            workItemId="sample-work-item-001"
-            operatorId={userId}
-            workItem={{
-              id: "sample-work-item-001",
-              bundleId: "bundle-001",
-              workItemNumber: "WI-001",
-              machineType: "sewing",
-              operation: "Sample Production Task",
-              operationCode: "OP-001",
-              skillLevelRequired: "intermediate",
-              targetPieces: 50,
-              completedPieces: 0,
-              rejectedPieces: 0,
-              reworkPieces: 0,
-              assignedOperatorId: userId,
-              assignmentMethod: "supervisor_assigned",
-              estimatedDuration: 120, // 2 hours in minutes
-              status: "assigned"
-            } as WorkItem}
-          />
+          <ProductionTimerWrapper operatorId={userId} />
         </div>;
       
       // Complete 3-Step WIP Entry Workflow
@@ -685,8 +679,8 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
                     layerCount: roll.layerCount
                   })),
                   bundlePrefix: 'BND',
-                  createdBy: userRole === 'operator' ? 'Maya Patel' : 
-                            userRole === 'supervisor' ? 'John Smith' : 'Admin User'
+                  createdBy: userData?.name || (userRole === 'operator' ? 'Operator' : 
+                            userRole === 'supervisor' ? 'Supervisor' : 'Admin User')
                 };
                 
                 // Generate production bundles
@@ -703,24 +697,18 @@ const Dashboard = ({ userRole = 'operator', onLogout }: { userRole?: string; onL
                   const totalValue = bundles.reduce((sum, bundle) => sum + bundle.totalValue, 0);
                   const totalOperations = bundles.reduce((sum, bundle) => sum + bundle.operations.length, 0);
                   
-                  alert(`✅ Production Bundles Created Successfully!
-                  
-🎯 Batch: ${data.bundleNumber}
-📦 Bundles Generated: ${bundles.length}
-📋 Articles: ${data.articles.length} 
-🧵 Total Pieces: ${totalPieces}
-⚡ Total Operations: ${totalOperations}
-💰 Total Value: Rs. ${totalValue.toFixed(2)}
-
-Ready for supervisor assignment!`);
+                  notify.success(
+                    `🎯 Batch: ${data.bundleNumber}\n📦 Bundles: ${bundles.length} | Articles: ${data.articles.length}\n🧵 Pieces: ${totalPieces} | Operations: ${totalOperations}\n💰 Value: Rs. ${totalValue.toFixed(2)}\n\nReady for supervisor assignment!`,
+                    'Production Bundles Created Successfully!'
+                  );
                   
                 } else {
-                  alert(`❌ Failed to generate bundles: ${bundleResult.error}`);
+                  notify.error(`Failed to generate bundles: ${bundleResult.error}`, 'Bundle Generation Failed');
                 }
                 
               } catch (error) {
                 console.error('Bundle generation error:', error);
-                alert('❌ Failed to generate production bundles. Please try again.');
+                notify.error('Failed to generate production bundles. Please try again.', 'Bundle Generation Error');
               }
               
               setCurrentView('dashboard');
@@ -753,9 +741,9 @@ Ready for supervisor assignment!`);
           onScanSuccess={(result) => {
             console.log('📱 Barcode scan result:', result);
             if (result.success && result.data) {
-              alert(`Bundle Scanned!\nBundle: ${result.data.bundleNumber}\nLot: ${result.data.lotNumber}`);
+              notify.success(`Bundle: ${result.data.bundleNumber}\nLot: ${result.data.lotNumber}`, 'Bundle Scanned Successfully!');
             } else {
-              alert('Scan failed. Please try again.');
+              notify.error('Scan failed. Please try again.', 'Barcode Scan Failed');
             }
           }}
           onClose={() => setCurrentView('dashboard')}
@@ -793,13 +781,13 @@ Ready for supervisor assignment!`);
       case 'enhanced-operator':
         return <EnhancedOperatorDashboard 
           operatorId={userId}
-          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current Operator'}
+          operatorName={userData?.name || 'Current Operator'}
           machineTypes={['overlock', 'single_needle', 'flatlock']}
         />;
       case 'piece-tracker':
         return <OperatorPieceTracker 
           operatorId={userId}
-          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current Operator'}
+          operatorName={userData?.name || 'Current Operator'}
         />;
       case 'bundle-assignment':
         return <BundleAssignmentManager />;
@@ -808,13 +796,13 @@ Ready for supervisor assignment!`);
       case 'bundle-assignments':
         return <BundleAssignmentDashboard userRole={userRole} />;
       case 'my-work':
-        return <OperatorWorkDashboard operatorId={userId} operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current Operator'} />;
+        return <OperatorWorkDashboard operatorId={userId} operatorName={userData?.name || 'Current Operator'} />;
       
       // NEW ENHANCED FEATURES
       case 'self-assign':
         return <OperatorSelfAssignment 
           operatorId={userId}
-          operatorName={userRole === 'operator' ? 'Maya Patel' : 'Current Operator'}
+          operatorName={userData?.name || 'Current Operator'}
           operatorMachineType="overlock" // This would come from user profile in production
         />;
       
@@ -847,7 +835,7 @@ Ready for supervisor assignment!`);
         return <SimpleSequentialWorkflow userRole={userRole} />;
       
       case 'wip-manager':
-        return <WipEntryManager userRole={userRole} />;
+        return <WipEntryManager userRole={userRole} userData={userData} />;
       
       case 'mobile-test':
         return <MobileTest />;
@@ -878,8 +866,9 @@ Ready for supervisor assignment!`);
     >
       <MobileFriendlyLayout 
         currentUser={{
-          name: userRole === 'operator' ? 'Maya Patel' : 
-                userRole === 'supervisor' ? 'John Smith' : 'Admin User',
+          name: userData?.name || 
+                (userRole === 'operator' ? 'Operator' : 
+                 userRole === 'supervisor' ? 'Supervisor' : 'Admin'),
           role: userRole as 'operator' | 'supervisor' | 'management' | 'admin'
         }}
         currentView={currentView}
@@ -903,6 +892,11 @@ function App() {
   const [userRole, setUserRole] = useState<string>(() => {
     // Restore user role from localStorage
     return localStorage.getItem('tsa_user_role') || '';
+  });
+  const [userData, setUserData] = useState(() => {
+    // Restore user data from localStorage
+    const storedUserData = localStorage.getItem('tsa_user_data');
+    return storedUserData ? JSON.parse(storedUserData) : null;
   });
 
   // Initialize app with smart caching and data preloading
@@ -969,10 +963,16 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleLogin = (username: string, role: string) => {
+  const handleLogin = (username: string, role: string, user?: any) => {
     // Set role from Firebase authentication result
     setUserRole(role as 'operator' | 'supervisor' | 'management' | 'admin');
     setIsAuthenticated(true);
+    
+    // Store user data if provided
+    if (user) {
+      setUserData(user);
+      localStorage.setItem('tsa_user_data', JSON.stringify(user));
+    }
     
     // Persist authentication state to localStorage
     localStorage.setItem('tsa_auth_token', 'authenticated');
@@ -984,11 +984,13 @@ function App() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserRole('');
+    setUserData(null);
     
     // Clear authentication state from localStorage
     localStorage.removeItem('tsa_auth_token');
     localStorage.removeItem('tsa_user_role');
     localStorage.removeItem('tsa_username');
+    localStorage.removeItem('tsa_user_data');
   };
 
   return (
@@ -998,7 +1000,7 @@ function App() {
           <LoginPage onLogin={handleLogin} />
         ) : (
           <Suspense fallback={<LoadingSpinner text="Loading dashboard..." />}>
-            <Dashboard userRole={userRole} onLogout={handleLogout} />
+            <Dashboard userRole={userRole} userData={userData} onLogout={handleLogout} />
           </Suspense>
         )}
       </BrowserRouter>

@@ -6,6 +6,7 @@ import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { Card } from '@/shared/components/ui/Card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
+import { notify } from '@/utils/notification-utils';
 
 interface OperatorDashboardProps {
   operatorId: string;
@@ -115,12 +116,12 @@ export const OperatorDashboard: React.FC<OperatorDashboardProps> = ({ operatorId
         // Refresh data
         await loadOperatorData();
         await loadWorkRecommendations();
-        alert('Work assigned successfully!');
+        notify.success('Work assigned successfully!', 'Assignment Complete');
       } else {
-        alert(`Assignment failed: ${result.error}`);
+        notify.error(`Assignment failed: ${result.error}`, 'Assignment Failed');
       }
     } catch (err) {
-      alert('Error processing assignment');
+      notify.error('Error processing assignment', 'Processing Error');
     } finally {
       setLoading(false);
     }

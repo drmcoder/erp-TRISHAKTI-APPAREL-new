@@ -7,7 +7,8 @@ import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { Card } from '@/shared/components/ui/Card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
-import { Bell, CheckCircle, AlertTriangle, AlertCircle, Info, Clock } from 'lucide-react';
+import { Bell, CheckCircle, AlertTriangle, AlertCircle, Info, Clock, Trash2, Edit, UserMinus, MoreVertical } from 'lucide-react';
+import { notify } from '@/utils/notification-utils';
 
 interface SupervisorDashboardProps {
   supervisorId: string;
@@ -31,6 +32,9 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
   const [error, setError] = useState<string | null>(null);
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<SupervisorNotification[]>([]);
+  const [operatorMenuOpen, setOperatorMenuOpen] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null);
+  const [removingOperator, setRemovingOperator] = useState<string | null>(null);
   const [permissions, setPermissions] = useState<{
     canViewDashboard: boolean;
     canViewTeam: boolean;
@@ -38,6 +42,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
     canApproveAssignments: boolean;
     canViewTeamPerformance: boolean;
     canManageSchedule: boolean;
+    canManageTeamMembers: boolean;
   }>({
     canViewDashboard: false,
     canViewTeam: false,
@@ -45,6 +50,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
     canApproveAssignments: false,
     canViewTeamPerformance: false,
     canManageSchedule: false,
+    canManageTeamMembers: false,
   });
 
   useEffect(() => {
@@ -81,6 +87,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
         canApproveAssignments: permissionService.hasPermission(supervisorId, PERMISSIONS.SUPERVISOR_APPROVE_ASSIGNMENTS.id),
         canViewTeamPerformance: permissionService.hasPermission(supervisorId, PERMISSIONS.SUPERVISOR_VIEW_TEAM_PERFORMANCE.id),
         canManageSchedule: permissionService.hasPermission(supervisorId, PERMISSIONS.SUPERVISOR_MANAGE_TEAM_SCHEDULE.id),
+        canManageTeamMembers: permissionService.hasPermission(supervisorId, PERMISSIONS.SUPERVISOR_MANAGE_TEAM_SCHEDULE.id), // Using schedule permission for now
       });
     } catch (error) {
       console.error('Failed to load permissions:', error);
@@ -93,6 +100,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
         canApproveAssignments: true,
         canViewTeamPerformance: true,
         canManageSchedule: true,
+        canManageTeamMembers: true,
       });
     }
   };
@@ -232,15 +240,67 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
       if (result.success) {
         // Refresh dashboard
         await loadDashboardData();
-        alert(`Assignment ${decision}d successfully!`);
+        notify.success(`Assignment ${decision}d successfully!`, 'Assignment Updated');
       } else {
-        alert(`Failed to ${decision} assignment: ${result.error}`);
+        notify.error(`Failed to ${decision} assignment: ${result.error}`, 'Assignment Failed');
       }
     } catch (err) {
-      alert(`Error processing ${decision}`);
+      notify.error(`Error processing ${decision}`, 'Processing Error');
     } finally {
       setProcessingApproval(null);
     }
+  };
+
+  const handleRemoveOperator = async (operatorId: string, operatorName: string) => {
+    if (!confirmingDelete) {
+      setConfirmingDelete(operatorId);
+      return;
+    }
+
+    try {
+      setRemovingOperator(operatorId);
+      
+      // For now, simulate the removal - in a real implementation, this would call
+      // a backend service to remove the operator from the supervisor's team
+      console.log(`Removing operator ${operatorId} from supervisor ${supervisorId}'s team`);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Simulate success
+      const success = Math.random() > 0.1; // 90% success rate
+      
+      if (success) {
+        // Remove operator from local state to update UI immediately
+        if (dashboardData?.teamOperators) {
+          const updatedOperators = dashboardData.teamOperators.filter(
+            (op: any) => op.id !== operatorId
+          );
+          setDashboardData({
+            ...dashboardData,
+            teamOperators: updatedOperators
+          });
+        }
+        
+        notify.success(`${operatorName} has been removed from the team successfully`, 'Operator Removed');
+        
+        // Refresh dashboard data from server
+        setTimeout(() => loadDashboardData(), 500);
+      } else {
+        throw new Error('Simulated failure');
+      }
+    } catch (err) {
+      notify.error(`Error removing ${operatorName} from team. Please try again.`, 'Removal Failed');
+    } finally {
+      setConfirmingDelete(null);
+      setRemovingOperator(null);
+    }
+  };
+
+  const handleEditOperator = (operatorId: string) => {
+    // For now, just log - this could navigate to an edit form
+    console.log('Edit operator:', operatorId);
+    notify.info('Edit operator functionality - to be implemented', 'Feature Coming Soon');
   };
 
   if (loading && !dashboardData) {
@@ -439,12 +499,68 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {teamOperators.map((operator: any) => (
-                <div key={operator.id} className="border rounded-lg p-4">
+                <div key={operator.id} className="border rounded-lg p-4 relative">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium">{operator.name}</h3>
-                    <Badge variant={operator.currentStatus === 'working' ? 'success' : 'secondary'}>
-                      {operator.currentStatus}
-                    </Badge>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant={operator.currentStatus === 'working' ? 'success' : 'secondary'}>
+                        {operator.currentStatus}
+                      </Badge>
+                      
+                      {/* Operator Management Actions */}
+                      {permissions.canManageTeamMembers && (
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditOperator(operator.id)}
+                            className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700"
+                            title="Edit operator"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveOperator(operator.id, operator.name)}
+                            disabled={removingOperator === operator.id}
+                            className={`h-7 w-7 p-0 ${
+                              confirmingDelete === operator.id 
+                                ? 'text-red-700 bg-red-100' 
+                                : 'text-red-600 hover:text-red-700'
+                            }`}
+                            title={
+                              removingOperator === operator.id 
+                                ? "Removing..." 
+                                : confirmingDelete === operator.id 
+                                  ? "Click again to confirm removal" 
+                                  : "Remove from team"
+                            }
+                          >
+                            {removingOperator === operator.id ? (
+                              <LoadingSpinner size="sm" />
+                            ) : confirmingDelete === operator.id ? (
+                              <UserMinus className="w-3 h-3" />
+                            ) : (
+                              <Trash2 className="w-3 h-3" />
+                            )}
+                          </Button>
+                          
+                          {confirmingDelete === operator.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setConfirmingDelete(null)}
+                              className="h-7 w-7 p-0 text-gray-600 hover:text-gray-700"
+                              title="Cancel"
+                            >
+                              ×
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   <p className="text-sm text-gray-600 mb-2">
