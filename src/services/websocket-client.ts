@@ -36,6 +36,7 @@ export class WebSocketClient {
   private eventListeners: Map<string, Function[]> = new Map();
   private userId: string | null = null;
   private userRole: string | null = null;
+  private heartbeatInterval: NodeJS.Timeout | null = null;
 
   constructor(config: WebSocketClientConfig) {
     this.config = config;
@@ -456,6 +457,9 @@ export class WebSocketClient {
 
   // Disconnect
   disconnect(): void {
+    // ✅ FIXED: Clean up heartbeat on disconnect
+    this.stopHeartbeat();
+    
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
@@ -464,11 +468,14 @@ export class WebSocketClient {
     this.eventListeners.clear();
   }
 
-  // Heartbeat
+  // ✅ FIXED: Heartbeat with proper cleanup
   startHeartbeat(): void {
     if (!this.socket || !this.userId) return;
 
-    setInterval(() => {
+    // Clear existing heartbeat first
+    this.stopHeartbeat();
+
+    this.heartbeatInterval = setInterval(() => {
       if (this.socket && this.socket.connected) {
         this.socket.emit('heartbeat', {
           userId: this.userId,
@@ -477,6 +484,13 @@ export class WebSocketClient {
         });
       }
     }, 30000); // 30 seconds
+  }
+
+  stopHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
   }
 
   // Debug information

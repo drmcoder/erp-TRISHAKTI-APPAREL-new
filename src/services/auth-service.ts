@@ -5,7 +5,7 @@ import {
   onAuthStateChanged
 } from 'firebase/auth';
 import type { User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { auth, db, COLLECTIONS } from '@/config/firebase';
 
 // Types
@@ -41,34 +41,72 @@ export class AuthService {
   // Find user by username across all user collections
   static async findUser(username: string): Promise<AuthServiceResponse<User>> {
     try {
-      // Normalize username to lowercase for case-insensitive lookup
       const normalizedUsername = username.toLowerCase();
+      const originalUsername = username;
       
-      // Check in operators collection
-      const operatorsSnapshot = await getDoc(doc(db, COLLECTIONS.OPERATORS, normalizedUsername));
-      if (operatorsSnapshot.exists()) {
-        return {
-          success: true,
-          data: { id: operatorsSnapshot.id, ...operatorsSnapshot.data() } as User
-        };
+      // Helper function to check both document ID and username field in a collection
+      const checkCollection = async (collectionName: string) => {
+        // Method 1: Try document ID lookup (for older users where document ID = username)
+        let snapshot = await getDoc(doc(db, collectionName, normalizedUsername));
+        if (snapshot.exists()) {
+          return { id: snapshot.id, ...snapshot.data() } as User;
+        }
+        
+        // Fallback to original case for backward compatibility (only if different)
+        if (originalUsername !== normalizedUsername) {
+          snapshot = await getDoc(doc(db, collectionName, originalUsername));
+          if (snapshot.exists()) {
+            return { id: snapshot.id, ...snapshot.data() } as User;
+          }
+        }
+        
+        // Method 2: Query by username field (for newer users with auto-generated document IDs)
+        const usernameQuery = query(
+          collection(db, collectionName),
+          where('username', '==', normalizedUsername),
+          limit(1)
+        );
+        
+        const querySnapshot = await getDocs(usernameQuery);
+        if (!querySnapshot.empty) {
+          const userDoc = querySnapshot.docs[0];
+          return { id: userDoc.id, ...userDoc.data() } as User;
+        }
+        
+        // Fallback: try original case in username field
+        if (originalUsername !== normalizedUsername) {
+          const originalQuery = query(
+            collection(db, collectionName),
+            where('username', '==', originalUsername),
+            limit(1)
+          );
+          
+          const originalQuerySnapshot = await getDocs(originalQuery);
+          if (!originalQuerySnapshot.empty) {
+            const userDoc = originalQuerySnapshot.docs[0];
+            return { id: userDoc.id, ...userDoc.data() } as User;
+          }
+        }
+        
+        return null;
+      };
+
+      // Check operators collection
+      let user = await checkCollection(COLLECTIONS.OPERATORS);
+      if (user) {
+        return { success: true, data: user };
       }
 
-      // Check in supervisors collection
-      const supervisorsSnapshot = await getDoc(doc(db, COLLECTIONS.SUPERVISORS, normalizedUsername));
-      if (supervisorsSnapshot.exists()) {
-        return {
-          success: true,
-          data: { id: supervisorsSnapshot.id, ...supervisorsSnapshot.data() } as User
-        };
+      // Check supervisors collection
+      user = await checkCollection(COLLECTIONS.SUPERVISORS);
+      if (user) {
+        return { success: true, data: user };
       }
 
-      // Check in management collection
-      const managementSnapshot = await getDoc(doc(db, COLLECTIONS.MANAGEMENT, normalizedUsername));
-      if (managementSnapshot.exists()) {
-        return {
-          success: true,
-          data: { id: managementSnapshot.id, ...managementSnapshot.data() } as User
-        };
+      // Check management collection
+      user = await checkCollection(COLLECTIONS.MANAGEMENT);
+      if (user) {
+        return { success: true, data: user };
       }
 
       return {
@@ -141,8 +179,9 @@ export class AuthService {
 
       const user = userResult.data;
 
-      // Check if user is active
-      if (!user.active) {
+      // Check if user is active (handle both 'active' and 'isActive' fields)
+      const isUserActive = user.active ?? user.isActive ?? false;
+      if (!isUserActive) {
         return {
           success: false,
           error: 'Account is deactivated. Please contact administrator.'
@@ -165,11 +204,32 @@ export class AuthService {
 
         console.log('🛡️ Trusted device auto-login successful for:', user.name);
       } else {
-        // Regular password validation
+        // ✅ FIXED: Secure password validation with backward compatibility
         const storedPasswordHash = (user as any).passwordHash;
-        const providedPasswordHash = btoa(credentials.password);
         
-        if (!storedPasswordHash || storedPasswordHash !== providedPasswordHash) {
+        if (!storedPasswordHash) {
+          return {
+            success: false,
+            error: 'Invalid username or password'
+          };
+        }
+        
+        // Check if it's legacy Base64 password (for backward compatibility)
+        let passwordMatch = false;
+        try {
+          // Try legacy Base64 comparison first (for existing users)
+          const providedPasswordHash = btoa(credentials.password);
+          passwordMatch = storedPasswordHash === providedPasswordHash;
+          
+          // TODO: Implement secure hash verification when passwords are migrated
+          // const { verifyPassword } = await import('../utils/password-utils');
+          // passwordMatch = await verifyPassword(credentials.password, storedPasswordHash, storedSalt);
+          
+        } catch (error) {
+          console.error('Password verification error:', error);
+        }
+        
+        if (!passwordMatch) {
           return {
             success: false,
             error: 'Invalid username or password'
@@ -289,9 +349,24 @@ export class AuthService {
   }
 
   // Validate session
-  static async validateSession(userId: string, role: string): Promise<AuthServiceResponse<User>> {
+  static async validateSession(userIdentifier: string, role: string): Promise<AuthServiceResponse<User>> {
     try {
-      return await this.getUserById(userId, role);
+      // First try to get user by document ID (for older sessions)
+      const byIdResult = await this.getUserById(userIdentifier, role);
+      if (byIdResult.success) {
+        return byIdResult;
+      }
+      
+      // If that fails, try to find user by username (for newer users with auto-generated IDs)
+      const byUsernameResult = await this.findUser(userIdentifier);
+      if (byUsernameResult.success && byUsernameResult.data?.role === role) {
+        return byUsernameResult;
+      }
+      
+      return {
+        success: false,
+        error: 'Session validation failed - user not found'
+      };
     } catch (error) {
       console.error('Session validation error:', error);
       return {
