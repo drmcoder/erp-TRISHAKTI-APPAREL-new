@@ -120,7 +120,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className={cn(
-      'bg-white dark:bg-secondary-900 border-b border-secondary-200 dark:border-secondary-700',
+      'relative bg-white dark:bg-secondary-900 border-b border-secondary-200 dark:border-secondary-700',
       'sticky top-0 z-40 w-full backdrop-blur supports-[backdrop-filter]:bg-white/95 dark:supports-[backdrop-filter]:bg-secondary-900/95',
       className
     )}>
@@ -204,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({
             </Button>
 
             {/* Language toggle */}
-            <div className="hidden sm:block">
+            <div className="flex items-center">
               <LanguageSwitcherCompact />
             </div>
 
@@ -329,7 +329,7 @@ export const Header: React.FC<HeaderProps> = ({
           <SimpleNotificationCenter 
             open={showNotifications} 
             onClose={() => setShowNotifications(false)}
-            className="fixed top-16 right-4 z-50"
+            className="absolute top-full right-0 z-[9999] mt-2"
           />
         </div>
       )}

@@ -92,11 +92,26 @@ export const KanbanAssignmentBoard: React.FC<KanbanAssignmentBoardProps> = ({
         EnhancedBundleService.getAvailableOperators()
       ]);
 
-      if (operationsResponse.success && operationsResponse.data) {
+      if (operationsResponse.success && operationsResponse.data && operationsResponse.data.length > 0) {
+        console.log('📊 Kanban: Loaded operations from Firebase:', operationsResponse.data);
         // Distribute operations across columns based on status
         const newColumns = [...columns];
         newColumns[0].operations = operationsResponse.data; // All start in pending
         setColumns(newColumns);
+      } else {
+        console.log('⚠️ Kanban: No operations data received, creating sample data...', operationsResponse);
+        
+        // Create sample data if none exists
+        try {
+          const sampleResult = await EnhancedBundleService.createSampleData();
+          if (sampleResult.success) {
+            console.log('✅ Sample data created, reloading...');
+            // Reload data after creating samples
+            setTimeout(() => loadKanbanData(), 1000);
+          }
+        } catch (error) {
+          console.error('Failed to create sample data:', error);
+        }
       }
 
       if (operatorsResponse.success && operatorsResponse.data) {

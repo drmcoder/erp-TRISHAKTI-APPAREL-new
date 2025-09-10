@@ -176,6 +176,7 @@ const navigationItems = {
   supervisor: [
     { icon: HomeIcon, label: 'Dashboard', href: '/supervisor', id: 'dashboard' },
     { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/supervisor/complete-wip', id: 'complete-wip-entry' },
+    { icon: DocumentTextIcon, label: '📝 WIP Manager', href: '/supervisor/wip-manager', id: 'wip-manager' },
     
     // ASSIGNMENT SYSTEMS
     { icon: AdjustmentsHorizontalIcon, label: '🧠 Smart Assignment', href: '/supervisor/smart', id: 'smart-assignment' },
@@ -202,6 +203,7 @@ const navigationItems = {
   management: [
     { icon: HomeIcon, label: 'Dashboard', href: '/management', id: 'dashboard' },
     { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/management/complete-wip', id: 'complete-wip-entry' },
+    { icon: DocumentTextIcon, label: '📝 WIP Manager', href: '/management/wip-manager', id: 'wip-manager' },
     { icon: DocumentChartBarIcon, label: 'Bundle Analytics', href: '/management/bundle-analytics', id: 'bundle-analytics' },
     { icon: CubeIcon, label: 'Production Lots', href: '/management/production-lots', id: 'production-lots' },
     { icon: CubeIcon, label: 'Cutting Droplet', href: '/management/cutting', id: 'cutting-droplet' },
@@ -221,6 +223,7 @@ const navigationItems = {
     
     // PRODUCTION MANAGEMENT
     { icon: DocumentTextIcon, label: '3-Step WIP Entry', href: '/admin/complete-wip', id: 'complete-wip-entry' },
+    { icon: DocumentTextIcon, label: '📝 WIP Manager', href: '/admin/wip-manager', id: 'wip-manager' },
     { icon: AdjustmentsHorizontalIcon, label: 'Smart Assignment', href: '/admin/multi-assignment', id: 'multi-assignment' },
     { icon: CubeIcon, label: 'Bundle Assignments', href: '/admin/bundle-assignments', id: 'bundle-assignments' },
     { icon: WrenchIcon, label: 'Parts Issues', href: '/admin/parts-issues', id: 'parts-issues' },

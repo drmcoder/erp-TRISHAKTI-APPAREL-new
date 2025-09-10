@@ -6,6 +6,9 @@ import { ErrorBoundary } from './shared/components/ErrorBoundary';
 import { appInitializationService } from './services/app-initialization-service';
 import { errorReportingService } from './services/error-reporting-service';
 
+// Initialize Firebase data in development
+import './scripts/init-firebase-data';
+
 // Core components (loaded immediately)
 import { BarcodeScanner } from './components/barcode/barcode-scanner';
 import { BundleLabelGenerator } from './components/barcode/bundle-label-generator';
@@ -92,7 +95,7 @@ const EarningsDashboard = lazy(() =>
 );
 const OperatorManagementDashboard = lazy(() => 
   import('./features/operators/components/operator-management-dashboard')
-    .then(m => ({ default: m.OperatorManagementDashboard }))
+    .then(m => ({ default: m.default || m.OperatorManagementDashboard }))
     .catch(err => {
       errorReportingService.captureException(err, {
         tags: { component: 'OperatorManagementDashboard', type: 'dynamic-import' },
@@ -332,7 +335,7 @@ const KanbanAssignmentBoard = lazy(() =>
 );
 const SupervisorOperatorBuckets = lazy(() => 
   import('./features/work-assignment/components/supervisor-operator-buckets')
-    .then(m => ({ default: m.default || m.SupervisorOperatorBuckets }))
+    .then(m => ({ default: m.default }))
     .catch(err => {
       errorReportingService.captureException(err, {
         tags: { component: 'SupervisorOperatorBuckets', type: 'dynamic-import' },
@@ -363,15 +366,26 @@ const OperatorProfileAssignment = lazy(() =>
       return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Operator Profile Assignment temporarily unavailable') };
     })
 );
-const SequentialWorkflowAssignment = lazy(() => 
-  import('./features/work-assignment/components/sequential-workflow-assignment')
-    .then(m => ({ default: m.SequentialWorkflowAssignment }))
+const SimpleSequentialWorkflow = lazy(() => 
+  import('./features/work-assignment/components/sequential-workflow-simple')
+    .then(m => ({ default: m.SimpleSequentialWorkflow }))
     .catch(err => {
       errorReportingService.captureException(err, {
-        tags: { component: 'SequentialWorkflowAssignment', type: 'dynamic-import' },
+        tags: { component: 'SimpleSequentialWorkflow', type: 'dynamic-import' },
         level: 'error'
       });
-      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Sequential Workflow Assignment temporarily unavailable') };
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Sequential Workflow temporarily unavailable') };
+    })
+);
+const WipEntryManager = lazy(() => 
+  import('./components/wip/wip-entry-manager')
+    .then(m => ({ default: m.WipEntryManager }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'WipEntryManager', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'WIP Entry Manager temporarily unavailable') };
     })
 );
 
@@ -830,7 +844,10 @@ Ready for supervisor assignment!`);
         return <OperatorProfileAssignment userRole={userRole} />;
       
       case 'sequential-workflow':
-        return <SequentialWorkflowAssignment userRole={userRole} />;
+        return <SimpleSequentialWorkflow userRole={userRole} />;
+      
+      case 'wip-manager':
+        return <WipEntryManager userRole={userRole} />;
       
       case 'mobile-test':
         return <MobileTest />;

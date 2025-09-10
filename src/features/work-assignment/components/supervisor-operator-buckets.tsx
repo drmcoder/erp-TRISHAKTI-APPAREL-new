@@ -60,7 +60,7 @@ interface SupervisorOperatorBucketsProps {
   userRole: string;
 }
 
-export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps> = ({
+const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps> = ({
   userRole
 }) => {
   const [operatorBuckets, setOperatorBuckets] = useState<OperatorBucket[]>([]);
@@ -68,9 +68,9 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
   const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
 
-  // Load mock data
+  // Load real Firebase data
   useEffect(() => {
-    loadMockOperatorData();
+    loadRealOperatorData();
   }, []);
 
   const loadMockOperatorData = () => {
@@ -195,11 +195,10 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
               defects: Math.floor(Math.random() * 2)
             } : null,
             todayCompleted: [], // Mock empty for now - would need real work history
-            statistics: {
-              todayPieces: Math.floor(Math.random() * 100) + 20,
-              todayEarnings: Math.floor(Math.random() * 200) + 100,
-              averageEfficiency: operator.averageEfficiency || 85
-            }
+            recentCompleted: [],
+            totalEarningsToday: Math.floor(Math.random() * 200) + 100,
+            totalPiecesToday: Math.floor(Math.random() * 100) + 20,
+            averageEfficiency: operator.averageEfficiency || 85
           }));
       }
 
@@ -214,11 +213,10 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
           shift: 'morning',
           currentActivity: null,
           todayCompleted: [],
-          statistics: {
-            todayPieces: 45,
-            todayEarnings: 180,
-            averageEfficiency: 85
-          }
+          recentCompleted: [],
+          totalEarningsToday: 180,
+          totalPiecesToday: 45,
+          averageEfficiency: 85
         }];
       }
 
@@ -352,14 +350,14 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {operatorBuckets.map((operator) => (
           <Card 
-            key={operator.id}
+            key={operator.operatorId}
             className={`p-4 transition-all cursor-pointer hover:shadow-lg ${
-              selectedOperator === operator.id 
+              selectedOperator === operator.operatorId 
                 ? 'ring-2 ring-blue-500' 
                 : ''
             }`}
             onClick={() => setSelectedOperator(
-              selectedOperator === operator.id ? null : operator.id
+              selectedOperator === operator.operatorId ? null : operator.operatorId
             )}
           >
             {/* Operator Header */}
@@ -369,7 +367,7 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
                   <UserIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{operator.name}</h3>
+                  <h3 className="font-semibold text-gray-900">{operator.operatorName}</h3>
                   <p className="text-sm text-gray-600">{operator.machineType}</p>
                 </div>
               </div>
@@ -382,7 +380,7 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
                   {operator.status}
                 </Badge>
                 <span className="text-xs text-gray-500">
-                  {operator.efficiency.toFixed(1)}% efficiency
+                  {operator.averageEfficiency.toFixed(1)}% efficiency
                 </span>
               </div>
             </div>
@@ -523,4 +521,3 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
 };
 
 export default SupervisorOperatorBuckets;
-export { SupervisorOperatorBuckets };

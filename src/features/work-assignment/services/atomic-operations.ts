@@ -8,7 +8,11 @@ import {
   serverTimestamp, 
   increment,
   DocumentReference,
-  FirebaseFirestore
+  Firestore,
+  collection,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import type { WorkAssignment, WorkItem, AssignmentRequest } from '../types';
@@ -146,9 +150,9 @@ export class AtomicOperationsService {
   // Release distributed lock
   private async releaseDistributedLock(lockId: string): Promise<void> {
     try {
-      const locksRef = db.collection('distributed_locks');
-      const lockQuery = locksRef.where('lockId', '==', lockId);
-      const snapshot = await lockQuery.get();
+      const locksRef = collection(db, 'distributed_locks');
+      const lockQuery = query(locksRef, where('lockId', '==', lockId));
+      const snapshot = await getDocs(lockQuery);
       
       const batch = writeBatch(db);
       snapshot.docs.forEach(doc => {
@@ -170,7 +174,8 @@ export class AtomicOperationsService {
       // References
       const workItemRef = doc(db, 'workItems', operation.workItemId);
       const operatorRef = doc(db, 'operators', operation.operatorId);
-      const assignmentsRef = doc(db, 'assignments');
+      const assignmentsCollection = collection(db, 'assignments');
+      const newAssignmentRef = doc(assignmentsCollection);
       
       // Read current state
       const [workItemDoc, operatorDoc] = await Promise.all([
@@ -196,7 +201,7 @@ export class AtomicOperationsService {
       }
 
       // Create assignment document
-      const assignmentId = assignmentsRef.id;
+      const assignmentId = newAssignmentRef.id;
       const assignmentData: WorkAssignment = {
         id: assignmentId,
         workItemId: operation.workItemId,
@@ -222,7 +227,7 @@ export class AtomicOperationsService {
       };
 
       // Atomic updates
-      t.set(assignmentsRef, assignmentData);
+      t.set(newAssignmentRef, assignmentData);
 
       // Update work item status
       t.update(workItemRef, {
@@ -240,7 +245,8 @@ export class AtomicOperationsService {
       });
 
       // Log the atomic operation
-      const operationLogRef = doc(db, 'assignment_operations');
+      const operationLogCollection = collection(db, 'assignment_operations');
+      const operationLogRef = doc(operationLogCollection);
       t.set(operationLogRef, {
         type: 'assignment_created',
         assignmentId,
@@ -487,7 +493,8 @@ export class AtomicOperationsService {
         });
 
         // Log completion
-        const completionLogRef = doc(db, 'assignment_operations');
+        const completionLogCollection = collection(db, 'assignment_operations');
+        const completionLogRef = doc(completionLogCollection);
         t.set(completionLogRef, {
           type: 'assignment_completed',
           assignmentId,
@@ -581,7 +588,8 @@ export class AtomicOperationsService {
         });
 
         // Create new assignment
-        const newAssignmentRef = doc(db, 'assignments');
+        const newAssignmentCollection = collection(db, 'assignments');
+        const newAssignmentRef = doc(newAssignmentCollection);
         const newAssignmentData: WorkAssignment = {
           ...assignment,
           id: newAssignmentRef.id,
@@ -618,7 +626,8 @@ export class AtomicOperationsService {
         });
 
         // Log reassignment
-        const reassignmentLogRef = doc(db, 'assignment_operations');
+        const reassignmentLogCollection = collection(db, 'assignment_operations');
+        const reassignmentLogRef = doc(reassignmentLogCollection);
         t.set(reassignmentLogRef, {
           type: 'assignment_reassigned',
           originalAssignmentId: currentAssignmentId,
@@ -652,9 +661,9 @@ export class AtomicOperationsService {
   // Cleanup expired locks (should be run periodically)
   async cleanupExpiredLocks(): Promise<void> {
     try {
-      const locksRef = db.collection('distributed_locks');
-      const expiredQuery = locksRef.where('expiresAt', '<=', new Date());
-      const snapshot = await expiredQuery.get();
+      const locksRef = collection(db, 'distributed_locks');
+      const expiredQuery = query(locksRef, where('expiresAt', '<=', new Date()));
+      const snapshot = await getDocs(expiredQuery);
 
       if (snapshot.empty) return;
 

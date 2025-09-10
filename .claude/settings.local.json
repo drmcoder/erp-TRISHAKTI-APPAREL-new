@@ -61,7 +61,10 @@
       "Bash(/dev/null)",
       "Bash(lsof:*)",
       "Bash(for:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npx vite build:*)",
+      "Bash(npx http-server:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

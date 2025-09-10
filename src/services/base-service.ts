@@ -39,7 +39,7 @@ export interface QueryOptions {
 
 export interface WhereClause {
   field: string;
-  operator: any; // FirebaseFirestore.WhereFilterOp
+  operator: any; // WhereFilterOp from firebase/firestore
   value: any;
 }
 

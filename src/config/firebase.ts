@@ -84,7 +84,12 @@ export const COLLECTIONS = {
   SYSTEM_ACTIVITIES: "system_activities",
   DAMAGE_REPORTS: "damage_reports",
   DAMAGE_NOTIFICATIONS: "damage_notifications",
-  OPERATOR_WALLETS: "operatorWallets"
+  OPERATOR_WALLETS: "operatorWallets",
+  // Bundle and operation collections
+  PRODUCTION_BUNDLES: "production_bundles",
+  BUNDLE_OPERATIONS: "bundle_operations",
+  PARTS_COMPLAINTS: "parts_complaints",
+  BUNDLE_TRACKING: "bundle_tracking"
 };
 
 // Realtime Database Paths

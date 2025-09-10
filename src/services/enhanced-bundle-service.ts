@@ -1,4 +1,18 @@
-// Enhanced Bundle Service - Integration stubs for new features
+// Enhanced Bundle Service - Firebase-powered service for bundle operations
+import { BaseService } from './base-service';
+import { db, COLLECTIONS } from '@/config/firebase';
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  limit as firestoreLimit,
+  updateDoc,
+  doc,
+  addDoc,
+  Timestamp
+} from 'firebase/firestore';
 import type { 
   BundleOperation, 
   ProductionBundle,
@@ -51,43 +65,43 @@ export class EnhancedBundleService {
     machineType: string
   ): Promise<ServiceResponse<(BundleOperation & { bundleInfo: ProductionBundle })[]>> {
     try {
-      // TODO: Replace with actual Firebase query
-      // const operations = await db.collection('bundleOperations')
-      //   .where('status', '==', 'pending')
-      //   .where('machineType', '==', machineType)
-      //   .where('assignedOperatorId', '==', null)
-      //   .get();
+      const operationsRef = collection(db, COLLECTIONS.BUNDLE_OPERATIONS);
+      const bundlesRef = collection(db, COLLECTIONS.PRODUCTION_BUNDLES);
       
-      // Mock implementation for now
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+      // Simplified query to avoid composite index requirements
+      const operationsQuery = query(
+        operationsRef,
+        where('status', '==', 'pending'),
+        where('machineType', '==', machineType),
+        firestoreLimit(20)
+      );
       
-      const mockOperations = [
-        {
-          id: 'BND-3233-M-001-OP-1',
-          bundleId: 'bundle_1',
-          operationId: 'shoulder_join',
-          name: 'Shoulder Join',
-          nameNepali: 'काँध जोड्ने',
-          machineType,
-          sequenceOrder: 1,
-          pricePerPiece: 2.5,
-          smvMinutes: 4.5,
-          status: 'pending' as const,
-          prerequisites: [],
-          isOptional: false,
-          qualityCheckRequired: true,
-          defectTolerance: 5,
-          bundleInfo: {
-            bundleNumber: 'BND-3233-M-001',
-            articleNumber: '3233',
-            articleStyle: 'Adult T-shirt',
-            size: 'M',
-            priority: 'normal' as const
-          }
+      const operationsSnapshot = await getDocs(operationsQuery);
+      const operations: (BundleOperation & { bundleInfo: ProductionBundle })[] = [];
+      
+      // Get bundle info for each operation and filter for assignedOperatorId === null
+      for (const operationDoc of operationsSnapshot.docs) {
+        const operation = { id: operationDoc.id, ...operationDoc.data() } as BundleOperation;
+        
+        // Filter out assigned operations (since we can't use compound query)
+        if (operation.assignedOperatorId !== null && operation.assignedOperatorId !== undefined) {
+          continue;
         }
-      ];
+        
+        // Get associated bundle information
+        const bundleQuery = query(bundlesRef, where('id', '==', operation.bundleId));
+        const bundleSnapshot = await getDocs(bundleQuery);
+        
+        if (!bundleSnapshot.empty) {
+          const bundleData = bundleSnapshot.docs[0].data() as ProductionBundle;
+          operations.push({
+            ...operation,
+            bundleInfo: bundleData
+          });
+        }
+      }
       
-      return { success: true, data: mockOperations };
+      return { success: true, data: operations };
     } catch (error) {
       console.error('Failed to get available operations:', error);
       return { success: false, error: 'Failed to fetch available operations' };
@@ -103,21 +117,33 @@ export class EnhancedBundleService {
     operationId: string
   ): Promise<ServiceResponse<AssignmentResult>> {
     try {
-      // TODO: Replace with actual Firebase update
-      // await db.collection('bundleOperations').doc(operationId).update({
-      //   assignedOperatorId: operatorId,
-      //   assignedOperatorName: operatorName,
-      //   assignedAt: new Date(),
-      //   status: 'assigned'
-      // });
+      const operationRef = doc(db, COLLECTIONS.BUNDLE_OPERATIONS, operationId);
       
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update the operation with assignment details
+      await updateDoc(operationRef, {
+        assignedOperatorId: operatorId,
+        assignedOperatorName: operatorName,
+        assignedAt: Timestamp.now(),
+        status: 'assigned',
+        updatedAt: Timestamp.now()
+      });
+      
+      // Get operation details for the result
+      const operationsRef = collection(db, COLLECTIONS.BUNDLE_OPERATIONS);
+      const operationQuery = query(operationsRef, where('__name__', '==', operationId));
+      const operationSnapshot = await getDocs(operationQuery);
+      
+      let operationName = 'Unknown Operation';
+      if (!operationSnapshot.empty) {
+        const operationData = operationSnapshot.docs[0].data();
+        operationName = operationData.name || 'Unknown Operation';
+      }
       
       const result: AssignmentResult = {
         operatorId,
         operatorName,
         operationId,
-        operationName: 'Mock Operation',
+        operationName,
         assignedAt: new Date()
       };
       
@@ -139,28 +165,29 @@ export class EnhancedBundleService {
     complaint: PartsReplacementRequest
   ): Promise<ServiceResponse<PartsComplaint>> {
     try {
-      // TODO: Replace with actual Firebase create
-      // const complaintDoc = await db.collection('partsComplaints').add({
-      //   ...complaint,
-      //   id: doc.id,
-      //   reportedAt: new Date(),
-      //   status: 'reported'
-      // });
+      const complaintsRef = collection(db, COLLECTIONS.PARTS_COMPLAINTS);
       
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      const newComplaint: PartsComplaint = {
-        id: `complaint_${Date.now()}`,
+      const newComplaint: Omit<PartsComplaint, 'id'> = {
         ...complaint,
         reportedBy: 'current_operator',
         reportedByName: 'Current Operator',
         reportedAt: new Date(),
         status: 'reported',
         replacedParts: [],
-        resolution: 'parts_replaced'
+        resolution: 'parts_replaced',
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
       };
       
-      return { success: true, data: newComplaint };
+      const complaintDoc = await addDoc(complaintsRef, newComplaint);
+      
+      return { 
+        success: true, 
+        data: { 
+          id: complaintDoc.id,
+          ...newComplaint
+        } as PartsComplaint
+      };
     } catch (error) {
       console.error('Failed to submit parts complaint:', error);
       return { success: false, error: 'Failed to submit complaint' };
@@ -174,16 +201,31 @@ export class EnhancedBundleService {
     supervisorId?: string
   ): Promise<ServiceResponse<PartsComplaint[]>> {
     try {
-      // TODO: Replace with actual Firebase query
-      // const complaints = await db.collection('partsComplaints')
-      //   .where('status', 'in', ['reported', 'acknowledged', 'replacing'])
-      //   .orderBy('reportedAt', 'desc')
-      //   .get();
+      const complaintsRef = collection(db, COLLECTIONS.PARTS_COMPLAINTS);
       
-      await new Promise(resolve => setTimeout(resolve, 600));
+      let complaintsQuery;
       
-      // Return mock data for now
-      return { success: true, data: [] };
+      if (supervisorId) {
+        // Query by supervisor ID
+        complaintsQuery = query(
+          complaintsRef,
+          where('supervisorId', '==', supervisorId)
+        );
+      } else {
+        // Simple query by status only
+        complaintsQuery = query(
+          complaintsRef,
+          where('status', 'in', ['reported', 'acknowledged', 'replacing'])
+        );
+      }
+      
+      const complaintsSnapshot = await getDocs(complaintsQuery);
+      const complaints: PartsComplaint[] = complaintsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as PartsComplaint[];
+      
+      return { success: true, data: complaints };
     } catch (error) {
       console.error('Failed to get parts complaints:', error);
       return { success: false, error: 'Failed to fetch parts complaints' };
@@ -199,14 +241,21 @@ export class EnhancedBundleService {
     notes?: string
   ): Promise<ServiceResponse<void>> {
     try {
-      // TODO: Replace with actual Firebase update
-      // await db.collection('partsComplaints').doc(complaintId).update({
-      //   status,
-      //   supervisorNotes: notes,
-      //   [`${status}At`]: new Date()
-      // });
+      const complaintRef = doc(db, COLLECTIONS.PARTS_COMPLAINTS, complaintId);
       
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const updateData: any = {
+        status,
+        updatedAt: Timestamp.now()
+      };
+      
+      if (notes) {
+        updateData.supervisorNotes = notes;
+      }
+      
+      // Add timestamp for specific status
+      updateData[`${status}At`] = Timestamp.now();
+      
+      await updateDoc(complaintRef, updateData);
       
       return { success: true };
     } catch (error) {
@@ -231,13 +280,56 @@ export class EnhancedBundleService {
     }
   ): Promise<ServiceResponse<(BundleOperation & { bundleInfo: ProductionBundle })[]>> {
     try {
-      // TODO: Replace with actual Firebase query with filters
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const operationsRef = collection(db, COLLECTIONS.BUNDLE_OPERATIONS);
+      const bundlesRef = collection(db, COLLECTIONS.PRODUCTION_BUNDLES);
       
-      // Mock implementation - would normally apply filters
-      const mockOperations = this.generateMockPendingOperations(filters?.limit || 50);
+      // Simplified query to avoid index requirements
+      let operationsQuery;
       
-      return { success: true, data: mockOperations };
+      if (filters?.machineType) {
+        // Query with machine type filter (most common case)
+        operationsQuery = query(
+          operationsRef,
+          where('status', '==', 'pending'),
+          where('machineType', '==', filters.machineType),
+          firestoreLimit(filters?.limit || 50)
+        );
+      } else {
+        // Simple query without ordering to avoid index requirements
+        operationsQuery = query(
+          operationsRef,
+          where('status', '==', 'pending'),
+          firestoreLimit(filters?.limit || 50)
+        );
+      }
+      
+      const operationsSnapshot = await getDocs(operationsQuery);
+      console.log('🔍 Firebase getPendingOperations - operations count:', operationsSnapshot.docs.length);
+      const operations: (BundleOperation & { bundleInfo: ProductionBundle })[] = [];
+      
+      // Get bundle info for each operation
+      for (const operationDoc of operationsSnapshot.docs) {
+        const operation = { id: operationDoc.id, ...operationDoc.data() } as BundleOperation;
+        
+        // Get associated bundle information
+        const bundleQuery = query(bundlesRef, where('id', '==', operation.bundleId));
+        const bundleSnapshot = await getDocs(bundleQuery);
+        
+        if (!bundleSnapshot.empty) {
+          const bundleData = bundleSnapshot.docs[0].data() as ProductionBundle;
+          
+          // Apply additional filters on bundle data
+          if (filters?.priority && bundleData.priority !== filters.priority) continue;
+          if (filters?.articleNumber && bundleData.articleNumber !== filters.articleNumber) continue;
+          
+          operations.push({
+            ...operation,
+            bundleInfo: bundleData
+          });
+        }
+      }
+      
+      return { success: true, data: operations };
     } catch (error) {
       console.error('Failed to get pending operations:', error);
       return { success: false, error: 'Failed to fetch pending operations' };
@@ -254,22 +346,48 @@ export class EnhancedBundleService {
       const operators = await operatorService.getAllOperators();
       
       if (operators.success && operators.data) {
-        // Transform operators to the expected OperatorProfile format
-        const operatorProfiles: OperatorProfile[] = operators.data.map(op => ({
-          id: op.id,
-          name: op.name,
-          machineType: op.machineType || 'sewing' as any,
-          efficiency: op.efficiency || 85,
-          currentWorkload: op.currentWorkload || 0,
-          experience: op.skillLevel || 'intermediate' as any,
-          specialties: op.specialties || [],
-          status: op.status || 'active' as any
-        }));
+        console.log('🔍 Raw operators from Firebase:', operators.data);
         
+        // Transform operators to the expected OperatorProfile format
+        const operatorProfiles: OperatorProfile[] = operators.data.map(op => {
+          const profile = {
+            id: op.id || 'unknown',
+            name: op.name || 'Unknown Operator',
+            machineType: op.primaryMachine || op.machineTypes?.[0] || 'overlock',
+            efficiency: op.averageEfficiency || 85,
+            currentWorkload: op.currentAssignments?.length || 0,
+            experience: op.skillLevel || 'intermediate' as any,
+            specialties: op.machineTypes || [],
+            status: op.isActive ? 'active' : 'offline' as any
+          };
+          console.log('🔄 Transformed operator:', profile);
+          return profile;
+        });
+        
+        console.log('✅ Final operator profiles:', operatorProfiles);
         return { success: true, data: operatorProfiles };
       }
       
-      // Return empty array if no operators found
+      // No operators found - create sample operators for development
+      console.log('⚠️ No operators found in Firebase, creating sample operators...');
+      await this.createSampleOperators();
+      
+      // Try again after creating sample data
+      const retryOperators = await operatorService.getAllOperators();
+      if (retryOperators.success && retryOperators.data) {
+        const operatorProfiles: OperatorProfile[] = retryOperators.data.map(op => ({
+          id: op.id || 'unknown',
+          name: op.name || 'Unknown Operator',
+          machineType: op.primaryMachine || op.machineTypes?.[0] || 'overlock',
+          efficiency: op.averageEfficiency || 85,
+          currentWorkload: op.currentAssignments?.length || 0,
+          experience: op.skillLevel || 'intermediate' as any,
+          specialties: op.machineTypes || [],
+          status: op.isActive ? 'active' : 'offline' as any
+        }));
+        return { success: true, data: operatorProfiles };
+      }
+      
       return { success: true, data: [] };
     } catch (error) {
       console.error('Failed to get operators:', error);
@@ -339,13 +457,65 @@ export class EnhancedBundleService {
     }
   ): Promise<ServiceResponse<BundleTrackingData[]>> {
     try {
-      // TODO: Replace with actual Firebase query
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const trackingRef = collection(db, COLLECTIONS.BUNDLE_TRACKING);
       
-      // Generate mock tracking data
-      const mockData = this.generateMockTrackingData(100);
+      let trackingQuery;
       
-      return { success: true, data: mockData };
+      // Apply primary filter (avoid compound queries)
+      if (filters?.status) {
+        trackingQuery = query(
+          trackingRef,
+          where('status', '==', filters.status)
+        );
+      } else if (filters?.lot) {
+        trackingQuery = query(
+          trackingRef,
+          where('lotNumber', '==', filters.lot)
+        );
+      } else if (filters?.batch) {
+        trackingQuery = query(
+          trackingRef,
+          where('batchNumber', '==', filters.batch)
+        );
+      } else {
+        trackingQuery = query(trackingRef);
+      }
+      
+      // Note: Timeframe filtering would require compound index, so we'll filter after fetching
+      // For now, we'll do client-side filtering for timeframes to avoid index requirements
+      
+      const trackingSnapshot = await getDocs(trackingQuery);
+      let trackingData: BundleTrackingData[] = trackingSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as BundleTrackingData[];
+      
+      // Apply client-side timeframe filtering if needed
+      if (filters?.timeframe) {
+        const now = new Date();
+        let startDate: Date;
+        
+        switch (filters.timeframe) {
+          case 'today':
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            break;
+          case 'week':
+            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            break;
+          case 'month':
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            break;
+          default:
+            startDate = new Date(0);
+        }
+        
+        trackingData = trackingData.filter(item => {
+          const itemDate = item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt);
+          return itemDate >= startDate;
+        });
+      }
+      
+      return { success: true, data: trackingData };
     } catch (error) {
       console.error('Failed to get bundle tracking data:', error);
       return { success: false, error: 'Failed to fetch tracking data' };
@@ -361,8 +531,21 @@ export class EnhancedBundleService {
     operatorId?: string
   ): Promise<ServiceResponse<void>> {
     try {
-      // TODO: Replace with actual Firebase update
-      await new Promise(resolve => setTimeout(resolve, 300));
+      const trackingRef = doc(db, COLLECTIONS.BUNDLE_TRACKING, bundleId);
+      
+      const updateData: any = {
+        status,
+        updatedAt: Timestamp.now()
+      };
+      
+      if (operatorId) {
+        updateData.currentOperatorId = operatorId;
+      }
+      
+      // Add status-specific timestamp
+      updateData[`${status}At`] = Timestamp.now();
+      
+      await updateDoc(trackingRef, updateData);
       
       return { success: true };
     } catch (error) {
@@ -372,97 +555,206 @@ export class EnhancedBundleService {
   }
   
   // =====================
-  // HELPER METHODS (Mock Data Generation)
+  // HELPER METHODS
   // =====================
   
-  private static generateMockPendingOperations(count: number) {
-    const operations = [];
-    const articles = ['3233', '3265', '3401'];
-    const sizes = ['S', 'M', 'L', 'XL'];
-    const machines = ['overlock', 'singleNeedle'];
-    const priorities = ['low', 'normal', 'high', 'urgent'];
-    const operationTypes = [
-      { name: 'Shoulder Join', nameNepali: 'काँध जोड्ने', price: 2.5, time: 4.5 },
-      { name: 'Side Seam', nameNepali: 'छेउ सिलाई', price: 3.0, time: 5.0 },
-      { name: 'Sleeve Attach', nameNepali: 'आस्तीन लगाउने', price: 4.0, time: 7.0 }
-    ];
-    
-    for (let i = 1; i <= count; i++) {
-      const article = articles[Math.floor(Math.random() * articles.length)];
-      const size = sizes[Math.floor(Math.random() * sizes.length)];
-      const machine = machines[Math.floor(Math.random() * machines.length)];
-      const priority = priorities[Math.floor(Math.random() * priorities.length)];
-      const opType = operationTypes[Math.floor(Math.random() * operationTypes.length)];
+  /**
+   * Create sample bundle data for testing (development only)
+   */
+  static async createSampleData(): Promise<ServiceResponse<void>> {
+    try {
+      console.log('🔧 Creating sample bundle data for development...');
       
-      operations.push({
-        id: `BND-${article}-${size}-${String(i).padStart(3, '0')}-OP-1`,
-        bundleId: `bundle_${i}`,
-        operationId: opType.name.toLowerCase().replace(' ', '_'),
-        name: opType.name,
-        nameNepali: opType.nameNepali,
-        machineType: machine,
-        sequenceOrder: 1,
-        pricePerPiece: opType.price,
-        smvMinutes: opType.time,
-        status: 'pending' as const,
-        prerequisites: [],
-        isOptional: false,
-        qualityCheckRequired: Math.random() > 0.7,
-        defectTolerance: 5,
-        priority,
-        articleNumber: article,
-        size,
-        createdAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000),
-        bundleInfo: {
-          bundleNumber: `BND-${article}-${size}-${String(i).padStart(3, '0')}`,
-          articleNumber: article,
-          articleStyle: 'Mock Article',
-          size,
-          priority: priority as any
+      // Create sample production bundles
+      const bundlesRef = collection(db, COLLECTIONS.PRODUCTION_BUNDLES);
+      const operationsRef = collection(db, COLLECTIONS.BUNDLE_OPERATIONS);
+      
+      const sampleBundles = [
+        {
+          id: 'bundle_1',
+          bundleNumber: 'BND-3233-M-001',
+          articleNumber: '3233',
+          articleStyle: 'Adult T-shirt',
+          size: 'M',
+          quantity: 50,
+          priority: 'normal',
+          batchNumber: 'B0001',
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        },
+        {
+          id: 'bundle_2',
+          bundleNumber: 'BND-3233-L-002',
+          articleNumber: '3233',
+          articleStyle: 'Adult T-shirt',
+          size: 'L',
+          quantity: 50,
+          priority: 'high',
+          batchNumber: 'B0001',
+          dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
         }
-      });
+      ];
+
+      const sampleOperations = [
+        {
+          id: 'op_1',
+          bundleId: 'bundle_1',
+          operationId: 'shoulder_join',
+          name: 'Shoulder Join',
+          nameNepali: 'काँध जोड्ने',
+          machineType: 'overlock',
+          sequenceOrder: 1,
+          pricePerPiece: 2.5,
+          smvMinutes: 4.5,
+          status: 'pending',
+          prerequisites: [],
+          isOptional: false,
+          qualityCheckRequired: true,
+          defectTolerance: 5,
+          assignedOperatorId: null,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        },
+        {
+          id: 'op_2', 
+          bundleId: 'bundle_1',
+          operationId: 'side_seam',
+          name: 'Side Seam',
+          nameNepali: 'छेउ सिलाई',
+          machineType: 'singleNeedle',
+          sequenceOrder: 2,
+          pricePerPiece: 3.0,
+          smvMinutes: 5.0,
+          status: 'pending',
+          prerequisites: ['shoulder_join'],
+          isOptional: false,
+          qualityCheckRequired: true,
+          defectTolerance: 3,
+          assignedOperatorId: null,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        },
+        {
+          id: 'op_3',
+          bundleId: 'bundle_2',
+          operationId: 'sleeve_attach',
+          name: 'Sleeve Attach',
+          nameNepali: 'आस्तीन लगाउने',
+          machineType: 'overlock',
+          sequenceOrder: 3,
+          pricePerPiece: 4.0,
+          smvMinutes: 7.0,
+          status: 'pending',
+          prerequisites: ['side_seam'],
+          isOptional: false,
+          qualityCheckRequired: true,
+          defectTolerance: 2,
+          assignedOperatorId: null,
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        }
+      ];
+
+      // Add bundles to Firestore
+      for (const bundle of sampleBundles) {
+        await addDoc(bundlesRef, bundle);
+        console.log(`✅ Created bundle: ${bundle.bundleNumber}`);
+      }
+
+      // Add operations to Firestore  
+      for (const operation of sampleOperations) {
+        await addDoc(operationsRef, operation);
+        console.log(`✅ Created operation: ${operation.name}`);
+      }
+      
+      console.log('🎉 Sample data created successfully!');
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to create sample data:', error);
+      return { success: false, error: 'Failed to create sample data' };
     }
-    
-    return operations;
   }
-  
-  private static generateMockTrackingData(count: number): BundleTrackingData[] {
-    const data = [];
-    const statuses = ['created', 'cutting', 'sewing', 'quality', 'finished', 'shipped'];
-    
-    for (let i = 1; i <= count; i++) {
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
-      data.push({
-        id: `bundle_${i}`,
-        bundleNumber: `BND-3233-M-${String(i).padStart(3, '0')}`,
-        batchId: `batch_${Math.floor(i / 50) + 1}`,
-        batchNumber: `BATCH-${String(Math.floor(i / 50) + 1).padStart(3, '0')}`,
-        lotId: `lot_${Math.floor(i / 500) + 1}`,
-        lotNumber: `LOT-${String(Math.floor(i / 500) + 1).padStart(2, '0')}`,
-        articleNumber: '3233',
-        articleStyle: 'Adult T-shirt',
-        size: 'M',
-        quantity: 1,
-        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000),
-        status: status as any,
-        plannedDuration: 4 + Math.random() * 8,
-        actualDuration: status !== 'created' ? 4 + Math.random() * 8 : undefined,
-        efficiency: 85 + Math.random() * 15,
-        defectRate: Math.random() * 5,
-        reworkCount: Math.floor(Math.random() * 3),
-        assignedOperators: [`op_${Math.floor(Math.random() * 8) + 1}`],
-        supervisorId: 'supervisor_1',
-        priority: 'normal' as any,
-        totalCost: 50 + Math.random() * 100,
-        totalEarnings: 80 + Math.random() * 150,
-        materialCost: 30 + Math.random() * 50,
-        qualityScore: 6 + Math.random() * 4,
-        qualityIssues: Math.random() > 0.8 ? ['Minor issue'] : [],
-        milestones: []
-      });
+
+  /**
+   * Create sample operators for testing (development only)
+   */
+  static async createSampleOperators(): Promise<ServiceResponse<void>> {
+    try {
+      console.log('🔧 Creating sample operators for development...');
+      
+      // Import the operator service to create operators
+      const { operatorService } = await import('./operator-service');
+      
+      const sampleOperators = [
+        {
+          username: 'maya_patel',
+          name: 'Maya Patel',
+          employeeId: 'TSA-EMP-0001',
+          email: 'maya.patel@tsa.com',
+          phone: '+977-9841234567',
+          primaryMachine: 'overlock',
+          machineTypes: ['overlock', 'singleNeedle'],
+          skillLevel: 'expert' as const,
+          shift: 'morning' as const,
+          address: 'Kathmandu, Nepal'
+        },
+        {
+          username: 'priya_singh',
+          name: 'Priya Singh',
+          employeeId: 'TSA-EMP-0002',
+          email: 'priya.singh@tsa.com',
+          phone: '+977-9841234568',
+          primaryMachine: 'singleNeedle',
+          machineTypes: ['singleNeedle', 'flatlock'],
+          skillLevel: 'intermediate' as const,
+          shift: 'morning' as const,
+          address: 'Lalitpur, Nepal'
+        },
+        {
+          username: 'rajesh_kumar',
+          name: 'Rajesh Kumar',
+          employeeId: 'TSA-EMP-0003',
+          email: 'rajesh.kumar@tsa.com',
+          phone: '+977-9841234569',
+          primaryMachine: 'overlock',
+          machineTypes: ['overlock'],
+          skillLevel: 'expert' as const,
+          shift: 'afternoon' as const,
+          address: 'Bhaktapur, Nepal'
+        },
+        {
+          username: 'sita_sharma',
+          name: 'Sita Sharma',
+          employeeId: 'TSA-EMP-0004',
+          email: 'sita.sharma@tsa.com',
+          phone: '+977-9841234570',
+          primaryMachine: 'cutting',
+          machineTypes: ['cutting', 'manual'],
+          skillLevel: 'intermediate' as const,
+          shift: 'morning' as const,
+          address: 'Pokhara, Nepal'
+        }
+      ];
+
+      // Create each operator
+      for (const operatorData of sampleOperators) {
+        const result = await operatorService.createOperator(operatorData);
+        if (result.success) {
+          console.log(`✅ Created operator: ${operatorData.name}`);
+        } else {
+          console.error(`❌ Failed to create operator ${operatorData.name}:`, result.error);
+        }
+      }
+      
+      console.log('🎉 Sample operators created successfully!');
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to create sample operators:', error);
+      return { success: false, error: 'Failed to create sample operators' };
     }
-    
-    return data;
   }
 }
 

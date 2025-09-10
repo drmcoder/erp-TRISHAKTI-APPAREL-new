@@ -185,10 +185,65 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
       
       // Load operators
       if (operatorsResult.success && operatorsResult.data) {
-        setOperators(operatorsResult.data);
+        console.log('🔍 Smart Dashboard: Raw operators from Firebase:', operatorsResult.data);
+        
+        // Transform Firebase operators to expected format
+        const transformedOperators: Operator[] = operatorsResult.data.map(op => {
+          const transformed = {
+            id: op.id || 'unknown',
+            name: op.name || 'Unknown Operator',
+            machineType: op.primaryMachine || op.machineTypes?.[0] || 'overlock',
+            skillLevel: op.skillLevel || 'intermediate' as any,
+            efficiency: op.averageEfficiency || 85,
+            currentWorkload: op.currentAssignments?.length || 0,
+            maxCapacity: op.maxConcurrentWork || 3,
+            specialties: op.machineTypes || [],
+            status: op.isActive ? 
+              (op.availabilityStatus === 'available' ? 'available' : 
+               op.availabilityStatus === 'working' ? 'busy' : 
+               op.availabilityStatus === 'break' ? 'break' : 'available') 
+              : 'offline' as any,
+            hourlyRate: 150, // Default hourly rate
+            todayEarnings: Math.floor(Math.random() * 500) // Mock today earnings
+          };
+          console.log('🔄 Smart Dashboard: Transformed operator:', transformed);
+          return transformed;
+        });
+        
+        console.log('✅ Smart Dashboard: Final operators:', transformedOperators);
+        setOperators(transformedOperators);
       } else {
-        // No operators found, set empty array
-        setOperators([]);
+        console.log('⚠️ Smart Dashboard: No operators found, creating sample data...');
+        
+        // Import and create sample operators
+        try {
+          const EnhancedBundleService = await import('@/services/enhanced-bundle-service');
+          await EnhancedBundleService.default.createSampleOperators();
+          
+          // Retry loading operators
+          const retryResult = await operatorService.getAllOperators();
+          if (retryResult.success && retryResult.data) {
+            const transformedOperators: Operator[] = retryResult.data.map(op => ({
+              id: op.id || 'unknown',
+              name: op.name || 'Unknown Operator',
+              machineType: op.primaryMachine || op.machineTypes?.[0] || 'overlock',
+              skillLevel: op.skillLevel || 'intermediate' as any,
+              efficiency: op.averageEfficiency || 85,
+              currentWorkload: op.currentAssignments?.length || 0,
+              maxCapacity: op.maxConcurrentWork || 3,
+              specialties: op.machineTypes || [],
+              status: op.isActive ? 'available' : 'offline' as any,
+              hourlyRate: 150,
+              todayEarnings: Math.floor(Math.random() * 500)
+            }));
+            setOperators(transformedOperators);
+          } else {
+            setOperators([]);
+          }
+        } catch (error) {
+          console.error('Failed to create sample operators:', error);
+          setOperators([]);
+        }
       }
     } catch (error) {
       console.error('Failed to load work assignment data:', error);

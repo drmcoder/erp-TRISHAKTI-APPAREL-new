@@ -466,45 +466,103 @@ export class IntegratedBusinessService {
   // Get supervisor dashboard with business analytics
   static async getSupervisorDashboard(supervisorId: string): Promise<ServiceResponse<any>> {
     try {
-      // Get supervisor data
-      // (Mock data for demonstration)
-      const supervisor = {
-        id: supervisorId,
-        supervisorLevel: 'senior',
-        teamMembers: ['op1', 'op2', 'op3'],
-        responsibleLines: ['line1', 'line2']
-      };
+      const { db } = await import('@/config/firebase');
+      const { collection, getDocs, query, where, orderBy, limit } = await import('firebase/firestore');
+      
+      // Get real supervisor data from Firebase
+      const supervisorsRef = collection(db, 'supervisors');
+      const supervisorQuery = query(supervisorsRef, where('username', '==', supervisorId), limit(1));
+      const supervisorSnapshot = await getDocs(supervisorQuery);
+      
+      let supervisor: any;
+      if (!supervisorSnapshot.empty) {
+        const supervisorDoc = supervisorSnapshot.docs[0];
+        supervisor = {
+          id: supervisorDoc.id,
+          ...supervisorDoc.data(),
+          name: supervisorDoc.data().name || 'John Smith',
+          supervisorLevel: supervisorDoc.data().supervisorLevel || 'senior'
+        };
+      } else {
+        // Create sample supervisor if none exists
+        supervisor = {
+          id: supervisorId,
+          name: 'John Smith',
+          supervisorLevel: 'senior',
+          username: supervisorId,
+          teamMembers: [],
+          responsibleLines: ['line1', 'line2']
+        };
+      }
 
-      // Get team operators data
-      const teamOperators = [
-        { id: 'op1', averageEfficiency: 0.85, qualityScore: 0.90 },
-        { id: 'op2', averageEfficiency: 0.78, qualityScore: 0.88 },
-        { id: 'op3', averageEfficiency: 0.92, qualityScore: 0.95 }
-      ];
+      // Get real team operators data from Firebase
+      const operatorsRef = collection(db, 'operators');
+      const operatorsQuery = query(operatorsRef, orderBy('createdAt', 'desc'));
+      const operatorsSnapshot = await getDocs(operatorsQuery);
+      
+      const teamOperators = operatorsSnapshot.empty ? [] : operatorsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || 'Unknown Operator',
+          averageEfficiency: data.averageEfficiency || 85,
+          qualityScore: data.qualityScore || 90,
+          isActive: data.isActive || false,
+          primaryMachine: data.primaryMachine || 'overlock'
+        };
+      });
 
-      // Calculate team productivity using business logic
+      // Get real production data for team productivity analysis
+      const bundlesRef = collection(db, 'production_bundles');
+      const bundlesQuery = query(bundlesRef, orderBy('createdAt', 'desc'), limit(50));
+      const bundlesSnapshot = await getDocs(bundlesQuery);
+      
+      const completedWork = bundlesSnapshot.empty ? [] : bundlesSnapshot.docs
+        .map(doc => doc.data())
+        .filter(bundle => bundle.status === 'completed');
+      
+      const qualityIncidents = bundlesSnapshot.empty ? [] : bundlesSnapshot.docs
+        .map(doc => doc.data())
+        .filter(bundle => bundle.qualityIssues && bundle.qualityIssues.length > 0);
+
+      // Calculate team productivity using business logic with real data
       const teamProductivity = supervisorBusinessLogic.analyzeTeamProductivity(
         supervisor,
         teamOperators,
         {
-          completedWork: [], // Would fetch from database
-          qualityIncidents: [], // Would fetch from database
-          onTimeDeliveries: 45,
-          totalDeliveries: 50
+          completedWork,
+          qualityIncidents,
+          onTimeDeliveries: completedWork.length,
+          totalDeliveries: bundlesSnapshot.size || 0
         }
       );
 
-      // Get pending approvals
-      const pendingApprovals = []; // Would fetch from database
+      // Get pending approvals from Firebase
+      const approvalsRef = collection(db, 'assignment_approvals');
+      const approvalsQuery = query(approvalsRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
+      const approvalsSnapshot = await getDocs(approvalsQuery);
+      
+      const pendingApprovals = approvalsSnapshot.empty ? [] : approvalsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate?.() || new Date()
+      }));
 
       return {
         success: true,
         data: {
           supervisor,
+          teamOperators, // Include actual operators data
           teamProductivity,
           pendingApprovals,
           teamSize: teamOperators.length,
-          dashboardGeneratedAt: new Date().toISOString()
+          bundles: bundlesSnapshot.size || 0,
+          completedBundles: completedWork.length,
+          qualityIncidents: qualityIncidents.length,
+          dashboardGeneratedAt: new Date().toISOString(),
+          message: teamOperators.length === 0 ? 
+            "No operators found. Add operators in Management > Operators to see team data." :
+            `Dashboard loaded with ${teamOperators.length} team members and ${bundlesSnapshot.size || 0} production bundles.`
         }
       };
 
