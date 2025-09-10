@@ -319,7 +319,17 @@ const DragDropAssignmentDashboard = lazy(() =>
       return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Drag Drop Assignment Dashboard temporarily unavailable') };
     })
 );
-// KanbanMappingAssignment temporarily removed due to syntax issues
+const KanbanAssignmentBoard = lazy(() => 
+  import('./features/work-assignment/components/kanban-assignment-board')
+    .then(m => ({ default: m.KanbanAssignmentBoard }))
+    .catch(err => {
+      errorReportingService.captureException(err, {
+        tags: { component: 'KanbanAssignmentBoard', type: 'dynamic-import' },
+        level: 'error'
+      });
+      return { default: () => React.createElement('div', {className: 'p-6 text-center'}, 'Kanban Assignment Board temporarily unavailable') };
+    })
+);
 const SupervisorOperatorBuckets = lazy(() => 
   import('./features/work-assignment/components/supervisor-operator-buckets')
     .then(m => ({ default: m.SupervisorOperatorBuckets }))
@@ -808,8 +818,7 @@ Ready for supervisor assignment!`);
         return <DragDropAssignmentDashboard userRole={userRole} />;
       
       case 'kanban-assignment':
-        // Use drag-drop component directly since they're the same functionality
-        return <DragDropAssignmentDashboard userRole={userRole} />;
+        return <KanbanAssignmentBoard userRole={userRole} />;
       
       case 'operator-buckets':
         return <SupervisorOperatorBuckets userRole={userRole} />;

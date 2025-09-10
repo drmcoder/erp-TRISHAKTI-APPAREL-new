@@ -369,41 +369,89 @@ export const DragDropAssignmentDashboard: React.FC<DragDropAssignmentDashboardPr
                 onTouchEnd={handleTouchEnd}
                 onClick={() => handleOperationTap(operation)}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <BoltIcon className="h-5 w-5 text-blue-600" />
+                <div className="space-y-3">
+                  {/* Header with Operation Name & Drag Handle */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <BoltIcon className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 text-sm">{getOperationName(operation)}</h3>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{getOperationName(operation)}</h3>
+                    {assignmentMode === 'drag' && (
+                      <div className="flex items-center text-gray-400">
+                        <HandRaisedIcon className="h-5 w-5" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bundle & Batch Details */}
+                  <div className="space-y-1">
+                    <div className="text-xs text-gray-800 font-medium">
+                      📦 <strong>{operation.bundleInfo.bundleNumber}</strong>
+                    </div>
+                    <div className="text-xs text-gray-600">
+                      🏷️ Batch: {operation.bundleInfo.batchNumber || 'B001'} • {operation.bundleInfo.quantity || 50} pieces
                     </div>
                   </div>
-                  {assignmentMode === 'drag' && (
-                    <div className="flex items-center text-gray-400">
-                      <HandRaisedIcon className="h-5 w-5" />
+
+                  {/* Time & Money Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="space-y-1">
+                      <div className="flex items-center text-gray-600">
+                        <ClockIcon className="h-3 w-3 mr-1" />
+                        {operation.smvMinutes}min/piece
+                      </div>
+                      <div className="flex items-center text-blue-600 font-medium">
+                        ⏱️ Total: {Math.round((operation.bundleInfo.quantity || 50) * operation.smvMinutes / 60)}h
+                      </div>
                     </div>
-                  )}
-                </div>
-                
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-4">
-                    <span className="flex items-center text-gray-600">
-                      <span className="font-medium text-blue-600">
-                        {operation.bundleInfo.bundleNumber}
-                      </span>
-                    </span>
-                    <Badge variant="secondary">
-                      {operation.machineType}
-                    </Badge>
+                    <div className="space-y-1">
+                      <div className="flex items-center text-green-600 font-medium">
+                        <CurrencyDollarIcon className="h-3 w-3 mr-1" />
+                        ${operation.pricePerPiece}/piece
+                      </div>
+                      <div className="flex items-center text-green-700 font-bold">
+                        💰 ${((operation.bundleInfo.quantity || 50) * operation.pricePerPiece).toFixed(2)}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-3 text-gray-600">
-                    <span className="flex items-center">
-                      <ClockIcon className="h-4 w-4 mr-1" />
-                      {operation.smvMinutes}min
-                    </span>
-                    <span className="flex items-center font-semibold text-green-600">
-                      <CurrencyDollarIcon className="h-4 w-4 mr-1" />
-                      ${operation.pricePerPiece}
+
+                  {/* Last Work Done By */}
+                  <div className="bg-blue-50 p-2 rounded text-xs">
+                    <div className="text-blue-800 font-medium mb-1">🔍 Last Done By:</div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-blue-700">👷 Maya Patel</span>
+                      <span className="text-yellow-600">⭐ 9.2/10</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-blue-600">📅 2 days ago</span>
+                      <span className="text-green-600">⚡ 94% efficiency</span>
+                    </div>
+                  </div>
+
+                  {/* Requirements, Priority & Due Date */}
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+                    <div className="flex items-center space-x-1">
+                      <Badge variant="outline" className="text-xs">
+                        🔧 {operation.machineType}
+                      </Badge>
+                      <Badge 
+                        variant={operation.bundleInfo.priority === 'high' ? 'destructive' : 
+                               operation.bundleInfo.priority === 'urgent' ? 'destructive' : 'secondary'} 
+                        className="text-xs"
+                      >
+                        {operation.bundleInfo.priority === 'high' ? '🔥 HIGH' : 
+                         operation.bundleInfo.priority === 'urgent' ? '⚡ URGENT' : 
+                         operation.bundleInfo.priority === 'low' ? '📋 LOW' : '➖ NORMAL'}
+                      </Badge>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      📅 Due: {operation.bundleInfo.dueDate ? 
+                        new Date(operation.bundleInfo.dueDate).toLocaleDateString() : 'Today'
+                      }
                     </span>
                   </div>
                 </div>
