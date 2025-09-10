@@ -332,7 +332,7 @@ const KanbanAssignmentBoard = lazy(() =>
 );
 const SupervisorOperatorBuckets = lazy(() => 
   import('./features/work-assignment/components/supervisor-operator-buckets')
-    .then(m => ({ default: m.SupervisorOperatorBuckets }))
+    .then(m => ({ default: m.default || m.SupervisorOperatorBuckets }))
     .catch(err => {
       errorReportingService.captureException(err, {
         tags: { component: 'SupervisorOperatorBuckets', type: 'dynamic-import' },

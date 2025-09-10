@@ -73,6 +73,87 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
     loadMockOperatorData();
   }, []);
 
+  const loadMockOperatorData = () => {
+    // Generate mock operator buckets with realistic data
+    const now = new Date();
+    
+    const mockBuckets: OperatorBucket[] = [
+      {
+        operatorId: 'op_maya',
+        operatorName: 'Maya Patel',
+        machineType: 'overlock',
+        status: 'active',
+        shift: 'morning',
+        currentActivity: {
+          id: 'act_1',
+          operatorId: 'op_maya',
+          operatorName: 'Maya Patel',
+          bundleNumber: 'BND-3233-M-001',
+          operationName: 'Shoulder Join',
+          operationNameNepali: 'काँध जोड्ने',
+          status: 'in_progress',
+          startTime: new Date(now.getTime() - 45 * 60000),
+          piecesCompleted: 18,
+          targetPieces: 25,
+          pricePerPiece: 2.5,
+          earnings: 45.0,
+          machineType: 'overlock',
+          efficiency: 94.5,
+          defects: 0
+        },
+        todayCompleted: [],
+        recentCompleted: [],
+        totalEarningsToday: 125.0,
+        totalPiecesToday: 43,
+        averageEfficiency: 94.5
+      },
+      {
+        operatorId: 'op_rajesh',
+        operatorName: 'Rajesh Kumar',
+        machineType: 'singleNeedle',
+        status: 'active',
+        shift: 'morning',
+        currentActivity: {
+          id: 'act_2',
+          operatorId: 'op_rajesh',
+          operatorName: 'Rajesh Kumar',
+          bundleNumber: 'BND-3265-L-002',
+          operationName: 'Sleeve Attach',
+          operationNameNepali: 'आस्तीन लगाउने',
+          status: 'in_progress',
+          startTime: new Date(now.getTime() - 30 * 60000),
+          piecesCompleted: 12,
+          targetPieces: 20,
+          pricePerPiece: 4.0,
+          earnings: 48.0,
+          machineType: 'singleNeedle',
+          efficiency: 89.3,
+          defects: 0
+        },
+        todayCompleted: [],
+        recentCompleted: [],
+        totalEarningsToday: 118.0,
+        totalPiecesToday: 37,
+        averageEfficiency: 90.25
+      },
+      {
+        operatorId: 'op_sita',
+        operatorName: 'Sita Sharma',
+        machineType: 'overlock',
+        status: 'break',
+        shift: 'morning',
+        todayCompleted: [],
+        recentCompleted: [],
+        totalEarningsToday: 95.0,
+        totalPiecesToday: 28,
+        averageEfficiency: 87.8
+      }
+    ];
+
+    setOperatorBuckets(mockBuckets);
+    setLoading(false);
+  };
+
   const loadRealOperatorData = async () => {
     setLoading(true);
     
@@ -442,3 +523,4 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
 };
 
 export default SupervisorOperatorBuckets;
+export { SupervisorOperatorBuckets };
