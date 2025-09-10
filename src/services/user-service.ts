@@ -249,6 +249,34 @@ class UserServiceClass extends BaseService {
   }
 
   /**
+   * Validate object and remove undefined values recursively
+   */
+  private validateObject(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return null;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.validateObject(item)).filter(item => item !== undefined);
+    }
+    
+    if (typeof obj === 'object') {
+      const cleaned: any = {};
+      Object.entries(obj).forEach(([key, value]) => {
+        if (value !== undefined) {
+          const cleanedValue = this.validateObject(value);
+          if (cleanedValue !== undefined) {
+            cleaned[key] = cleanedValue;
+          }
+        }
+      });
+      return cleaned;
+    }
+    
+    return obj;
+  }
+
+  /**
    * Log user activity
    */
   async logUserActivity(
@@ -266,12 +294,15 @@ class UserServiceClass extends BaseService {
         ? userResult.data.name 
         : 'Unknown User';
 
+      // Clean metadata of undefined values
+      const cleanMetadata = metadata ? this.validateObject(metadata) : null;
+
       await activityService.create({
         userId,
         userName,
         action,
         description,
-        metadata,
+        metadata: cleanMetadata,
         timestamp: Timestamp.now(),
         // TODO: Get IP and User Agent from request context
         ipAddress: 'unknown',
@@ -294,10 +325,13 @@ class UserServiceClass extends BaseService {
     try {
       const activityService = new BaseService('system_activities');
       
+      // Clean metadata of undefined values
+      const cleanMetadata = metadata ? this.validateObject(metadata) : null;
+      
       await activityService.create({
         action,
         description,
-        metadata,
+        metadata: cleanMetadata,
         timestamp: Timestamp.now(),
       });
     } catch (error) {

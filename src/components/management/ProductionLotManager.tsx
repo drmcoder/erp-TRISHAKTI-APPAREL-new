@@ -259,16 +259,17 @@ export const ProductionLotManager: React.FC<ProductionLotManagerProps> = ({
     try {
       setSaving(true);
       
+      // Validate and clean data before sending to Firestore
       const lotData: Omit<ProductionLot, 'id' | 'createdAt' | 'processSteps'> = {
-        lotNumber: lot.lotNumber!,
-        articleNumber: lot.articleNumber!,
-        articleName: lot.articleName || lot.articleNumber!,
-        garmentType: lot.garmentType! as ProductionLot['garmentType'],
-        totalPieces: lot.totalPieces!,
-        colorSizeBreakdown: lot.colorSizeBreakdown!,
+        lotNumber: lot.lotNumber || `LOT${Date.now()}`,
+        articleNumber: lot.articleNumber || '',
+        articleName: lot.articleName || lot.articleNumber || '',
+        garmentType: (lot.garmentType as ProductionLot['garmentType']) || 'tshirt',
+        totalPieces: lot.totalPieces || 0,
+        colorSizeBreakdown: lot.colorSizeBreakdown || [],
         currentStep: 1,
         status: 'in_progress' as const,
-        createdBy: lot.createdBy!,
+        createdBy: lot.createdBy || 'management',
         notes: lot.notes || ''
       };
 

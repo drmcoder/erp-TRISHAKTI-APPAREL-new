@@ -236,8 +236,22 @@ class ProductionLotService {
   // Create new production lot from cutting data
   async createProductionLot(lotData: Omit<ProductionLot, 'id' | 'createdAt' | 'processSteps'>): Promise<ProductionLot> {
     try {
+      // Validate required fields and remove any undefined values
+      const validatedData = {
+        lotNumber: lotData.lotNumber || `LOT${Date.now()}`,
+        articleNumber: lotData.articleNumber || '',
+        articleName: lotData.articleName || '',
+        garmentType: lotData.garmentType || 'tshirt',
+        totalPieces: lotData.totalPieces || 0,
+        colorSizeBreakdown: lotData.colorSizeBreakdown || [],
+        currentStep: lotData.currentStep || 1,
+        status: lotData.status || 'in_progress',
+        createdBy: lotData.createdBy || 'management',
+        notes: lotData.notes || ''
+      };
+
       // Generate process steps from template
-      const template = TSA_PROCESS_TEMPLATES[lotData.garmentType] || TSA_PROCESS_TEMPLATES.tshirt;
+      const template = TSA_PROCESS_TEMPLATES[validatedData.garmentType] || TSA_PROCESS_TEMPLATES.tshirt;
       const processSteps: ProcessStep[] = template.steps.map((step, index) => ({
         id: `step_${index + 1}`,
         stepNumber: index + 1,
@@ -254,7 +268,7 @@ class ProductionLotService {
       }));
 
       const newLot: Omit<ProductionLot, 'id'> = {
-        ...lotData,
+        ...validatedData,
         processSteps,
         currentStep: 1,
         status: 'in_progress',

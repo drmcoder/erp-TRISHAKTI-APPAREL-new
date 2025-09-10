@@ -563,6 +563,95 @@ export class EnhancedBundleService {
   /**
    * Create sample bundle data for testing (development only)
    */
+  /**
+   * Create sample bundle operations for drag & drop assignment
+   */
+  static async createSampleBundleOperations(): Promise<ServiceResponse<void>> {
+    try {
+      console.log('🔧 Creating sample bundle operations for drag & drop assignment...');
+      
+      const operationsRef = collection(db, COLLECTIONS.BUNDLE_OPERATIONS);
+      
+      const sampleOperations = [
+        {
+          bundleId: 'BUNDLE-001',
+          bundleNumber: 'TSA-B-001',
+          operationId: 'cutting',
+          operationName: 'Cutting',
+          operationNepali: 'काट्ने',
+          machineType: 'cutting_machine',
+          status: 'pending',
+          assignedOperatorId: null,
+          pieces: 50,
+          completedPieces: 0,
+          pricePerPiece: 2.5,
+          estimatedMinutes: 100,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          bundleId: 'BUNDLE-001', 
+          bundleNumber: 'TSA-B-001',
+          operationId: 'single_needle',
+          operationName: 'Single Needle Sewing',
+          operationNepali: 'सिंगल सुई सिलाई',
+          machineType: 'single_needle',
+          status: 'pending',
+          assignedOperatorId: null,
+          pieces: 50,
+          completedPieces: 0,
+          pricePerPiece: 3.0,
+          estimatedMinutes: 150,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          bundleId: 'BUNDLE-002',
+          bundleNumber: 'TSA-B-002', 
+          operationId: 'overlock',
+          operationName: 'Overlock',
+          operationNepali: 'ओभरलक',
+          machineType: 'overlock_machine',
+          status: 'pending',
+          assignedOperatorId: null,
+          pieces: 75,
+          completedPieces: 0,
+          pricePerPiece: 2.0,
+          estimatedMinutes: 120,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        },
+        {
+          bundleId: 'BUNDLE-003',
+          bundleNumber: 'TSA-B-003',
+          operationId: 'button_hole',
+          operationName: 'Button Hole',
+          operationNepali: 'बटन होल',
+          machineType: 'button_hole_machine', 
+          status: 'pending',
+          assignedOperatorId: null,
+          pieces: 30,
+          completedPieces: 0,
+          pricePerPiece: 1.5,
+          estimatedMinutes: 60,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }
+      ];
+      
+      for (const operation of sampleOperations) {
+        await addDoc(operationsRef, operation);
+        console.log(`✅ Created bundle operation: ${operation.operationName} for ${operation.bundleNumber}`);
+      }
+      
+      console.log(`🎉 Created ${sampleOperations.length} sample bundle operations!`);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to create sample bundle operations:', error);
+      return { success: false, error: 'Failed to create sample operations' };
+    }
+  }
+
   static async createSampleData(): Promise<ServiceResponse<void>> {
     try {
       console.log('🔧 Creating sample bundle data for development...');
@@ -937,35 +1026,86 @@ export class EnhancedBundleService {
             }
           ],
           
-          // Generate process steps from template operations
-          processSteps: template.operations.map((op: any) => ({
-            id: op.id || `step_${op.stepNumber}`,
-            stepNumber: op.stepNumber,
-            operation: op.operation,
-            operationNepali: op.operationNepali,
-            machineType: op.machineType,
-            pricePerPiece: op.pricePerPiece,
-            estimatedMinutes: (op.smvMinutes * (wipData.quantity || 50)),
-            requiredSkill: op.requiredSkill || 'basic',
-            status: 'pending',
-            assignedOperators: [],
-            completedPieces: 0,
-            dependencies: op.stepNumber > 1 ? [`step_${op.stepNumber - 1}`] : []
-          })),
+          // Generate process steps from template operations with null safety
+          processSteps: template.operations && Array.isArray(template.operations) 
+            ? template.operations.map((op: any, index: number) => ({
+                id: op.id || op.stepId || `step_${op.stepNumber || index + 1}`,
+                stepNumber: op.stepNumber || index + 1,
+                operation: op.operation || op.name || 'Operation',
+                operationNepali: op.operationNepali || op.nepaliName || 'अपरेशन',
+                machineType: op.machineType || 'manual',
+                pricePerPiece: parseFloat(op.pricePerPiece) || 0.0,
+                estimatedMinutes: parseFloat(op.smvMinutes || 0) * (wipData.quantity || 50),
+                requiredSkill: op.requiredSkill || 'basic',
+                status: 'pending',
+                assignedOperators: [],
+                completedPieces: 0,
+                dependencies: (op.stepNumber || index + 1) > 1 ? [`step_${(op.stepNumber || index + 1) - 1}`] : []
+              }))
+            : [
+                // Fallback default process steps if template operations are not available
+                {
+                  id: 'step_1',
+                  stepNumber: 1,
+                  operation: 'Cutting',
+                  operationNepali: 'काट्ने',
+                  machineType: 'cutting_machine',
+                  pricePerPiece: 2.0,
+                  estimatedMinutes: 2 * (wipData.quantity || 50),
+                  requiredSkill: 'basic',
+                  status: 'pending',
+                  assignedOperators: [],
+                  completedPieces: 0,
+                  dependencies: []
+                },
+                {
+                  id: 'step_2',
+                  stepNumber: 2,
+                  operation: 'Single Needle',
+                  operationNepali: 'सिंगल सुई',
+                  machineType: 'single_needle',
+                  pricePerPiece: 3.0,
+                  estimatedMinutes: 5 * (wipData.quantity || 50),
+                  requiredSkill: 'intermediate',
+                  status: 'pending',
+                  assignedOperators: [],
+                  completedPieces: 0,
+                  dependencies: ['step_1']
+                }
+              ],
           
           currentStep: 1,
           status: 'cutting',
           createdAt: serverTimestamp(),
           createdBy: 'system',
-          wipEntryId: wipDoc.id,
-          templateId: template.id,
-          templateName: template.templateName,
+          wipEntryId: wipDoc.id || '',
+          templateId: template.id || 'default_template',
+          templateName: template.templateName || 'Default Template',
           dueDate: wipData.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          notes: `Generated from WIP entry ${wipData.bundleNumber} using template ${template.templateName}`
+          notes: `Generated from WIP entry ${wipData.bundleNumber || 'Unknown'} using template ${template.templateName || 'Default'}`
         };
         
+        // Validate lotData to prevent undefined values in Firestore
+        const validateObject = (obj: any): any => {
+          if (obj === null || obj === undefined) return null;
+          if (Array.isArray(obj)) return obj.map(validateObject);
+          if (typeof obj === 'object') {
+            const cleaned: any = {};
+            for (const [key, value] of Object.entries(obj)) {
+              if (value !== undefined) {
+                cleaned[key] = validateObject(value);
+              }
+            }
+            return cleaned;
+          }
+          return obj;
+        };
+        
+        const validatedLotData = validateObject(lotData);
+        console.log(`🔍 Validated lot data for ${validatedLotData.lotNumber}`);
+        
         // Create production lot
-        const lotDocRef = await addDoc(productionLotsRef, lotData);
+        const lotDocRef = await addDoc(productionLotsRef, validatedLotData);
         console.log(`✅ Created production lot: ${lotData.lotNumber}`);
         
         // Mark WIP entry as processed
@@ -991,6 +1131,133 @@ export class EnhancedBundleService {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to generate production lots'
+      };
+    }
+  }
+
+  /**
+   * Get all unassigned bundle operations from production lots for drag & drop assignment
+   */
+  static async getUnassignedBundleOperations(): Promise<ServiceResponse<any[]>> {
+    try {
+      console.log('🔍 Fetching unassigned bundle operations from production_lots...');
+      
+      const lotsSnapshot = await getDocs(
+        query(
+          collection(db, 'production_lots'),
+          firestoreLimit(50)
+        )
+      );
+      
+      console.log(`📦 Found ${lotsSnapshot.size} production lots to check`);
+      
+      const unassignedOperations: any[] = [];
+      let totalOperations = 0;
+      let assignedOperations = 0;
+      
+      lotsSnapshot.forEach(lotDoc => {
+        const lotData = lotDoc.data();
+        console.log(`🔍 Checking lot ${lotDoc.id}, status: ${lotData.status}`);
+        
+        // Check for processSteps array (actual structure used by production lots)
+        if (lotData.processSteps && Array.isArray(lotData.processSteps)) {
+          console.log(`⚙️ Found ${lotData.processSteps.length} process steps in lot ${lotDoc.id}`);
+          
+          lotData.processSteps.forEach((step: any) => {
+            totalOperations++;
+            console.log(`🔧 Step ${step.operation}: status=${step.status}, assigned operators=${step.assignedOperators?.length || 0}`);
+            
+            // Include operations that are pending and not assigned to any operators
+            const isUnassigned = !step.assignedOperators || step.assignedOperators.length === 0;
+            const isPending = step.status === 'pending' || !step.status;
+            
+            if (isUnassigned && isPending) {
+              const bundleInfo = lotData.bundles && lotData.bundles[0] ? lotData.bundles[0] : {};
+              
+              unassignedOperations.push({
+                id: step.id || `step-${totalOperations}`,
+                operation: step.operation,
+                operationNepali: step.operationNepali || step.operation,
+                machineType: step.machineType || 'manual',
+                pricePerPiece: step.pricePerPiece || 5.0,
+                smvMinutes: (step.estimatedMinutes || 60) / (bundleInfo.totalPieces || 50), // Convert total minutes to per-piece
+                targetPieces: bundleInfo.totalPieces || 50,
+                status: step.status || 'pending',
+                assignedOperatorId: null,
+                requiredSkill: step.requiredSkill || 'basic',
+                priority: lotData.priority || 'normal',
+                // Bundle info for context
+                bundleId: lotData.bundleNumber || lotDoc.id,
+                bundleNumber: lotData.bundleNumber || `LOT-${lotDoc.id.substring(0, 8)}`,
+                articleNumber: lotData.articleNumber || 'ART001',
+                garmentType: lotData.garmentType || 'Garment',
+                lotNumber: lotData.lotNumber || lotDoc.id,
+                dueDate: lotData.dueDate
+              });
+              console.log(`✅ Added unassigned operation: ${step.operation}`);
+            } else {
+              assignedOperations++;
+              console.log(`⏭️ Skipped operation ${step.operation} - ${!isUnassigned ? 'has assigned operators' : 'not pending'}`);
+            }
+          });
+        } 
+        // Also check legacy bundles structure for backwards compatibility
+        else if (lotData.bundles && Array.isArray(lotData.bundles)) {
+          console.log(`📦 Found ${lotData.bundles.length} bundles in lot ${lotDoc.id} (legacy structure)`);
+          
+          lotData.bundles.forEach((bundle: any) => {
+            if (bundle.operations && Array.isArray(bundle.operations)) {
+              bundle.operations.forEach((operation: any) => {
+                totalOperations++;
+                console.log(`🔧 Operation ${operation.operation}: status=${operation.status}, assigned=${operation.assignedOperatorId || 'none'}`);
+                
+                if (!operation.assignedOperatorId && (operation.status === 'pending' || !operation.status)) {
+                  unassignedOperations.push({
+                    id: operation.id || `op-${totalOperations}`,
+                    operation: operation.operation,
+                    operationNepali: operation.operationNepali || operation.operation,
+                    machineType: operation.machineType,
+                    pricePerPiece: operation.pricePerPiece || 5.0,
+                    smvMinutes: operation.smvMinutes || 5,
+                    targetPieces: operation.targetPieces || 50,
+                    status: operation.status || 'pending',
+                    assignedOperatorId: operation.assignedOperatorId,
+                    requiredSkill: operation.requiredSkill || 'basic',
+                    priority: bundle.priority || 'normal',
+                    bundleId: bundle.id || bundle.bundleNumber,
+                    bundleNumber: bundle.bundleNumber,
+                    articleNumber: bundle.articleNumber,
+                    garmentType: bundle.garmentType,
+                    lotNumber: lotData.lotNumber,
+                    dueDate: bundle.dueDate || lotData.dueDate
+                  });
+                  console.log(`✅ Added unassigned operation: ${operation.operation}`);
+                } else {
+                  assignedOperations++;
+                }
+              });
+            }
+          });
+        } 
+        else {
+          console.log(`⚠️ Lot ${lotDoc.id} has neither processSteps nor bundles array`);
+        }
+      });
+      
+      console.log(`📊 Summary: Total operations: ${totalOperations}, Assigned: ${assignedOperations}, Unassigned: ${unassignedOperations.length}`);
+      console.log(`✅ Found ${unassignedOperations.length} unassigned operations for drag & drop`);
+      
+      return {
+        success: true,
+        data: unassignedOperations
+      };
+    } catch (error) {
+      console.error('❌ Error fetching unassigned bundle operations:', error);
+      return {
+        success: false,
+        error: 'Failed to fetch unassigned operations',
+        code: 'FETCH_ERROR',
+        data: []
       };
     }
   }

@@ -68,6 +68,34 @@ export class BaseService {
   }
 
   /**
+   * Validate object and remove undefined values recursively
+   */
+  protected validateObject(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return null;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.validateObject(item)).filter(item => item !== undefined);
+    }
+    
+    if (typeof obj === 'object') {
+      const cleaned: any = {};
+      Object.entries(obj).forEach(([key, value]) => {
+        if (value !== undefined) {
+          const cleanedValue = this.validateObject(value);
+          if (cleanedValue !== undefined) {
+            cleaned[key] = cleanedValue;
+          }
+        }
+      });
+      return cleaned;
+    }
+    
+    return obj;
+  }
+
+  /**
    * Create a new document
    */
   async create<T>(data: T, id?: string): Promise<ServiceResponse<T>> {
@@ -78,8 +106,11 @@ export class BaseService {
         updatedAt: Timestamp.now(),
       };
 
+      // Clean docData to remove undefined values that cause Firestore errors
+      const cleanedDocData = this.validateObject(docData);
+
       const docRef = id ? this.getDocRef(id) : doc(this.getCollection());
-      await setDoc(docRef, docData);
+      await setDoc(docRef, cleanedDocData);
 
       // Clear relevant cache
       this.invalidateCache();

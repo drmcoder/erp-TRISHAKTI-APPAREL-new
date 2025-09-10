@@ -447,7 +447,7 @@ class BundleService {
 
       let bundleCounter = 1;
       
-      // Generate bundles for each article × size × roll combination
+      // Generate bundles using correct logic: Article × Size × Roll × Size Ratio
       for (const article of data.articles) {
         const template = templates.get(article.templateId);
         if (!template) {
@@ -457,13 +457,19 @@ class BundleService {
           };
         }
 
-        for (const sizeInfo of article.sizes) {
-          for (const roll of data.fabricRolls) {
-            // Create bundles based on size quantity and roll layer count
-            const bundlesPerSize = sizeInfo.quantity;
+        // For each fabric roll, create bundles according to size ratios
+        for (const roll of data.fabricRolls) {
+          for (const sizeInfo of article.sizes) {
+            // Each size ratio determines how many bundles per roll
+            // sizeInfo.quantity already represents: layers × ratio for this size
+            // But we need to create separate bundles per roll, so we calculate bundles per roll
+            const layersPerRoll = roll.layerCount;
+            const sizeRatio = Math.round(sizeInfo.quantity / (data.fabricRolls.reduce((sum, r) => sum + r.layerCount, 0))); // Extract ratio from quantity
+            const bundlesForThisRollSize = layersPerRoll * sizeRatio;
             
-            for (let bundleIndex = 0; bundleIndex < bundlesPerSize; bundleIndex++) {
-              const bundleNumber = `${data.bundlePrefix || 'BND'}-${article.articleNumber}-${sizeInfo.size}-${String(bundleCounter).padStart(3, '0')}`;
+            // Create individual bundles for this roll-size combination
+            for (let bundleIndex = 0; bundleIndex < bundlesForThisRollSize; bundleIndex++) {
+              const bundleNumber = `Bundle-${article.articleNumber.replace(/[^A-Za-z0-9]/g, '')}-${sizeInfo.size}-${String(bundleCounter).padStart(3, '0')}`;
               
               // Create bundle operations from template
               const bundleOperations: BundleOperation[] = template.operations.map((templateOp, index) => ({
@@ -504,7 +510,11 @@ class BundleService {
                 createdAt: new Date(),
                 createdBy: data.createdBy,
                 totalValue: template.totalPricePerPiece || 0,
-                totalSMV: template.totalSmv || 0
+                totalSMV: template.totalSmv || 0,
+                // Add bundle-specific metadata
+                piecesPerBundle: 1, // Each bundle represents pieces cut from one layer of one roll
+                sourceRollLayers: layersPerRoll,
+                sizeRatio: sizeRatio
               };
 
               // Update operation bundle IDs

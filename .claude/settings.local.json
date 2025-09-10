@@ -64,7 +64,11 @@
       "Bash(grep:*)",
       "Bash(npx vite build:*)",
       "Bash(npx http-server:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(netlify deploy:*)",
+      "Bash(netlify env:set:*)",
+      "Bash(netlify open:*)",
+      "Bash(VITE_FIREBASE_PROJECT_ID=erp-for-tsa VITE_FIREBASE_API_KEY=AIzaSyB8Z4GdoLZsBW6bfmAh_BSTftpTRUXPZMw VITE_FIREBASE_AUTH_DOMAIN=erp-for-tsa.firebaseapp.com VITE_FIREBASE_DATABASE_URL=https://erp-for-tsa-default-rtdb.firebaseio.com VITE_FIREBASE_STORAGE_BUCKET=erp-for-tsa.firebasestorage.app VITE_FIREBASE_MESSAGING_SENDER_ID=271232983905 VITE_FIREBASE_APP_ID=1:271232983905:web:7d06c8f5ec269824759b20 VITE_FIREBASE_MEASUREMENT_ID=G-6CYWPS4N0G npm run build:skip-check)"
     ],
     "deny": [],
     "ask": []

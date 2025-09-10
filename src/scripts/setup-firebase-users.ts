@@ -1,6 +1,6 @@
 // Script to create Firebase users with proper credentials
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db, COLLECTIONS } from '../infrastructure/firebase/config';
+import { db, COLLECTIONS } from '../config/firebase';
 import type { User } from '../types/entities';
 
 interface UserSetupData {

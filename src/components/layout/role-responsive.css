@@ -1,0 +1,146 @@
+/* Role-Specific Responsive Optimizations */
+
+/* Mobile Operator Optimizations (< 768px) */
+@media (max-width: 767px) {
+  .operator-mobile {
+    /* Enhanced touch targets */
+    --touch-target-min: 44px;
+  }
+  
+  .operator-mobile .touch-target {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+  
+  /* Larger text for mobile readability */
+  .operator-mobile .mobile-text {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  /* Thumb-friendly spacing */
+  .operator-mobile .mobile-spacing {
+    padding: 1rem 0.75rem;
+    margin: 0.5rem 0;
+  }
+}
+
+/* Tablet Supervisor Optimizations (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .supervisor-tablet {
+    /* Balanced information density */
+    --content-spacing: 1.5rem;
+    --nav-width: 18rem;
+  }
+  
+  .supervisor-tablet .tablet-layout {
+    display: grid;
+    grid-template-columns: var(--nav-width) 1fr;
+    gap: var(--content-spacing);
+  }
+  
+  /* Medium touch targets for tablet */
+  .supervisor-tablet .tablet-touch {
+    min-height: 40px;
+    min-width: 40px;
+    padding: 0.5rem 1rem;
+  }
+  
+  /* Optimized for landscape tablet viewing */
+  .supervisor-tablet .tablet-content {
+    max-width: none;
+    padding: 1rem 2rem;
+  }
+}
+
+/* Desktop Admin/Management Optimizations (> 1024px) */
+@media (min-width: 1025px) {
+  .admin-desktop {
+    /* High information density */
+    --sidebar-width: 20rem;
+    --content-max-width: none;
+    --grid-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+  
+  .admin-desktop .desktop-layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+  }
+  
+  /* Compact elements for desktop */
+  .admin-desktop .desktop-compact {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    line-height: 1.4;
+  }
+  
+  /* Multi-column layouts */
+  .admin-desktop .desktop-grid {
+    display: grid;
+    grid-template-columns: var(--grid-columns);
+    gap: 1.5rem;
+  }
+  
+  /* Enhanced hover states for mouse users */
+  .admin-desktop .hover-enhanced:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
+  }
+}
+
+/* Role-specific color schemes */
+.role-operator {
+  --primary-color: #10b981; /* Green */
+  --secondary-color: #3b82f6; /* Blue */
+  --background-gradient: linear-gradient(135deg, #ecfdf5 0%, #dbeafe 100%);
+}
+
+.role-supervisor {
+  --primary-color: #3b82f6; /* Blue */
+  --secondary-color: #8b5cf6; /* Purple */
+  --background-gradient: linear-gradient(135deg, #dbeafe 0%, #e9d5ff 100%);
+}
+
+.role-admin, .role-management {
+  --primary-color: #6b7280; /* Gray */
+  --secondary-color: #374151; /* Dark Gray */
+  --background-gradient: linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%);
+}
+
+/* Accessibility enhancements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .role-operator,
+  .role-supervisor,
+  .role-admin,
+  .role-management {
+    --background-gradient: #ffffff;
+    border: 2px solid #000000;
+  }
+}
+
+/* Print optimizations */
+@media print {
+  .mobile-only,
+  .tablet-only,
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .print-optimize {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt !important;
+  }
+}

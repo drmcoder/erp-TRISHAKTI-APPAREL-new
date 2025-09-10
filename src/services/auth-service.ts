@@ -6,7 +6,7 @@ import {
 } from 'firebase/auth';
 import type { User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db, COLLECTIONS } from '@/infrastructure/firebase/config';
+import { auth, db, COLLECTIONS } from '@/config/firebase';
 
 // Types
 interface User {

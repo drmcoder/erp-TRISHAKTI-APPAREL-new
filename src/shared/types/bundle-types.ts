@@ -32,6 +32,11 @@ export interface ProductionBundle {
   completedAt?: Date;
   totalValue: number; // Sum of all operation prices
   totalSMV: number; // Sum of all operation SMV
+  
+  // Bundle Generation Metadata
+  piecesPerBundle?: number; // Pieces per bundle (typically 1 for TSA workflow)
+  sourceRollLayers?: number; // Number of layers in source roll
+  sizeRatio?: number; // Size ratio used for generation
 }
 
 export interface BundleOperation {

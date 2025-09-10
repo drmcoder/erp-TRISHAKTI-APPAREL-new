@@ -17,6 +17,7 @@ import { OperatorDetail } from './operator-detail';
 import { OperatorForm } from './operator-form';
 import { OperatorCard } from './operator-card';
 import { operatorService } from '@/services/operator-service';
+import { useDeleteOperator } from '../hooks/use-operators';
 import { safeArray } from '@/utils/null-safety';
 
 interface OperatorManagementDashboardProps {
@@ -33,6 +34,9 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
   const [operators, setOperators] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // React Query hooks
+  const deleteOperatorMutation = useDeleteOperator();
 
   // Load operators from Firebase
   useEffect(() => {
@@ -72,13 +76,14 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
 
     if (confirmDelete) {
       try {
-        const result = await operatorService.delete(operatorId);
-        if (result.success) {
-          alert('✅ Operator deleted successfully!');
-          setRefreshTrigger(prev => prev + 1); // Trigger refresh to update the list
-        } else {
-          alert(`❌ Failed to delete operator: ${result.error}`);
-        }
+        // Use the new delete mutation with current user info
+        await deleteOperatorMutation.mutateAsync({ 
+          operatorId, 
+          deletedBy: userRole // Pass current user role as deletedBy
+        });
+        
+        alert('✅ Operator deleted successfully!');
+        setRefreshTrigger(prev => prev + 1); // Trigger refresh to update the list
         
         // If we were viewing the deleted operator, go back to overview
         if (selectedOperatorId === operatorId) {

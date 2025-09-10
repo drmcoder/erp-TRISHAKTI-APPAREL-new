@@ -254,7 +254,7 @@ export function useUpdateOperatorStatus() {
   });
 }
 
-// Delete/deactivate operator
+// Delete/deactivate operator (soft delete)
 export function useDeactivateOperator() {
   const queryClient = useQueryClient();
   
@@ -264,6 +264,26 @@ export function useDeactivateOperator() {
     onSuccess: () => {
       // Refresh operators list
       queryClient.invalidateQueries({ queryKey: operatorQueryKeys.lists() });
+    }
+  });
+}
+
+// Delete operator permanently (hard delete) - Only for supervisor/admin roles
+export function useDeleteOperator() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ operatorId, deletedBy }: { operatorId: string; deletedBy?: string }) => 
+      operatorService.deleteOperator(operatorId, deletedBy),
+    onSuccess: () => {
+      // Clear all operator-related queries
+      queryClient.invalidateQueries({ queryKey: operatorQueryKeys.all });
+      // Also clear work assignments and related data
+      queryClient.invalidateQueries({ queryKey: ['work-items'] });
+      queryClient.invalidateQueries({ queryKey: ['available-work'] });
+    },
+    onError: (error) => {
+      console.error('Failed to delete operator:', error);
     }
   });
 }

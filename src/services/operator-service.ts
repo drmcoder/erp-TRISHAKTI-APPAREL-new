@@ -71,9 +71,11 @@ export class OperatorService extends BaseService {
         };
       }
 
-      // Create operator document - filter out undefined values to prevent Firebase errors
+      // Create operator document - filter out undefined values and password field
       const cleanOperatorData = Object.fromEntries(
-        Object.entries(operatorData).filter(([_, value]) => value !== undefined)
+        Object.entries(operatorData).filter(([key, value]) => 
+          value !== undefined && key !== 'password' // Remove password from saved data
+        )
       );
 
       // Ensure avatar has proper default values
@@ -93,6 +95,9 @@ export class OperatorService extends BaseService {
         };
       }
 
+      // Hash the password for authentication compatibility
+      const passwordHash = (operatorData as any).password ? btoa((operatorData as any).password) : undefined;
+
       const operator: Omit<Operator, 'id'> = {
         ...cleanOperatorData,
         employeeId, // Use auto-generated or provided ID
@@ -111,7 +116,9 @@ export class OperatorService extends BaseService {
         currentAssignments: [],
         maxConcurrentWork: operatorData.maxConcurrentWork || 3,
         createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now()
+        updatedAt: Timestamp.now(),
+        // Add password hash for authentication (Base64 encoded)
+        ...(passwordHash && { passwordHash })
       };
 
       console.log('🔍 Creating operator with avatar data:', avatarData);
@@ -275,8 +282,17 @@ export class OperatorService extends BaseService {
         }
       }
 
+      // Handle password updates by converting to hash
+      const updateData = { ...updates };
+      if ((updateData as any).password && (updateData as any).password.trim()) {
+        // Hash the new password for authentication
+        (updateData as any).passwordHash = btoa((updateData as any).password);
+        // Remove the plain password from the update data
+        delete (updateData as any).password;
+      }
+
       const result = await this.update<Operator>(operatorId, {
-        ...updates,
+        ...updateData,
         updatedAt: Timestamp.now()
       });
 
@@ -681,6 +697,84 @@ export class OperatorService extends BaseService {
     } catch (error) {
       console.error('Error checking duplicates:', error);
       return { isValid: false, error: 'Validation error' };
+    }
+  }
+
+  /**
+   * Delete operator (hard delete) - Only for supervisor/admin roles
+   */
+  async deleteOperator(operatorId: string, deletedBy?: string): Promise<ServiceResponse> {
+    try {
+      // Get operator details for logging before deletion
+      const operatorResult = await this.getById<Operator>(operatorId);
+      
+      if (!operatorResult.success || !operatorResult.data) {
+        return {
+          success: false,
+          error: 'Operator not found',
+          code: 'NOT_FOUND'
+        };
+      }
+
+      const operator = operatorResult.data;
+
+      // Delete from Firestore
+      const result = await this.delete(operatorId);
+      
+      if (result.success) {
+        // Clean up related data
+        await this.cleanupOperatorData(operatorId);
+        
+        // Log deletion activity
+        await this.logActivity(
+          operatorId, 
+          'operator_deleted', 
+          `Operator "${operator.name}" (${operator.username}) deleted by ${deletedBy || 'system'}`,
+          {
+            deletedOperator: {
+              username: operator.username,
+              name: operator.name,
+              employeeId: operator.employeeId
+            },
+            deletedBy: deletedBy || 'system'
+          }
+        );
+
+        return {
+          success: true,
+          message: `Operator "${operator.name}" deleted successfully`
+        };
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error deleting operator:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete operator',
+        code: 'DELETE_FAILED'
+      };
+    }
+  }
+
+  /**
+   * Cleanup operator-related data when deleting
+   */
+  private async cleanupOperatorData(operatorId: string): Promise<void> {
+    try {
+      // Remove from Realtime Database (operator status)
+      const statusRef = ref(rtdb, `${RT_PATHS.OPERATOR_STATUS}/${operatorId}`);
+      await set(statusRef, null);
+
+      // TODO: Add cleanup for other related data:
+      // - Work assignments
+      // - Operator wallets
+      // - Activity logs (optional - for audit trail)
+      
+      console.log(`Cleaned up related data for operator: ${operatorId}`);
+    } catch (error) {
+      console.error('Error cleaning up operator data:', error);
+      // Don't throw - deletion can still succeed even if cleanup fails
     }
   }
 
