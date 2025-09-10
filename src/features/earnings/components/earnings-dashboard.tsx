@@ -209,7 +209,7 @@ const EarningsDashboard: React.FC<EarningsDashboardProps> = ({
       case 'overview':
         return renderOverview();
       case 'wallet':
-        return <OperatorWallet operatorId={operatorId || 'op-maya-001'} />;
+        return <OperatorWallet operatorId={operatorId || 'unknown-operator'} />;
       case 'history':
         return <EarningsHistory operatorId={operatorId} />;
       case 'payments':

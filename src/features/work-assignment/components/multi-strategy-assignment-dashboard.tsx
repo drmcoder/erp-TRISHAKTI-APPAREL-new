@@ -24,6 +24,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { BundleOperation, ProductionBundle } from '@/shared/types/bundle-types';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
+import { notify } from '@/utils/notification-utils';
 
 interface AssignmentStrategy {
   id: string;
@@ -125,7 +126,7 @@ const generateMockBundles = (count: number) => {
 };
 
 const mockOperators = [
-  { id: 'op_1', name: 'Maya Patel', machineType: 'overlock', efficiency: 94.5, currentWorkload: 2, experience: 'expert', specialties: ['shoulder_join', 'side_seam'] },
+  { id: 'DYNAMIC_OPERATOR_ID_1', name: 'DYNAMIC_OPERATOR_NAME_1', machineType: 'overlock', efficiency: 94.5, currentWorkload: 2, experience: 'expert', specialties: ['shoulder_join', 'side_seam'] },
   { id: 'op_2', name: 'Rajesh Kumar', machineType: 'singleNeedle', efficiency: 91.2, currentWorkload: 1, experience: 'expert', specialties: ['sleeve_attach', 'hem_finish'] },
   { id: 'op_3', name: 'Priya Singh', machineType: 'overlock', efficiency: 89.8, currentWorkload: 0, experience: 'intermediate', specialties: ['side_seam'] },
   { id: 'op_4', name: 'Amit Patel', machineType: 'singleNeedle', efficiency: 85.6, currentWorkload: 3, experience: 'intermediate', specialties: ['hem_finish', 'button_attach'] },
@@ -218,7 +219,7 @@ export const MultiStrategyAssignmentDashboard: React.FC = () => {
         !assignments.some(a => a.operation.id === op.id)
       ));
 
-      alert(`✅ Auto Smart Assignment Complete!\n${assignments.length} operations assigned to ${new Set(assignments.map(a => a.operator.id)).size} operators`);
+      notify.success(`Auto Smart Assignment Complete!\n${assignments.length} operations assigned to ${new Set(assignments.map(a => a.operator.id)).size} operators`, 'Assignment Complete');
       
     } catch (error) {
       console.error('Auto assignment failed:', error);
@@ -230,7 +231,7 @@ export const MultiStrategyAssignmentDashboard: React.FC = () => {
   // Bulk Batch Assignment
   const handleBulkBatchAssignment = async () => {
     if (selectedOperations.size === 0) {
-      alert('Please select operations to assign');
+      notify.warning('Please select operations to assign', 'Selection Required');
       return;
     }
 
@@ -268,7 +269,7 @@ export const MultiStrategyAssignmentDashboard: React.FC = () => {
       ));
 
       setSelectedOperations(new Set());
-      alert(`✅ Bulk Assignment Complete!\n${assignments.length} operations assigned in batches`);
+      notify.success(`Bulk Assignment Complete!\n${assignments.length} operations assigned in batches`, 'Assignment Complete');
 
     } catch (error) {
       console.error('Bulk assignment failed:', error);
@@ -280,7 +281,7 @@ export const MultiStrategyAssignmentDashboard: React.FC = () => {
   // Operator-First Assignment
   const handleOperatorFirstAssignment = async () => {
     if (selectedOperators.size === 0) {
-      alert('Please select operators first');
+      notify.warning('Please select operators first', 'Selection Required');
       return;
     }
 
@@ -313,7 +314,7 @@ export const MultiStrategyAssignmentDashboard: React.FC = () => {
       ));
 
       setSelectedOperators(new Set());
-      alert(`✅ Operator-First Assignment Complete!\n${assignments.length} operations assigned to ${selectedOps.length} operators`);
+      notify.success(`Operator-First Assignment Complete!\n${assignments.length} operations assigned to ${selectedOps.length} operators`, 'Assignment Complete');
 
     } catch (error) {
       console.error('Operator-first assignment failed:', error);
@@ -356,7 +357,7 @@ export const MultiStrategyAssignmentDashboard: React.FC = () => {
         !assignments.some(a => a.operation.id === op.id)
       ));
 
-      alert(`🔥 Priority Rush Assignment Complete!\n${assignments.length} urgent/high priority operations assigned to expert operators`);
+      notify.success(`🔥 Priority Rush Assignment Complete!\n${assignments.length} urgent/high priority operations assigned to expert operators`, 'Rush Assignment Complete');
 
     } catch (error) {
       console.error('Priority assignment failed:', error);

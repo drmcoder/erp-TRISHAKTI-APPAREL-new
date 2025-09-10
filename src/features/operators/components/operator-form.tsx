@@ -19,6 +19,7 @@ import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import type { CreateOperatorData, UpdateOperatorData } from '@/types/operator-types';
 import { MACHINE_TYPES, SKILL_LEVELS } from '@/types/operator-types';
 import { IDGenerationService } from '@/services/id-generation-service';
+import { notify } from '@/utils/notification-utils';
 
 // Form validation schema - dynamic based on mode
 const getOperatorSchema = (mode: 'create' | 'edit') => z.object({
@@ -363,7 +364,7 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
             })
             .join('\n');
           
-          alert(`Please fix the following required fields:\n\n${errorMessages}`);
+          notify.warning(`Please fix the following required fields:\n\n${errorMessages}`, 'Form Validation Failed');
           return;
         }
       }
@@ -412,7 +413,7 @@ export const OperatorForm: React.FC<OperatorFormProps> = ({
       await onSubmit(formattedData);
     } catch (error) {
       console.error('Form submission error:', error);
-      alert('Failed to create operator. Please check all required fields and try again.');
+      notify.error('Failed to create operator. Please check all required fields and try again.', 'Creation Failed');
     }
   };
 

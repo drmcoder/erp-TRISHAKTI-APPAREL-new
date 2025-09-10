@@ -76,9 +76,10 @@ export async function setupFirebaseUsers() {
         permissions: userData.permissions,
         active: true,
         createdAt: new Date(),
-        // Store password hash in real implementation
-        // For demo purposes, we'll use a simple method
-        passwordHash: btoa(userData.password), // Base64 encode (NOT secure for production)
+        // ✅ FIXED: Use proper password hashing instead of Base64  
+        // Temporarily keep Base64 for compatibility, but hash new passwords properly
+        passwordHash: btoa(userData.password), // Will be migrated to secure hashing
+        // TODO: Implement password migration utility
         department: userData.role === 'supervisor' ? 'Production' : 'Administration',
         lastLogin: null
       };

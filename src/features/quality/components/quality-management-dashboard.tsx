@@ -16,10 +16,12 @@ import { DamageReportList } from './damage-report-list';
 
 interface QualityManagementDashboardProps {
   userRole?: string;
+  userData?: { id?: string; name?: string };
 }
 
 const QualityManagementDashboard: React.FC<QualityManagementDashboardProps> = ({
-  userRole = 'supervisor'
+  userRole = 'supervisor',
+  userData
 }) => {
   const [activeView, setActiveView] = useState<'overview' | 'reports' | 'approvals' | 'new-report'>('overview');
   
@@ -157,7 +159,7 @@ const QualityManagementDashboard: React.FC<QualityManagementDashboardProps> = ({
         return (
           <DamageReportForm
             bundleId="BND-2024-001"
-            operatorId="op-maya-001"
+            operatorId={userData?.id || 'unknown-operator'}
             onCancel={() => setActiveView('overview')}
             onSuccess={() => setActiveView('overview')}
           />

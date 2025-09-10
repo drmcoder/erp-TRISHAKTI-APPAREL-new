@@ -56,13 +56,13 @@ class ErrorReportingService {
   constructor() {
     this.sessionId = this.generateSessionId();
     
-    // In development, disable remote error reporting endpoints by default
+    // In development or when no backend is available, disable remote error reporting endpoints 
     // to avoid 404 errors when no backend API is available
-    if (ENV_CONFIG.environment === 'development') {
+    if (ENV_CONFIG.environment === 'development' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.includes('192.168')) {
       this.errorEndpointAvailable = false;
       this.performanceEndpointAvailable = false;
       if (ENV_CONFIG.logging.debugMode) {
-        console.log('🔧 Development mode: Error reporting endpoints disabled');
+        console.log('🔧 Local/Development mode: Error reporting endpoints disabled');
       }
     }
     

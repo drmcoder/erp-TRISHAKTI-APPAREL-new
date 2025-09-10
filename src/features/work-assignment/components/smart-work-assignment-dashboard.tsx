@@ -28,6 +28,7 @@ import {
   HandRaisedIcon,
   Squares2X2Icon
 } from '@heroicons/react/24/outline';
+import { notify } from '@/utils/notification-utils';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import EnhancedBundleService from '@/services/enhanced-bundle-service';
 
@@ -331,7 +332,7 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
 
   const handleSmartAssignment = async () => {
     if (selectedBundles.length === 0) {
-      alert('Please select bundles to assign');
+      notify.warning('Please select bundles to assign', 'Selection Required');
       return;
     }
 
@@ -372,7 +373,7 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
     setAssignments(prev => ({ ...prev, ...newAssignments }));
     setSelectedBundles([]);
     
-    alert(`✅ Smart assignment completed!\nAssigned ${Object.keys(newAssignments).length} operations to operators.`);
+    notify.success(`Smart assignment completed!\nAssigned ${Object.keys(newAssignments).length} operations to operators.`, 'Assignment Complete');
   };
 
   const getPriorityColor = (priority: string) => {

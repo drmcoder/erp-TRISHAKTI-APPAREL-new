@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { PartsComplaint, BundleOperation } from '@/shared/types/bundle-types';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
+import { notify } from '@/utils/notification-utils';
 
 // Mock parts complaints data
 const mockPartsComplaints: PartsComplaint[] = [
@@ -138,7 +139,7 @@ export const SupervisorPartsDashboard: React.FC = () => {
       }));
       
       if (action === 'complete_replacement') {
-        alert(`Parts replacement completed for ${complaint.bundleNumber}! Operator ${complaint.reportedByName} has been notified and can continue work.`);
+        notify.success(`Parts replacement completed for ${complaint.bundleNumber}! Operator ${complaint.reportedByName} has been notified and can continue work.`, 'Parts Replaced Successfully');
       }
       
       setSupervisorNotes('');
@@ -146,7 +147,7 @@ export const SupervisorPartsDashboard: React.FC = () => {
       
     } catch (error) {
       console.error('Complaint action failed:', error);
-      alert('Action failed. Please try again.');
+      notify.error('Action failed. Please try again.', 'Action Failed');
     } finally {
       setIsLoading(false);
     }

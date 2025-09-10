@@ -22,6 +22,7 @@ import {
   AcademicCapIcon
 } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
+import { notify } from '@/utils/notification-utils';
 
 interface OperatorProfileAssignmentProps {
   operatorId?: string;
@@ -279,7 +280,7 @@ export const OperatorProfileAssignment: React.FC<OperatorProfileAssignmentProps>
     const selectedWorkItems = availableWork.filter(work => selectedWork.includes(work.id));
     const totalEarnings = selectedWorkItems.reduce((sum, work) => sum + work.estimatedEarnings, 0);
 
-    alert(`✅ Work assigned successfully!\n\nAssigned ${selectedWork.length} operations to ${operator?.name}\nEstimated earnings: $${totalEarnings.toFixed(2)}`);
+    notify.success(`Assigned ${selectedWork.length} operations to ${operator?.name}\nEstimated earnings: $${totalEarnings.toFixed(2)}`, 'Work Assigned Successfully!');
     
     setSelectedWork([]);
     setShowAssignmentModal(false);

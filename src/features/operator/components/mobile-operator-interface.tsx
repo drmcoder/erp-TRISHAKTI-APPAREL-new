@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
+import { notify } from '@/utils/notification-utils';
 import {
   PlayIcon,
   PauseIcon,
@@ -154,7 +155,7 @@ export const MobileOperatorInterface: React.FC<MobileOperatorInterfaceProps> = (
     setTimeout(() => {
       setVoiceInput(false);
       // Simulated voice input result
-      alert('Voice input: "Work completed, no quality issues"');
+      notify.info('Voice input: "Work completed, no quality issues"', 'Voice Command');
     }, 3000);
   };
 
@@ -361,7 +362,7 @@ export const MobileOperatorInterface: React.FC<MobileOperatorInterfaceProps> = (
                 {voiceInput ? 'Listening...' : 'Voice Input'}
               </Button>
               <Button
-                onClick={() => alert('Camera scan functionality')}
+                onClick={() => notify.info('Camera scan functionality', 'Feature Demo')}
                 variant="outline"
                 className="h-12"
               >
@@ -381,7 +382,7 @@ export const MobileOperatorInterface: React.FC<MobileOperatorInterfaceProps> = (
             </p>
             <Button 
               className="mt-4"
-              onClick={() => alert('Requesting work assignment...')}
+              onClick={() => notify.info('Requesting work assignment...', 'Work Request')}
             >
               Request Work
             </Button>
@@ -421,7 +422,7 @@ export const MobileOperatorInterface: React.FC<MobileOperatorInterfaceProps> = (
       {/* Emergency/Help Button */}
       <div className="fixed bottom-4 right-4">
         <Button
-          onClick={() => alert('Emergency call to supervisor')}
+          onClick={() => notify.warning('Emergency call to supervisor', 'Emergency Alert')}
           className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 shadow-lg"
         >
           🆘

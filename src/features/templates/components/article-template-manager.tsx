@@ -6,6 +6,7 @@ import { Card } from '@/shared/components/ui/Card';
 import { Button } from '@/shared/components/ui/Button';
 import { Input } from '@/shared/components/ui/Input';
 import { Badge } from '@/shared/components/ui/Badge';
+import { notify } from '@/utils/notification-utils';
 import {
   PlusIcon,
   TrashIcon,
@@ -170,7 +171,7 @@ const ArticleTemplateManager: React.FC<ArticleTemplateManagerProps> = ({
     e.preventDefault();
     
     if (!template.articleNumber || !template.articleName || template.operations.length === 0) {
-      alert('Please fill in all required fields and add at least one operation');
+      notify.warning('Please fill in all required fields and add at least one operation', 'Form Incomplete');
       return;
     }
 

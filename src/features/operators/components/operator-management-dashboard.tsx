@@ -18,6 +18,7 @@ import { OperatorForm } from './operator-form';
 import { OperatorCard } from './operator-card';
 import { operatorService } from '@/services/operator-service';
 import { useDeleteOperator } from '../hooks/use-operators';
+import { notify } from '@/utils/notification-utils';
 import { safeArray } from '@/utils/null-safety';
 
 interface OperatorManagementDashboardProps {
@@ -66,7 +67,7 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
   // Handler for deleting an operator (supervisors only)
   const handleDeleteOperator = async (operatorId: string) => {
     if (userRole !== 'supervisor') {
-      alert('You do not have permission to delete operators.');
+      notify.warning('You do not have permission to delete operators.', 'Access Denied');
       return;
     }
 
@@ -82,7 +83,7 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
           deletedBy: userRole // Pass current user role as deletedBy
         });
         
-        alert('✅ Operator deleted successfully!');
+        notify.success('Operator deleted successfully!', 'Deletion Complete');
         setRefreshTrigger(prev => prev + 1); // Trigger refresh to update the list
         
         // If we were viewing the deleted operator, go back to overview
@@ -92,7 +93,7 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
         }
       } catch (error) {
         console.error('Error deleting operator:', error);
-        alert('Failed to delete operator. Please try again.');
+        notify.error('Failed to delete operator. Please try again.', 'Deletion Failed');
       }
     }
   };
@@ -378,29 +379,29 @@ const OperatorManagementDashboard: React.FC<OperatorManagementDashboardProps> = 
                   const result = await operatorService.updateOperator(selectedOperatorId, data);
                   
                   if (result.success) {
-                    alert('✅ Operator updated successfully!');
+                    notify.success('Operator updated successfully!', 'Update Complete');
                     setRefreshTrigger(prev => prev + 1); // Trigger refresh
                     setActiveView('overview');
                     setSelectedOperatorId('');
                   } else {
-                    alert(`❌ Failed to update operator: ${result.error}`);
+                    notify.error(`Failed to update operator: ${result.error}`, 'Update Failed');
                   }
                 } else {
                   // Create new operator
                   const result = await operatorService.createOperator(data);
                   
                   if (result.success) {
-                    alert('✅ Operator created successfully!');
+                    notify.success('Operator created successfully!', 'Creation Complete');
                     setRefreshTrigger(prev => prev + 1); // Trigger refresh
                     setActiveView('overview');
                     setSelectedOperatorId('');
                   } else {
-                    alert(`❌ Failed to create operator: ${result.error}`);
+                    notify.error(`Failed to create operator: ${result.error}`, 'Creation Failed');
                   }
                 }
               } catch (error) {
                 console.error('Error saving operator:', error);
-                alert('❌ An unexpected error occurred. Please try again.');
+                notify.error('An unexpected error occurred. Please try again.', 'Unexpected Error');
               }
             }}
             onCancel={() => {
