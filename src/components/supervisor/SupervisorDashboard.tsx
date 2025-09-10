@@ -1,14 +1,28 @@
 // Real Supervisor Dashboard - Using Integrated Business Service with Permission-Based UI
 import React, { useState, useEffect } from 'react';
 import { supervisorServices, permissionService } from '@/services';
+import { notificationService } from '@/services/notification-service';
 import { PERMISSIONS } from '@/services/permission-service';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { Card } from '@/shared/components/ui/Card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
+import { Bell, CheckCircle, AlertTriangle, AlertCircle, Info, Clock } from 'lucide-react';
 
 interface SupervisorDashboardProps {
   supervisorId: string;
+}
+
+interface SupervisorNotification {
+  id: string;
+  type: 'system' | 'assignment' | 'quality' | 'break' | 'achievement' | 'alert';
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  userId?: string;
+  category?: string;
 }
 
 export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.memo(({ supervisorId }) => {
@@ -16,6 +30,7 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<SupervisorNotification[]>([]);
   const [permissions, setPermissions] = useState<{
     canViewDashboard: boolean;
     canViewTeam: boolean;
@@ -36,9 +51,21 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
     loadPermissions();
     loadDashboardData();
     
-    // Removed auto-refresh for performance - use manual refresh instead
-    // const interval = setInterval(loadDashboardData, 30000);
-    // return () => clearInterval(interval);
+    // Setup notifications and cleanup
+    let unsubscribeNotifications: (() => void) | undefined;
+    
+    const setupNotifications = async () => {
+      unsubscribeNotifications = await loadSupervisorNotifications();
+    };
+    
+    setupNotifications();
+    
+    // Cleanup function
+    return () => {
+      if (unsubscribeNotifications) {
+        unsubscribeNotifications();
+      }
+    };
   }, [supervisorId]);
 
   const loadPermissions = async () => {
@@ -83,6 +110,108 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadSupervisorNotifications = async () => {
+    try {
+      // Get notifications from the notification service
+      // Filter for supervisor-relevant notifications (could be refined further)
+      const allNotifications = notificationService.getNotifications({
+        limit: 20 // Get latest 20 notifications
+      });
+      
+      // Filter and transform notifications for supervisor context
+      const supervisorNotifications: SupervisorNotification[] = allNotifications
+        .filter(notification => 
+          // Include system, assignment, quality, and alert notifications for supervisors
+          ['system', 'assignment', 'quality', 'alert', 'achievement'].includes(notification.type) ||
+          notification.userId === supervisorId // Include notifications specifically for this supervisor
+        )
+        .map(notification => ({
+          id: notification.id,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          timestamp: notification.timestamp,
+          read: notification.read,
+          priority: notification.priority,
+          userId: notification.userId,
+          category: notification.category
+        }));
+      
+      setNotifications(supervisorNotifications);
+      
+      // Subscribe to real-time notification updates
+      const unsubscribe = notificationService.subscribe(`supervisor-${supervisorId}`, (newNotification) => {
+        // Add new notification if it's relevant to supervisor
+        if (
+          ['system', 'assignment', 'quality', 'alert', 'achievement'].includes(newNotification.type) ||
+          newNotification.userId === supervisorId
+        ) {
+          setNotifications(prev => [
+            {
+              id: newNotification.id,
+              type: newNotification.type,
+              title: newNotification.title,
+              message: newNotification.message,
+              timestamp: newNotification.timestamp,
+              read: newNotification.read,
+              priority: newNotification.priority,
+              userId: newNotification.userId,
+              category: newNotification.category
+            },
+            ...prev
+          ]);
+        }
+      });
+      
+      // Store unsubscribe function for cleanup
+      return unsubscribe;
+    } catch (err) {
+      console.error('Failed to load notifications:', err);
+      // Fallback to empty notifications on error
+      setNotifications([]);
+    }
+  };
+
+  const markNotificationAsRead = (notificationId: string) => {
+    // Update local state
+    setNotifications(prev => 
+      prev.map(notif => 
+        notif.id === notificationId ? { ...notif, read: true } : notif
+      )
+    );
+    
+    // Update notification service
+    try {
+      notificationService.markAsRead(notificationId);
+    } catch (err) {
+      console.error('Failed to mark notification as read:', err);
+    }
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'achievement': return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'quality': return <AlertTriangle className="w-4 h-4 text-yellow-600" />;
+      case 'alert': return <AlertCircle className="w-4 h-4 text-red-600" />;
+      case 'assignment': return <Bell className="w-4 h-4 text-purple-600" />;
+      case 'system': return <Info className="w-4 h-4 text-blue-600" />;
+      case 'break': return <Clock className="w-4 h-4 text-gray-600" />;
+      default: return <Info className="w-4 h-4 text-blue-600" />;
+    }
+  };
+
+  const formatTime = (timestamp: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - timestamp.getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
+    
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
   };
 
   const handleApprovalDecision = async (
@@ -213,6 +342,92 @@ export const SupervisorDashboard: React.FC<SupervisorDashboardProps> = React.mem
           </p>
         </Card>
       </div>
+
+      {/* Notifications Panel */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <Bell className="w-5 h-5 text-gray-600" />
+            <h2 className="text-lg font-semibold">Notifications</h2>
+            <Badge variant="destructive" className="px-2 py-0.5 text-xs">
+              {notifications.filter(n => !n.read).length}
+            </Badge>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => {
+              setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+            }}
+            className="text-sm"
+          >
+            Mark all read
+          </Button>
+        </div>
+
+        {notifications.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p>No notifications</p>
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 rounded-lg border transition-colors cursor-pointer ${
+                  !notification.read 
+                    ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' 
+                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                }`}
+                onClick={() => markNotificationAsRead(notification.id)}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-1">
+                    {getNotificationIcon(notification.type)}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h4 className={`text-sm font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                        {notification.title}
+                      </h4>
+                      <div className="flex items-center space-x-2">
+                        <Badge 
+                          variant={
+                            notification.priority === 'critical' || notification.priority === 'high' 
+                              ? 'destructive' 
+                              : notification.priority === 'medium' 
+                                ? 'default' 
+                                : 'secondary'
+                          }
+                          className="text-xs"
+                        >
+                          {notification.priority}
+                        </Badge>
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mt-1">
+                      {notification.message}
+                    </p>
+                    
+                    <div className="flex items-center mt-2">
+                      <Clock className="w-3 h-3 text-gray-400 mr-1" />
+                      <span className="text-xs text-gray-400">
+                        {formatTime(notification.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       {/* Team Members - Only show if user has permission to view team */}
       {permissions.canViewTeam && (
