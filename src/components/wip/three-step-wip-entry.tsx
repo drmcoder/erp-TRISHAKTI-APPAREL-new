@@ -303,14 +303,25 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     const templateRate = selectedTemplate ? selectedTemplate.totalPricePerPiece : 0;
     const templateSmv = selectedTemplate ? selectedTemplate.totalSmv : 0;
     
-    // Clear existing sizes and generate new ones - no per-size variation
-    const newSizes = sizeNames.map((sizeName, index) => ({
-      size: sizeName,
-      quantity: parseInt(sizeRatios[index]) || 1,
-      completed: 0,
-      rate: templateRate, // Same rate for all sizes from template
-      smv: templateSmv // Same SMV for all sizes from template
-    }));
+    // Calculate total pieces based on fabric layer count and ratios
+    // Each layer can produce pieces according to the ratio
+    const totalLayers = formData.batchCuttingInfo.totalLayers;
+    
+    // Calculate pieces per size based on layers and ratios
+    const newSizes = sizeNames.map((sizeName, index) => {
+      const ratioValue = parseInt(sizeRatios[index]) || 1;
+      // Each layer produces pieces according to the ratio
+      // For example, if ratio is 1:4, and we have 17 layers, we get 17*1=17 and 17*4=68 pieces
+      const piecesFromLayers = totalLayers * ratioValue;
+      
+      return {
+        size: sizeName,
+        quantity: piecesFromLayers,
+        completed: 0,
+        rate: templateRate, // Same rate for all sizes from template
+        smv: templateSmv // Same SMV for all sizes from template
+      };
+    });
     
     const updatedArticles = formData.articles.map((art, index) => 
       index === articleIndex 
@@ -400,7 +411,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
     const currentArticle = formData.articles[currentArticleIndex];
     
     return (
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-8">
         {/* Step Header - Mobile Optimized */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg md:rounded-2xl p-4 md:p-8 shadow-lg">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -433,7 +444,11 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
           </div>
         </div>
 
-        <Card className="p-8 border-l-4 border-l-blue-500 bg-blue-50/30">
+        {/* Desktop Layout: Two-column layout for better space utilization */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        
+        {/* Left Column: Article Configuration */}
+        <Card className="xl:col-span-2 p-8 border-l-4 border-l-blue-500 bg-white shadow-lg">
           <div className="flex items-center gap-3 mb-8">
             <span className="text-2xl">📋</span>
             <h3 className="text-xl font-bold text-gray-900">Article Configuration</h3>
@@ -490,10 +505,11 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div>
               <Input
                 label="Article Number *"
+                className="text-base font-medium"
                 placeholder="e.g., #3233 (adult), #3265 (teen)"
                 value={currentArticle.articleNumber}
                 onChange={(e) => updateCurrentArticle({ articleNumber: e.target.value })}
@@ -504,6 +520,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
             <div>
               <Input
                 label="Style *"
+                className="text-base font-medium"
                 placeholder="e.g., Round Neck T-shirt"
                 value={currentArticle.style}
                 onChange={(e) => updateCurrentArticle({ style: e.target.value })}
@@ -511,9 +528,10 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
               />
             </div>
 
-            <div>
+            <div className="lg:col-span-3">
               <Input
                 label="Size Names *"
+                className="text-base font-medium"
                 placeholder="e.g., M:L:XL or S:M:L:XL:2XL"
                 value={currentArticle.sizeNames}
                 onChange={(e) => updateCurrentArticle({ sizeNames: e.target.value })}
@@ -523,11 +541,11 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Priority *</label>
+              <label className="block text-base font-semibold text-gray-700 mb-3">Priority *</label>
               <select
                 value={currentArticle.priority}
                 onChange={(e) => updateCurrentArticle({ priority: e.target.value as 'low' | 'normal' | 'high' | 'urgent' })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base font-medium bg-white"
               >
                 <option value="low">Low</option>
                 <option value="normal">Normal</option>
@@ -539,6 +557,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
             <div>
               <Input
                 label="Size Ratios *"
+                className="text-base font-medium"
                 placeholder="e.g., 1:2:1 or 2:3:2:1:1"
                 value={currentArticle.sizeRatios}
                 onChange={(e) => updateCurrentArticle({ sizeRatios: e.target.value })}
@@ -547,12 +566,12 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
               <p className="text-xs text-gray-500 mt-1">Enter ratios separated by colon (:), matching size names order</p>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sewing Template *</label>
+            <div className="lg:col-span-3">
+              <label className="block text-base font-semibold text-gray-700 mb-3">Sewing Template *</label>
               <select
                 value={currentArticle.selectedTemplateId}
                 onChange={(e) => updateCurrentArticle({ selectedTemplateId: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base font-medium bg-white"
               >
                 <option value="">Select a sewing template</option>
                 {availableTemplates.map((template) => (
@@ -586,11 +605,51 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
             </div>
           </div>
         </Card>
+        
+        {/* Right Column: Live Preview */}
+        <Card className="xl:col-span-1 p-6 bg-gradient-to-br from-gray-50 to-blue-50 border border-blue-200">
+          <div className="flex items-center gap-2 mb-6">
+            <span className="text-2xl">👀</span>
+            <h3 className="text-xl font-bold text-gray-900">Live Preview</h3>
+          </div>
+          
+          {/* Current Article Summary */}
+          {currentArticle && (
+            <div className="space-y-4 mb-6">
+              <div className="bg-white p-4 rounded-lg border">
+                <h4 className="font-semibold text-blue-900 mb-2">Current Article</h4>
+                <div className="space-y-2 text-sm">
+                  <div><span className="font-medium">Number:</span> {currentArticle.articleNumber || 'Not set'}</div>
+                  <div><span className="font-medium">Style:</span> {currentArticle.style || 'Not set'}</div>
+                  <div><span className="font-medium">Priority:</span> 
+                    <Badge variant={currentArticle.priority === 'urgent' ? 'danger' : 'secondary'} size="sm" className="ml-2">
+                      {currentArticle.priority}
+                    </Badge>
+                  </div>
+                  {currentArticle.sizes && currentArticle.sizes.length > 0 && (
+                    <div>
+                      <span className="font-medium">Sizes:</span>
+                      <div className="grid grid-cols-2 gap-1 mt-1">
+                        {currentArticle.sizes.map((size, idx) => (
+                          <div key={idx} className="bg-gray-100 px-2 py-1 rounded text-xs">
+                            {size.size}: {size.quantity}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+        
+        </div>
 
         {/* Articles Summary */}
         {formData.articles.length > 0 && (
-          <Card className="p-6">
-            <h4 className="font-medium text-gray-900 mb-3">Batch Cutting Preview ({formData.articles.length} Articles)</h4>
+          <Card className="p-6 mt-8">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">Batch Cutting Preview ({formData.articles.length} Articles)</h4>
             <div className="bg-yellow-50 p-3 rounded-lg mb-4">
               <p className="text-sm text-yellow-800">
                 📋 <strong>Multi-Article Batch:</strong> All articles will be cut together from the same fabric layers for maximum efficiency.
@@ -621,10 +680,11 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                           // If sizes are already generated, show actual total pieces
                           return `${article.sizes.reduce((sum, size) => sum + size.quantity, 0)} pieces`;
                         } else if (article.sizeRatios) {
-                          // If ratios are set but sizes not generated yet, calculate preview
+                          // If ratios are set but sizes not generated yet, calculate preview based on layers
                           const ratios = article.sizeRatios.split(':').map(r => parseInt(r.trim()) || 0);
-                          const totalRatio = ratios.reduce((sum, ratio) => sum + ratio, 0);
-                          return `${totalRatio} pieces (preview)`;
+                          const totalLayers = formData.batchCuttingInfo.totalLayers;
+                          const totalPieces = ratios.reduce((sum, ratio) => sum + (ratio * totalLayers), 0);
+                          return `${totalPieces} pieces (${totalLayers} layers)`;
                         } else {
                           return '0 pieces';
                         }
@@ -649,7 +709,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
 
   const renderStep2 = () => {
     return (
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="space-y-8">
         {/* Step Header */}
         <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl p-8 shadow-lg">
           <div className="flex items-center gap-4 mb-4">
@@ -1179,7 +1239,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   };
 
   const renderStep3 = () => (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="space-y-8">
       {/* Step Header */}
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl p-8 shadow-lg">
         <div className="flex items-center gap-4 mb-4">
@@ -1501,10 +1561,10 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 md:p-4 lg:p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Mobile-Optimized Progress Indicator */}
-        <div className="sticky top-0 z-20 bg-white shadow-sm border-b border-gray-200 px-4 py-3 mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Enhanced Progress Indicator */}
+        <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200 px-6 py-4 mb-8 rounded-b-xl">
           <div className="flex items-center justify-between">
             {[1, 2, 3].map((step) => (
               <React.Fragment key={step}>
@@ -1523,7 +1583,7 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
                     )}
                   </div>
                   <div className="ml-2 hidden sm:block">
-                    <p className={`text-xs font-medium ${
+                    <p className={`text-sm font-semibold ${
                       step === currentStep ? 'text-blue-600' : 
                       step < currentStep ? 'text-green-600' : 'text-gray-500'
                     }`}>
@@ -1541,16 +1601,16 @@ export const ThreeStepWipEntry: React.FC<ThreeStepWipEntryProps> = ({
           </div>
         </div>
 
-        {/* Step Content - Mobile Optimized */}
-        <div className="px-4 md:px-6 pb-20">
+        {/* Step Content - Desktop Optimized */}
+        <div className="pb-32">
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
         </div>
 
-        {/* Touch-Friendly Sticky Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-30 p-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
+        {/* Enhanced Sticky Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-2xl z-30 p-6">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div>
               {currentStep > 1 && (
                 <Button 

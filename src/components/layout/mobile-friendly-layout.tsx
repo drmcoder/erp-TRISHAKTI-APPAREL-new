@@ -30,6 +30,7 @@ import {
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import { cn } from '../../lib/utils';
+import { LanguageSwitcherCompact } from '../common/language-switcher';
 
 interface MobileFriendlyLayoutProps {
   children: React.ReactNode;
@@ -53,6 +54,7 @@ const navigationGroups = {
       items: [
         { icon: HomeIcon, label: 'Dashboard', href: '/supervisor', id: 'dashboard' },
         { icon: DocumentTextIcon, label: 'WIP Entry', href: '/supervisor/complete-wip', id: 'complete-wip-entry' },
+        { icon: DocumentTextIcon, label: '📝 WIP Manager', href: '/supervisor/wip-manager', id: 'wip-manager' },
       ]
     },
     {
@@ -575,12 +577,20 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
               <div className={cn("w-1.5 h-1.5 rounded-full", getRoleColor(currentUser.role))} />
             </div>
             
-            <button className="p-1.5 rounded-md text-gray-600 hover:bg-gray-100 transition-colors relative">
-              <BellIcon className="h-5 w-5" />
-              <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-xs text-white font-bold leading-none">3</span>
-              </div>
-            </button>
+            <div className="flex items-center space-x-1">
+              {/* Language Toggle for all users */}
+              <LanguageSwitcherCompact />
+              
+              {/* Hide notification bell for supervisor role */}
+              {currentUser.role !== 'supervisor' && (
+                <button className="p-1.5 rounded-md text-gray-600 hover:bg-gray-100 transition-colors relative">
+                  <BellIcon className="h-5 w-5" />
+                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs text-white font-bold leading-none">3</span>
+                  </div>
+                </button>
+              )}
+            </div>
           </div>
         </header>
 
@@ -610,10 +620,16 @@ export const MobileFriendlyLayout: React.FC<MobileFriendlyLayoutProps> = ({
                 </div>
               </div>
               
-              <button className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors relative">
-                <BellIcon className="h-5 w-5" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
-              </button>
+              {/* Language Toggle for all users */}
+              <LanguageSwitcherCompact />
+              
+              {/* Hide notification bell for supervisor role */}
+              {currentUser.role !== 'supervisor' && (
+                <button className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition-colors relative">
+                  <BellIcon className="h-5 w-5" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
+                </button>
+              )}
             </div>
           </div>
         </header>
