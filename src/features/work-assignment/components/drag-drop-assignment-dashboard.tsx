@@ -75,20 +75,66 @@ export const DragDropAssignmentDashboard: React.FC<DragDropAssignmentDashboardPr
   const loadData = async () => {
     setLoading(true);
     try {
-      const [operationsResponse, operatorsResponse] = await Promise.all([
-        EnhancedBundleService.getPendingOperations({ limit: 20 }),
+      console.log('🔍 Drag & Drop: Loading ALL work from production lots...');
+      
+      // Load ALL work using the correct TSA workflow (production lots)
+      const { workAssignmentService } = await import('@/features/work-assignment/services');
+      
+      const [workBundlesResponse, operatorsResponse] = await Promise.all([
+        workAssignmentService.getWorkBundles(), // Load ALL bundles (no limit)
         EnhancedBundleService.getAvailableOperators()
       ]);
 
-      if (operationsResponse.success && operationsResponse.data) {
-        setAvailableOperations(operationsResponse.data);
+      if (workBundlesResponse.success && workBundlesResponse.data) {
+        console.log(`✅ Found ${workBundlesResponse.data.items.length} work bundles for drag & drop`);
+        
+        // Convert work bundles to operations format for drag & drop
+        const allOperations = workBundlesResponse.data.items.flatMap((bundle: any) => {
+          return bundle.workItems.map((workItem: any) => ({
+            id: workItem.id,
+            operationName: workItem.name,
+            operationNameNepali: workItem.description.split(' - ')[1] || workItem.name,
+            machineType: workItem.machineType,
+            skillLevel: workItem.requiredSkill || 'basic',
+            timePerPiece: workItem.timePerPiece,
+            pricePerPiece: workItem.pricePerPiece,
+            totalPieces: workItem.totalPieces,
+            completedPieces: workItem.completedPieces,
+            status: workItem.status,
+            assignedOperator: workItem.operatorId,
+            priority: bundle.priority || 'normal',
+            bundleInfo: {
+              id: bundle.id,
+              bundleNumber: bundle.bundleNumber,
+              articleNumber: bundle.articleNumber,
+              description: bundle.description,
+              quantity: bundle.quantity,
+              dueDate: bundle.dueDate,
+              status: bundle.status,
+              garmentType: bundle.garmentType
+            }
+          }));
+        });
+        
+        console.log(`📦 Total operations available for assignment: ${allOperations.length}`);
+        setAvailableOperations(allOperations);
+        
+        // Show helpful message if no operations
+        if (allOperations.length === 0 && workBundlesResponse.message) {
+          console.log('💡 Guide:', workBundlesResponse.message);
+        }
+      } else {
+        console.log('⚠️ No work bundles found or failed to load');
+        setAvailableOperations([]);
       }
 
       if (operatorsResponse.success && operatorsResponse.data) {
+        console.log(`✅ Found ${operatorsResponse.data.length} operators for assignment`);
         setAvailableOperators(operatorsResponse.data);
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
+      console.error('❌ Failed to load drag & drop assignment data:', error);
+      setAvailableOperations([]);
     } finally {
       setLoading(false);
     }

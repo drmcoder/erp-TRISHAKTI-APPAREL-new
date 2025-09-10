@@ -25,8 +25,25 @@ export async function initializeFirebaseData() {
     const result = await EnhancedBundleService.createSampleData();
     
     if (result.success) {
-      console.log('🎉 Firebase initialized successfully!');
-      return { success: true, message: 'Firebase initialized with sample data' };
+      console.log('✅ Sample data created successfully!');
+      
+      // Now generate production lots from WIP entries
+      console.log('🔧 Generating production lots from WIP entries...');
+      const lotResult = await EnhancedBundleService.generateProductionLotsFromWIP();
+      
+      if (lotResult.success) {
+        console.log('🎉 Firebase initialized with complete workflow!');
+        return { 
+          success: true, 
+          message: `Firebase initialized with sample data and ${lotResult.data?.generated || 0} production lots generated` 
+        };
+      } else {
+        console.log('⚠️ Sample data created but production lot generation failed:', lotResult.error);
+        return { 
+          success: true, 
+          message: 'Firebase initialized with sample data (production lot generation failed)' 
+        };
+      }
     } else {
       throw new Error(result.error || 'Failed to create sample data');
     }

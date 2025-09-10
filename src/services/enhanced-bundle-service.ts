@@ -11,7 +11,9 @@ import {
   updateDoc,
   doc,
   addDoc,
-  Timestamp
+  Timestamp,
+  serverTimestamp,
+  or
 } from 'firebase/firestore';
 import type { 
   BundleOperation, 
@@ -754,6 +756,242 @@ export class EnhancedBundleService {
     } catch (error) {
       console.error('Failed to create sample operators:', error);
       return { success: false, error: 'Failed to create sample operators' };
+    }
+  }
+
+  /**
+   * Generate Production Lots from WIP Entries using Sewing Templates
+   * This is the correct TSA workflow: WIP → Template → Bundle Generation → Work Assignment
+   */
+  static async generateProductionLotsFromWIP(): Promise<ServiceResponse<{ generated: number }>> {
+    try {
+      console.log('🔧 Enhanced Bundle Service: Generating production lots from WIP entries...');
+      
+      // Get WIP entries that haven't been processed yet
+      const wipRef = collection(db, COLLECTIONS.PRODUCTION_BUNDLES);
+      console.log('🔍 Checking collection:', COLLECTIONS.PRODUCTION_BUNDLES);
+      
+      // First, get all WIP entries to see what we have
+      const allWipSnapshot = await getDocs(wipRef);
+      console.log(`📊 Total documents in ${COLLECTIONS.PRODUCTION_BUNDLES}: ${allWipSnapshot.size}`);
+      
+      if (allWipSnapshot.empty) {
+        console.log('❌ No WIP entries found at all in the collection');
+        return { 
+          success: true, 
+          message: 'No WIP entries found in collection',
+          data: { generated: 0 }
+        };
+      }
+      
+      // Filter for unprocessed entries
+      const unprocessedDocs = allWipSnapshot.docs.filter(doc => {
+        const data = doc.data();
+        const isProcessed = data.processed === true;
+        console.log(`📋 Doc ${doc.id}: processed=${data.processed}, bundleNumber=${data.bundleNumber}`);
+        return !isProcessed;
+      });
+      
+      console.log(`🔍 Found ${unprocessedDocs.length} unprocessed WIP entries out of ${allWipSnapshot.size} total`);
+      
+      // Create a mock snapshot-like object for compatibility
+      const wipSnapshot = {
+        docs: unprocessedDocs,
+        empty: unprocessedDocs.length === 0,
+        size: unprocessedDocs.length
+      } as any;
+      
+      if (wipSnapshot.empty) {
+        console.log('⚠️ No unprocessed WIP entries found');
+        return { 
+          success: true, 
+          message: 'No unprocessed WIP entries found',
+          data: { generated: 0 }
+        };
+      }
+      
+      console.log(`📦 Found ${wipSnapshot.docs.length} WIP entries to process`);
+      
+      // Check if we have sewing templates
+      const templatesRef = collection(db, 'sewing_templates');
+      const templatesSnapshot = await getDocs(templatesRef);
+      
+      let templates: any[] = [];
+      if (!templatesSnapshot.empty) {
+        templates = templatesSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        console.log(`✅ Found ${templates.length} sewing templates`);
+      } else {
+        // Create default T-shirt template
+        console.log('🔧 Creating default T-shirt sewing template...');
+        const defaultTemplate = {
+          templateName: 'Basic T-Shirt Template',
+          templateCode: 'TSHIRT-001',
+          category: 'tshirt',
+          operations: [
+            {
+              id: 'op_shoulder_join',
+              operation: 'Shoulder Join',
+              operationNepali: 'काँध जोड्ने',
+              machineType: 'overlock',
+              smvMinutes: 1.5,
+              pricePerPiece: 1.50,
+              requiredSkill: 'basic',
+              stepNumber: 1
+            },
+            {
+              id: 'op_side_seam',
+              operation: 'Side Seam',
+              operationNepali: 'छेउको सिलाई',
+              machineType: 'overlock',
+              smvMinutes: 2.0,
+              pricePerPiece: 2.00,
+              requiredSkill: 'basic',
+              stepNumber: 2
+            },
+            {
+              id: 'op_sleeve_attach',
+              operation: 'Sleeve Attach',
+              operationNepali: 'बाहुला जोड्ने',
+              machineType: 'overlock',
+              smvMinutes: 3.0,
+              pricePerPiece: 2.50,
+              requiredSkill: 'intermediate',
+              stepNumber: 3
+            },
+            {
+              id: 'op_neckband',
+              operation: 'Neckband Attach',
+              operationNepali: 'घाँटीको पट्टी',
+              machineType: 'single_needle',
+              smvMinutes: 4.0,
+              pricePerPiece: 3.00,
+              requiredSkill: 'intermediate',
+              stepNumber: 4
+            },
+            {
+              id: 'op_hem_bottom',
+              operation: 'Bottom Hemming',
+              operationNepali: 'तल्लो किनारा',
+              machineType: 'single_needle',
+              smvMinutes: 2.5,
+              pricePerPiece: 2.00,
+              requiredSkill: 'basic',
+              stepNumber: 5
+            }
+          ],
+          totalSmv: 13.0,
+          totalPricePerPiece: 11.0,
+          complexityLevel: 'medium',
+          version: 1,
+          isActive: true,
+          createdAt: serverTimestamp(),
+          createdBy: 'system'
+        };
+        
+        const templateDocRef = await addDoc(templatesRef, defaultTemplate);
+        templates = [{
+          id: templateDocRef.id,
+          ...defaultTemplate
+        }];
+        console.log('✅ Created default T-shirt template');
+      }
+      
+      // Process each WIP entry
+      const productionLotsRef = collection(db, 'production_lots');
+      let generatedCount = 0;
+      
+      for (const wipDoc of wipSnapshot.docs) {
+        const wipData = wipDoc.data();
+        console.log(`🔄 Processing WIP entry: ${wipData.bundleNumber}`);
+        
+        // Find matching template (for now use first available)
+        const template = templates[0];
+        
+        if (!template) {
+          console.log(`⚠️ No template found for WIP entry ${wipData.bundleNumber}`);
+          continue;
+        }
+        
+        // Generate production lot data
+        const lotData = {
+          lotNumber: wipData.bundleNumber || `LOT-${Date.now()}`,
+          articleNumber: wipData.articleNumber || 'ART-000',
+          articleName: wipData.articleDescription || wipData.description || 'Basic Article',
+          garmentType: template.category || 'tshirt',
+          totalPieces: wipData.quantity || 50,
+          
+          // Default color/size breakdown if not provided
+          colorSizeBreakdown: wipData.colorSizeBreakdown || [
+            {
+              color: wipData.color || 'White',
+              sizes: [
+                { size: 'S', quantity: Math.floor((wipData.quantity || 50) * 0.2), completedQuantity: 0 },
+                { size: 'M', quantity: Math.floor((wipData.quantity || 50) * 0.4), completedQuantity: 0 },
+                { size: 'L', quantity: Math.floor((wipData.quantity || 50) * 0.3), completedQuantity: 0 },
+                { size: 'XL', quantity: Math.floor((wipData.quantity || 50) * 0.1), completedQuantity: 0 }
+              ],
+              totalPieces: wipData.quantity || 50
+            }
+          ],
+          
+          // Generate process steps from template operations
+          processSteps: template.operations.map((op: any) => ({
+            id: op.id || `step_${op.stepNumber}`,
+            stepNumber: op.stepNumber,
+            operation: op.operation,
+            operationNepali: op.operationNepali,
+            machineType: op.machineType,
+            pricePerPiece: op.pricePerPiece,
+            estimatedMinutes: (op.smvMinutes * (wipData.quantity || 50)),
+            requiredSkill: op.requiredSkill || 'basic',
+            status: 'pending',
+            assignedOperators: [],
+            completedPieces: 0,
+            dependencies: op.stepNumber > 1 ? [`step_${op.stepNumber - 1}`] : []
+          })),
+          
+          currentStep: 1,
+          status: 'cutting',
+          createdAt: serverTimestamp(),
+          createdBy: 'system',
+          wipEntryId: wipDoc.id,
+          templateId: template.id,
+          templateName: template.templateName,
+          dueDate: wipData.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          notes: `Generated from WIP entry ${wipData.bundleNumber} using template ${template.templateName}`
+        };
+        
+        // Create production lot
+        const lotDocRef = await addDoc(productionLotsRef, lotData);
+        console.log(`✅ Created production lot: ${lotData.lotNumber}`);
+        
+        // Mark WIP entry as processed
+        await updateDoc(doc(db, 'production_bundles', wipDoc.id), {
+          processed: true,
+          productionLotId: lotDocRef.id,
+          processedAt: serverTimestamp()
+        });
+        
+        generatedCount++;
+      }
+      
+      console.log(`🎉 Generated ${generatedCount} production lots from WIP entries`);
+      
+      return {
+        success: true,
+        message: `Successfully generated ${generatedCount} production lots from WIP entries`,
+        data: { generated: generatedCount }
+      };
+      
+    } catch (error) {
+      console.error('❌ Error generating production lots:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate production lots'
+      };
     }
   }
 }

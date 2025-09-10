@@ -236,17 +236,47 @@ export const Header: React.FC<HeaderProps> = ({
             </Button>
 
             {/* Notifications - accessible to all users */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative"
-              aria-label="Notifications"
-            >
-              <NotificationBadge count={3}>
-                <Bell className="w-4 h-4" />
-              </NotificationBadge>
-            </Button>
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative"
+                aria-label="Notifications"
+              >
+                <NotificationBadge count={3}>
+                  <Bell className="w-4 h-4" />
+                </NotificationBadge>
+              </Button>
+              
+              {/* Desktop notification dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-lg shadow-lg z-50">
+                  <div className="p-4">
+                    <Text weight="medium" className="mb-3">Notifications</Text>
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      <div className="p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer">
+                        <Text size="sm" weight="medium">New order received</Text>
+                        <Text size="xs" color="muted">Order #1234 from ABC Company</Text>
+                      </div>
+                      <div className="p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer">
+                        <Text size="sm" weight="medium">Production milestone reached</Text>
+                        <Text size="xs" color="muted">Line A completed 500 units</Text>
+                      </div>
+                      <div className="p-3 bg-secondary-50 dark:bg-secondary-800 rounded-lg hover:bg-secondary-100 dark:hover:bg-secondary-700 cursor-pointer">
+                        <Text size="sm" weight="medium">Quality alert</Text>
+                        <Text size="xs" color="muted">2 items require inspection</Text>
+                      </div>
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-secondary-200 dark:border-secondary-600">
+                      <Button variant="ghost" size="sm" className="w-full">
+                        View all notifications
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* User Menu */}
             {user ? (

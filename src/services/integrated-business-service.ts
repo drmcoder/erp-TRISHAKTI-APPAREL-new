@@ -537,16 +537,18 @@ export class IntegratedBusinessService {
         }
       );
 
-      // Get pending approvals from Firebase
+      // Get pending approvals from Firebase (simplified query to avoid index requirement)
       const approvalsRef = collection(db, 'assignment_approvals');
-      const approvalsQuery = query(approvalsRef, where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
+      const approvalsQuery = query(approvalsRef, where('status', '==', 'pending'));
       const approvalsSnapshot = await getDocs(approvalsQuery);
       
-      const pendingApprovals = approvalsSnapshot.empty ? [] : approvalsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.() || new Date()
-      }));
+      const pendingApprovals = approvalsSnapshot.empty ? [] : approvalsSnapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate?.() || new Date()
+        }))
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); // Sort by newest first in JavaScript
 
       return {
         success: true,

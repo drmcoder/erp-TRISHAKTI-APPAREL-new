@@ -109,81 +109,114 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
     setLoading(true);
     
     try {
-      // Load real data from Firebase services
-      const { workAssignmentService } = await import('@/services/work-assignment-service');
-      const { bundleService } = await import('@/services/bundle-service');
+      // Load work bundles using the correct TSA workflow (production lots)
+      const { workAssignmentService } = await import('@/features/work-assignment/services');
       const { operatorService } = await import('@/services/operator-service');
       
-      // Load bundles with operations from Firebase
-      const bundlesResult = await bundleService.getBundles();
-      const operatorsResult = await operatorService.getAllOperators();
+      console.log('🔍 Smart Assignment: Loading work from production lots (correct workflow)...');
+      
+      // Load work bundles from production lots using work assignment service
+      const workBundlesResponse = await workAssignmentService.getWorkBundles();
       
       let bundles: BundleWithOperations[] = [];
       
-      if (bundlesResult && Array.isArray(bundlesResult)) {
-        // Transform Firebase bundles to the expected format
-        bundles = bundlesResult.map(bundle => ({
-          id: bundle.id || `bundle_${Date.now()}_${Math.random()}`,
-          bundleNumber: bundle.bundleNumber || `B${String(Date.now()).slice(-4)}`,
-          articleNumber: `ART${bundle.bundleNumber.slice(-3)}`,
-          articleStyle: bundle.description || 'Unknown Style',
-          priority: bundle.priority === 'medium' ? 'normal' : bundle.priority || 'normal',
-          status: bundle.status === 'planning' ? 'created' : bundle.status === 'in-progress' ? 'in_progress' : bundle.status === 'completed' ? 'completed' : 'created',
-          sizes: ['M'], // Default size since Bundle doesn't have size breakdown
-          colors: ['White'], // Default color
-          totalPieces: bundle.quantity || 0,
-          estimatedTime: bundle.estimatedHours * 60 || 60, // Convert hours to minutes
-          totalValue: bundle.totalValue || 0,
-          requiredSkills: [], // Bundle service doesn't have required skills
-          dueDate: bundle.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          createdDate: bundle.createdAt || new Date(),
-          operations: [{
-            id: `op_${bundle.id}_default`,
-            name: 'General Assembly',
-            nameNepali: 'सामान्य जम्मा',
-            machineType: 'sewing' as const,
-            requiredSkill: 'basic_sewing',
-            timePerPiece: 3.0,
-            pricePerPiece: 2.0,
-            status: 'pending' as const
-          }]
-        }));
-      }
-      
-      // If no real data, create a minimal fallback
-      if (bundles.length === 0) {
-        console.log('No bundles found in Firebase, creating sample data...');
-        bundles = [{
-          id: 'sample_bundle_1',
-          bundleNumber: 'B0001',
-          articleNumber: '3233',
-          articleStyle: 'Adult T-Shirt',
-          priority: 'normal' as const,
-          status: 'created' as const,
-          sizes: ['M', 'L'],
-          colors: ['White'],
-          totalPieces: 50,
-          estimatedTime: 180,
-          totalValue: 250,
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          createdDate: new Date(),
-          operations: [{
-            id: 'op_sample_1',
-            name: 'Shoulder Join',
-            nameNepali: 'काँध जोड्ने',
-            machineType: 'overlock' as const,
-            requiredSkill: 'shoulder_join',
-            timePerPiece: 4.5,
-            pricePerPiece: 2.5,
-            status: 'pending' as const
-          }]
-        }];
+      if (workBundlesResponse.success && workBundlesResponse.data && workBundlesResponse.data.items.length > 0) {
+        console.log(`✅ Found ${workBundlesResponse.data.items.length} production lots with work`);
+        
+        // Transform production lot work bundles to expected format
+        bundles = workBundlesResponse.data.items.map((bundle: any) => {
+          console.log('📦 Processing production lot bundle:', {
+            id: bundle.id,
+            bundleNumber: bundle.bundleNumber,
+            articleNumber: bundle.articleNumber,
+            totalPieces: bundle.totalPieces,
+            status: bundle.status
+          });
+          
+          return {
+            id: bundle.id,
+            bundleNumber: bundle.bundleNumber,
+            articleNumber: bundle.articleNumber,
+            articleStyle: bundle.articleStyle || bundle.articleNumber || 'Unknown Style',
+            priority: bundle.priority || 'normal' as const,
+            status: bundle.status === 'pending' ? 'created' : 
+                   bundle.status === 'in-progress' ? 'in_progress' : 
+                   bundle.status === 'completed' ? 'completed' : 'created' as const,
+            sizes: bundle.sizes || ['M'],
+            colors: bundle.colors || ['White'],
+            totalPieces: bundle.totalPieces || 0,
+            estimatedTime: bundle.estimatedTime || 180,
+            totalValue: bundle.totalValue || 0,
+            dueDate: bundle.dueDate ? new Date(bundle.dueDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            createdDate: bundle.createdDate ? new Date(bundle.createdDate) : new Date(),
+            operations: bundle.workItems || [{
+              id: `op_${bundle.id}_main`,
+              name: 'Main Operation',
+              nameNepali: 'मुख्य काम',
+              machineType: 'sewing' as const,
+              requiredSkill: 'basic_sewing',
+              timePerPiece: 3.0,
+              pricePerPiece: 2.0,
+              status: 'pending' as const
+            }]
+          };
+        });
+        
+        console.log(`✅ Smart Assignment: Processed ${bundles.length} production lot bundles for display`);
+      } else {
+        console.log('⚠️ No production lots found. Running bundle generation process...');
+        
+        // Try to generate production lots from WIP entries
+        try {
+          console.log('🔧 Generating production lots from WIP entries...');
+          const result = await EnhancedBundleService.generateProductionLotsFromWIP();
+          
+          if (result.success) {
+            console.log(`🎉 Generated ${result.data?.generated || 0} production lots`);
+            
+            // Retry loading work bundles
+            const retryResponse = await workAssignmentService.getWorkBundles();
+            if (retryResponse.success && retryResponse.data?.items.length > 0) {
+              bundles = retryResponse.data.items.map((bundle: any) => ({
+                id: bundle.id,
+                bundleNumber: bundle.bundleNumber,
+                articleNumber: bundle.articleNumber,
+                articleStyle: bundle.articleStyle || bundle.articleNumber || 'Generated Bundle',
+                priority: bundle.priority || 'normal' as const,
+                status: 'created' as const,
+                sizes: bundle.sizes || ['M'],
+                colors: bundle.colors || ['White'],
+                totalPieces: bundle.totalPieces || 50,
+                estimatedTime: bundle.estimatedTime || 180,
+                totalValue: bundle.totalValue || 250,
+                dueDate: bundle.dueDate ? new Date(bundle.dueDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                createdDate: bundle.createdDate ? new Date(bundle.createdDate) : new Date(),
+                operations: bundle.workItems || [{
+                  id: `op_${bundle.id}_main`,
+                  name: 'Main Operation',
+                  nameNepali: 'मुख्य काम',
+                  machineType: 'sewing' as const,
+                  requiredSkill: 'basic_sewing',
+                  timePerPiece: 3.0,
+                  pricePerPiece: 2.0,
+                  status: 'pending' as const
+                }]
+              }));
+              console.log(`✅ Loaded ${bundles.length} generated production lot bundles`);
+            }
+          } else {
+            console.log('⚠️ Bundle generation failed:', result.error);
+          }
+        } catch (error) {
+          console.error('Failed to generate production lots:', error);
+        }
       }
 
       // Set bundles data
       setBundles(bundles);
       
       // Load operators
+      const operatorsResult = await operatorService.getAllOperators();
       if (operatorsResult.success && operatorsResult.data) {
         console.log('🔍 Smart Dashboard: Raw operators from Firebase:', operatorsResult.data);
         

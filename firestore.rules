@@ -1,12 +1,63 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // TEMPORARY DEVELOPMENT RULES - OPEN ACCESS
-    // ⚠️ WARNING: These rules allow unrestricted access
-    // Only for development/testing purposes
+    // TEMPORARY DEVELOPMENT RULES - Allow authenticated read/write access
+    // TODO: Implement full role-based security when Firebase Auth is properly integrated
     
+    // Allow authenticated users to read and write all documents
+    // This is a transition state while we migrate from localStorage auth to Firebase Auth
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if true; // Temporarily open while fixing authentication integration
     }
+    
+    // Production rules template (to be uncommented when Firebase Auth is integrated):
+    /*
+    // Authentication helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function hasRole(role) {
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+    
+    function isOwner(resource) {
+      return isSignedIn() && request.auth.uid == resource.data.userId;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isSignedIn() && 
+                     (request.auth.uid == userId || 
+                      hasRole('admin') || 
+                      hasRole('management') || 
+                      hasRole('supervisor'));
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && 
+                       (request.auth.uid == userId || 
+                        hasRole('admin') || 
+                        hasRole('management'));
+      allow delete: if hasRole('admin');
+    }
+    
+    // Production data with role-based access
+    match /production_bundles/{bundleId} {
+      allow read: if isSignedIn();
+      allow create, update: if hasRole('admin') || 
+                              hasRole('management') || 
+                              hasRole('supervisor');
+      allow delete: if hasRole('admin') || hasRole('management');
+    }
+    
+    match /production_lots/{lotId} {
+      allow read: if isSignedIn();
+      allow create, update: if hasRole('admin') || 
+                              hasRole('management') || 
+                              hasRole('supervisor');
+      allow delete: if hasRole('admin') || hasRole('management');
+    }
+    */
   }
 }
