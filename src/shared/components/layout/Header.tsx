@@ -11,7 +11,7 @@ import { useAuthStore, useUser } from '@/app/store/auth-store';
 import { usePermissions } from '@/app/hooks/usePermissions';
 import { useThemeStore } from '@/app/store/theme-store';
 import { LanguageSwitcherCompact } from '@/components/common/language-switcher';
-import { NotificationCenter } from '@/components/notifications/notification-center';
+import { SimpleNotificationCenter } from '@/components/notifications/simple-notification-center';
 import { cn } from '@/shared/utils';
 
 interface HeaderProps {
@@ -326,7 +326,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Notification Center - Desktop */}
       {showNotifications && (
         <div className="hidden md:block">
-          <NotificationCenter 
+          <SimpleNotificationCenter 
             open={showNotifications} 
             onClose={() => setShowNotifications(false)}
             className="fixed top-16 right-4 z-50"

@@ -25,19 +25,13 @@ import {
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Card, CardContent, CardHeader } from '@/shared/components/ui/Card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/ui/select';
+import { Separator } from '@/shared/components/ui/separator';
+// DropdownMenu components not available - using simple buttons instead
 import { NotificationPayload, notificationService } from '@/services/notification-service';
 import { formatRelativeTime } from '@/config/i18n-config';
-import { useTranslation } from 'react-i18next';
+import { useI18n } from '@/shared/hooks/useI18n';
 
 interface NotificationCenterProps {
   open: boolean;
@@ -50,7 +44,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   onClose,
   className
 }) => {
-  const { t } = useTranslation(['common', 'workAssignment']);
+  const { t } = useI18n();
   const [notifications, setNotifications] = useState<NotificationPayload[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
