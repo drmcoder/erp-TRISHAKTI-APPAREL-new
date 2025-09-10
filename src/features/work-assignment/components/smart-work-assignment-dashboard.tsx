@@ -113,29 +113,30 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
       const { operatorService } = await import('@/services/operator-service');
       
       // Load bundles with operations from Firebase
-      const bundlesResult = await bundleService.getAllBundles();
+      const bundlesResult = await bundleService.getBundles();
       const operatorsResult = await operatorService.getAllOperators();
       const assignmentsResult = await workAssignmentService.getAvailableAssignments();
       
       let bundles: BundleWithOperations[] = [];
       
-      if (bundlesResult.success && bundlesResult.data) {
+      if (bundlesResult && Array.isArray(bundlesResult)) {
         // Transform Firebase bundles to the expected format
-        bundles = bundlesResult.data.map(bundle => ({
+        bundles = bundlesResult.map(bundle => ({
           id: bundle.id || `bundle_${Date.now()}_${Math.random()}`,
           bundleNumber: bundle.bundleNumber || `B${String(Date.now()).slice(-4)}`,
-          articleNumber: bundle.articleNumber || '0000',
-          styleName: bundle.styleName || 'Unknown Style',
-          priority: bundle.priority || 'normal',
-          sizes: bundle.sizeBreakdown ? Object.keys(bundle.sizeBreakdown) : ['M'],
-          colors: bundle.colors || ['White'],
-          totalPieces: bundle.totalPieces || 0,
-          estimatedTime: bundle.estimatedTime || 60,
-          totalValue: bundle.totalValue || 100,
-          requiredSkills: bundle.requiredSkills || [],
+          articleNumber: `ART${bundle.bundleNumber.slice(-3)}`,
+          articleStyle: bundle.description || 'Unknown Style',
+          priority: bundle.priority === 'medium' ? 'normal' : bundle.priority || 'normal',
+          status: bundle.status === 'planning' ? 'created' : bundle.status === 'in-progress' ? 'in_progress' : bundle.status === 'completed' ? 'completed' : 'created',
+          sizes: ['M'], // Default size since Bundle doesn't have size breakdown
+          colors: ['White'], // Default color
+          totalPieces: bundle.quantity || 0,
+          estimatedTime: bundle.estimatedHours * 60 || 60, // Convert hours to minutes
+          totalValue: bundle.totalValue || 0,
+          requiredSkills: [], // Bundle service doesn't have required skills
           dueDate: bundle.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          createdDate: bundle.createdAt?.toDate ? bundle.createdAt.toDate() : new Date(),
-          operations: bundle.operations || [{
+          createdDate: bundle.createdAt || new Date(),
+          operations: [{
             id: `op_${bundle.id}_default`,
             name: 'General Assembly',
             nameNepali: 'सामान्य जम्मा',
@@ -155,14 +156,14 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
           id: 'sample_bundle_1',
           bundleNumber: 'B0001',
           articleNumber: '3233',
-          styleName: 'Adult T-Shirt',
+          articleStyle: 'Adult T-Shirt',
           priority: 'normal' as const,
+          status: 'created' as const,
           sizes: ['M', 'L'],
           colors: ['White'],
           totalPieces: 50,
           estimatedTime: 180,
           totalValue: 250,
-          requiredSkills: ['basic_sewing'],
           dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           createdDate: new Date(),
           operations: [{
@@ -177,135 +178,25 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
           }]
         }];
       }
-      const articleIdx = Math.floor(Math.random() * articleNumbers.length);
-      const priority = priorities[Math.floor(Math.random() * priorities.length)];
-      const bundleSizes = sizes.slice(0, 2 + Math.floor(Math.random() * 3));
-      const bundleColors = colors.slice(0, 1 + Math.floor(Math.random() * 2));
+
+      // Set bundles data
+      setBundles(bundles);
       
-      const operations = [
-        {
-          id: `op_${i}_1`,
-          name: 'Shoulder Join',
-          nameNepali: 'काँध जोड्ने',
-          machineType: 'overlock',
-          requiredSkill: 'shoulder_join',
-          timePerPiece: 4.5,
-          pricePerPiece: 2.5,
-          status: 'pending' as const,
-        },
-        {
-          id: `op_${i}_2`,
-          name: 'Side Seam',
-          nameNepali: 'छेउ सिलाई',
-          machineType: 'overlock',
-          requiredSkill: 'side_seam',
-          timePerPiece: 5.0,
-          pricePerPiece: 3.0,
-          status: 'pending' as const,
-        },
-        {
-          id: `op_${i}_3`,
-          name: 'Sleeve Attach',
-          nameNepali: 'आस्तीन लगाउने',
-          machineType: 'singleNeedle',
-          requiredSkill: 'sleeve_attach',
-          timePerPiece: 7.0,
-          pricePerPiece: 4.0,
-          status: 'pending' as const,
-        }
-      ].slice(0, 1 + Math.floor(Math.random() * 3));
-
-      const totalPieces = 20 + Math.floor(Math.random() * 30);
-      const estimatedTime = operations.reduce((sum, op) => sum + (op.timePerPiece * totalPieces), 0);
-      const totalValue = operations.reduce((sum, op) => sum + (op.pricePerPiece * totalPieces), 0);
-
-      mockBundles.push({
-        id: `bundle_${i}`,
-        bundleNumber: `BND-${articleNumbers[articleIdx]}-${String(i).padStart(3, '0')}`,
-        articleNumber: articleNumbers[articleIdx],
-        articleStyle: styles[articleIdx],
-        priority,
-        sizes: bundleSizes,
-        colors: bundleColors,
-        totalPieces,
-        estimatedTime,
-        totalValue,
-        operations,
-        status: 'created'
-      });
-    }
-
-    const mockOperators: Operator[] = [
-      {
-        id: 'op_maya',
-        name: 'Maya Patel',
-        machineType: 'overlock',
-        skillLevel: 'expert',
-        efficiency: 95,
-        currentWorkload: 2,
-        maxCapacity: 5,
-        specialties: ['shoulder_join', 'side_seam'],
-        status: 'available',
-        hourlyRate: 450,
-        todayEarnings: 2800
-      },
-      {
-        id: 'op_rajesh',
-        name: 'Rajesh Kumar',
-        machineType: 'singleNeedle',
-        skillLevel: 'expert',
-        efficiency: 92,
-        currentWorkload: 1,
-        maxCapacity: 4,
-        specialties: ['sleeve_attach', 'hem_finish'],
-        status: 'available',
-        hourlyRate: 420,
-        todayEarnings: 2400
-      },
-      {
-        id: 'op_sita',
-        name: 'Sita Sharma',
-        machineType: 'overlock',
-        skillLevel: 'intermediate',
-        efficiency: 87,
-        currentWorkload: 3,
-        maxCapacity: 5,
-        specialties: ['shoulder_join'],
-        status: 'busy',
-        hourlyRate: 380,
-        todayEarnings: 1900
-      },
-      {
-        id: 'op_ram',
-        name: 'Ram Bahadur',
-        machineType: 'singleNeedle',
-        skillLevel: 'intermediate',
-        efficiency: 89,
-        currentWorkload: 0,
-        maxCapacity: 4,
-        specialties: ['sleeve_attach'],
-        status: 'available',
-        hourlyRate: 400,
-        todayEarnings: 1600
-      },
-      {
-        id: 'op_gita',
-        name: 'Gita Thapa',
-        machineType: 'overlock',
-        skillLevel: 'beginner',
-        efficiency: 78,
-        currentWorkload: 1,
-        maxCapacity: 3,
-        specialties: ['side_seam'],
-        status: 'available',
-        hourlyRate: 320,
-        todayEarnings: 1200
+      // Load operators
+      if (operatorsResult.success && operatorsResult.data) {
+        setOperators(operatorsResult.data);
+      } else {
+        // No operators found, set empty array
+        setOperators([]);
       }
-    ];
-
-    setBundles(mockBundles);
-    setOperators(mockOperators);
-    setLoading(false);
+    } catch (error) {
+      console.error('Failed to load work assignment data:', error);
+      // Create minimal fallback data on error
+      setBundles([]);
+      setOperators([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Filtering and Search Logic
@@ -419,7 +310,7 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoadingSpinner text="Loading smart assignment dashboard..." />
+        <LoadingSpinner label="Loading smart assignment dashboard..." />
       </div>
     );
   }

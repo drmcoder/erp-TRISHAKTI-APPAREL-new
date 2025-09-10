@@ -154,151 +154,6 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
   // useEffect(() => {
   //   loadMockOperatorData();
   // }, []);
-          bundleNumber: 'BND-3233-M-001',
-          operationName: 'Shoulder Join',
-          operationNameNepali: 'काँध जोड्ने',
-          status: 'in_progress',
-          startTime: new Date(now.getTime() - 45 * 60000), // 45 minutes ago
-          piecesCompleted: 18,
-          targetPieces: 25,
-          pricePerPiece: 2.5,
-          earnings: 45.0,
-          machineType: 'overlock',
-          efficiency: 94.5,
-          defects: 0
-        },
-        todayCompleted: [
-          {
-            id: 'act_2',
-            operatorId: 'op_maya',
-            operatorName: 'Maya Patel',
-            bundleNumber: 'BND-3265-L-001',
-            operationName: 'Side Seam',
-            operationNameNepali: 'छेउ सिलाई',
-            status: 'completed',
-            startTime: new Date(now.getTime() - 4 * 60 * 60000), // 4 hours ago
-            endTime: new Date(now.getTime() - 3 * 60 * 60000), // 3 hours ago
-            duration: 60,
-            piecesCompleted: 30,
-            targetPieces: 30,
-            pricePerPiece: 3.0,
-            earnings: 90.0,
-            qualityScore: 9.8,
-            machineType: 'overlock',
-            efficiency: 96.2,
-            defects: 0
-          },
-          {
-            id: 'act_3',
-            operatorId: 'op_maya',
-            operatorName: 'Maya Patel',
-            bundleNumber: 'BND-3401-S-001',
-            operationName: 'Neck Binding',
-            operationNameNepali: 'घाँटी बाँध्ने',
-            status: 'completed',
-            startTime: new Date(now.getTime() - 6 * 60 * 60000), // 6 hours ago
-            endTime: new Date(now.getTime() - 4.5 * 60 * 60000), // 4.5 hours ago
-            duration: 90,
-            piecesCompleted: 40,
-            targetPieces: 40,
-            pricePerPiece: 1.8,
-            earnings: 72.0,
-            qualityScore: 9.5,
-            machineType: 'overlock',
-            efficiency: 92.8,
-            defects: 1
-          }
-        ],
-        recentCompleted: [],
-        totalEarningsToday: 207.0,
-        totalPiecesToday: 88,
-        averageEfficiency: 94.5
-      },
-      {
-        operatorId: 'op_rajesh',
-        operatorName: 'Rajesh Kumar',
-        machineType: 'singleNeedle',
-        status: 'active',
-        shift: 'morning',
-        currentActivity: {
-          id: 'act_4',
-          operatorId: 'op_rajesh',
-          operatorName: 'Rajesh Kumar',
-          bundleNumber: 'BND-3265-M-002',
-          operationName: 'Sleeve Attach',
-          operationNameNepali: 'आस्तीन लगाउने',
-          status: 'in_progress',
-          startTime: new Date(now.getTime() - 30 * 60000), // 30 minutes ago
-          piecesCompleted: 12,
-          targetPieces: 20,
-          pricePerPiece: 4.0,
-          earnings: 48.0,
-          machineType: 'singleNeedle',
-          efficiency: 89.3,
-          defects: 0
-        },
-        todayCompleted: [
-          {
-            id: 'act_5',
-            operatorId: 'op_rajesh',
-            operatorName: 'Rajesh Kumar',
-            bundleNumber: 'BND-3233-L-003',
-            operationName: 'Hem Finish',
-            operationNameNepali: 'कुना सिलाई',
-            status: 'completed',
-            startTime: new Date(now.getTime() - 3 * 60 * 60000),
-            endTime: new Date(now.getTime() - 1.5 * 60 * 60000),
-            duration: 90,
-            piecesCompleted: 25,
-            targetPieces: 25,
-            pricePerPiece: 2.8,
-            earnings: 70.0,
-            qualityScore: 9.2,
-            machineType: 'singleNeedle',
-            efficiency: 91.2,
-            defects: 1
-          }
-        ],
-        recentCompleted: [],
-        totalEarningsToday: 118.0,
-        totalPiecesToday: 37,
-        averageEfficiency: 90.25
-      },
-      {
-        operatorId: 'op_sita',
-        operatorName: 'Sita Sharma',
-        machineType: 'overlock',
-        status: 'break',
-        shift: 'morning',
-        todayCompleted: [
-          {
-            id: 'act_6',
-            operatorId: 'op_sita',
-            operatorName: 'Sita Sharma',
-            bundleNumber: 'BND-3401-M-001',
-            operationName: 'Shoulder Join',
-            operationNameNepali: 'काँध जोड्ने',
-            status: 'completed',
-            startTime: new Date(now.getTime() - 2 * 60 * 60000),
-            endTime: new Date(now.getTime() - 30 * 60000),
-            duration: 90,
-            piecesCompleted: 22,
-            targetPieces: 25,
-            pricePerPiece: 2.5,
-            earnings: 55.0,
-            qualityScore: 8.8,
-            machineType: 'overlock',
-            efficiency: 87.8,
-            defects: 2
-          }
-        ],
-        recentCompleted: [],
-        totalEarningsToday: 55.0,
-        totalPiecesToday: 22,
-        // Old mock data removed - now using real Firebase data
-      };
-    }
-  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -314,8 +169,7 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
       case 'in_progress': return 'info';
       case 'completed': return 'success';
       case 'paused': return 'warning';
-      case 'quality_check': return 'info';
-      case 'rework': return 'danger';
+      case 'cancelled': return 'danger';
       default: return 'secondary';
     }
   };
@@ -331,10 +185,18 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
     return Math.min(100, Math.round((completed / target) * 100));
   };
 
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoadingSpinner text="Loading operator buckets..." />
+        <LoadingSpinner />
       </div>
     );
   }
@@ -342,248 +204,239 @@ export const SupervisorOperatorBuckets: React.FC<SupervisorOperatorBucketsProps>
   return (
     <div className="p-4 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            👥 Operator Buckets Dashboard
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            🏭 Supervisor Operator Dashboard
           </h1>
           <p className="text-gray-600 mt-1">
-            Real-time view of what operators are doing, have done, and finished recently
+            Monitor {operatorBuckets.length} operators and their real-time activities
           </p>
         </div>
         
-        <div className="flex items-center space-x-2">
+        {/* View Mode Toggle */}
+        <div className="flex items-center space-x-2 bg-white p-2 rounded-lg border">
           <Button
             variant={viewMode === 'overview' ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setViewMode('overview')}
           >
-            📋 Overview
+            📊 Overview
           </Button>
           <Button
             variant={viewMode === 'detailed' ? 'primary' : 'outline'}
             size="sm"
             onClick={() => setViewMode('detailed')}
           >
-            🔍 Detailed
+            📋 Detailed
           </Button>
         </div>
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
         <Card className="p-4 text-center">
           <div className="text-2xl font-bold text-green-600">
             {operatorBuckets.filter(op => op.status === 'active').length}
           </div>
-          <p className="text-sm text-gray-600">Active Now</p>
+          <p className="text-sm text-gray-600">Active Operators</p>
+        </Card>
+        <Card className="p-4 text-center">
+          <div className="text-2xl font-bold text-yellow-600">
+            {operatorBuckets.filter(op => op.status === 'break').length}
+          </div>
+          <p className="text-sm text-gray-600">On Break</p>
+        </Card>
+        <Card className="p-4 text-center">
+          <div className="text-2xl font-bold text-red-600">
+            {operatorBuckets.filter(op => op.status === 'offline').length}
+          </div>
+          <p className="text-sm text-gray-600">Offline</p>
         </Card>
         <Card className="p-4 text-center">
           <div className="text-2xl font-bold text-blue-600">
-            {operatorBuckets.reduce((sum, op) => sum + op.totalPiecesToday, 0)}
-          </div>
-          <p className="text-sm text-gray-600">Pieces Today</p>
-        </Card>
-        <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-purple-600">
-            ${operatorBuckets.reduce((sum, op) => sum + op.totalEarningsToday, 0).toFixed(2)}
+            ${operatorBuckets.reduce((sum, op) => sum + op.totalEarningsToday, 0).toFixed(0)}
           </div>
           <p className="text-sm text-gray-600">Total Earnings</p>
         </Card>
         <Card className="p-4 text-center">
-          <div className="text-2xl font-bold text-orange-600">
-            {operatorBuckets.length > 0 ? 
-              (operatorBuckets.reduce((sum, op) => sum + op.averageEfficiency, 0) / operatorBuckets.length).toFixed(1)
-              : 0
-            }%
+          <div className="text-2xl font-bold text-purple-600">
+            {operatorBuckets.reduce((sum, op) => sum + op.totalPiecesToday, 0)}
           </div>
-          <p className="text-sm text-gray-600">Avg Efficiency</p>
+          <p className="text-sm text-gray-600">Total Pieces</p>
         </Card>
       </div>
 
       {/* Operator Buckets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {operatorBuckets.map((bucket) => (
-          <Card key={bucket.operatorId} className="p-4">
+        {operatorBuckets.map((operator) => (
+          <Card 
+            key={operator.id}
+            className={`p-4 transition-all cursor-pointer hover:shadow-lg ${
+              selectedOperator === operator.id 
+                ? 'ring-2 ring-blue-500' 
+                : ''
+            }`}
+            onClick={() => setSelectedOperator(
+              selectedOperator === operator.id ? null : operator.id
+            )}
+          >
             {/* Operator Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <div className="p-3 bg-blue-100 rounded-full">
-                    <UserIcon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                    bucket.status === 'active' ? 'bg-green-500' : 
-                    bucket.status === 'break' ? 'bg-yellow-500' : 'bg-red-500'
-                  }`}></div>
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <UserIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{bucket.operatorName}</h3>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" size="sm">
-                      {bucket.machineType}
-                    </Badge>
-                    <Badge variant="secondary" size="sm">
-                      {bucket.shift}
-                    </Badge>
-                  </div>
+                  <h3 className="font-semibold text-gray-900">{operator.name}</h3>
+                  <p className="text-sm text-gray-600">{operator.machineType}</p>
                 </div>
               </div>
-              <div className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(bucket.status)}`}>
-                {bucket.status.toUpperCase()}
+              
+              <div className="flex flex-col items-end space-y-1">
+                <Badge 
+                  variant="outline" 
+                  className={getStatusColor(operator.status)}
+                >
+                  {operator.status}
+                </Badge>
+                <span className="text-xs text-gray-500">
+                  {operator.efficiency.toFixed(1)}% efficiency
+                </span>
               </div>
             </div>
 
             {/* Current Activity */}
-            {bucket.currentActivity ? (
+            {operator.currentActivity && (
               <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <PlayIcon className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-900">Currently Working</span>
-                  </div>
-                  <Badge variant={getActivityStatusColor(bucket.currentActivity.status)} size="sm">
-                    {bucket.currentActivity.status.replace('_', ' ')}
+                  <h4 className="font-medium text-blue-900">Current Task</h4>
+                  <Badge variant={getActivityStatusColor(operator.currentActivity.status)}>
+                    {operator.currentActivity.status}
                   </Badge>
                 </div>
                 
-                <div className="space-y-2">
-                  <div>
-                    <p className="font-medium text-gray-900">{bucket.currentActivity.operationName}</p>
-                    <p className="text-sm text-gray-600">{bucket.currentActivity.operationNameNepali}</p>
-                    <p className="text-sm text-blue-600 font-medium">{bucket.currentActivity.bundleNumber}</p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Bundle:</span>
+                    <span className="font-mono">{operator.currentActivity.bundleNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Operation:</span>
+                    <span>{operator.currentActivity.operationName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Progress:</span>
+                    <span>
+                      {operator.currentActivity.piecesCompleted}/{operator.currentActivity.targetPieces}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Earnings:</span>
+                    <span className="text-green-600 font-medium">
+                      ${operator.currentActivity.earnings.toFixed(2)}
+                    </span>
                   </div>
                   
-                  {/* Progress */}
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Progress</span>
-                      <span>{bucket.currentActivity.piecesCompleted}/{bucket.currentActivity.targetPieces}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${calculateProgress(bucket.currentActivity.piecesCompleted, bucket.currentActivity.targetPieces)}%` }}
-                      ></div>
-                    </div>
+                  {/* Progress Bar */}
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-blue-600 h-2 rounded-full transition-all" 
+                      style={{ 
+                        width: `${calculateProgress(
+                          operator.currentActivity.piecesCompleted, 
+                          operator.currentActivity.targetPieces
+                        )}%` 
+                      }}
+                    ></div>
                   </div>
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="flex items-center">
-                      <ClockIcon className="h-4 w-4 mr-1" />
-                      {formatDuration(Math.floor((new Date().getTime() - bucket.currentActivity.startTime.getTime()) / 60000))}
-                    </span>
-                    <span className="flex items-center font-semibold text-green-600">
-                      <CurrencyDollarIcon className="h-4 w-4 mr-1" />
-                      ${bucket.currentActivity.earnings.toFixed(2)}
-                    </span>
+                  <div className="text-xs text-gray-500 text-center">
+                    {calculateProgress(
+                      operator.currentActivity.piecesCompleted, 
+                      operator.currentActivity.targetPieces
+                    )}% Complete
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-center">
-                <PauseIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">No active work</p>
               </div>
             )}
 
             {/* Today's Summary */}
-            <div className="grid grid-cols-3 gap-2 mb-4 text-center">
-              <div className="p-2 bg-green-50 rounded">
-                <div className="font-bold text-green-600">{bucket.todayCompleted.length}</div>
-                <div className="text-xs text-gray-600">Completed</div>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="text-center p-2 bg-green-50 rounded-lg">
+                <div className="text-lg font-bold text-green-600">
+                  ${operator.totalEarningsToday.toFixed(0)}
+                </div>
+                <p className="text-xs text-gray-600">Today's Earnings</p>
               </div>
-              <div className="p-2 bg-blue-50 rounded">
-                <div className="font-bold text-blue-600">{bucket.totalPiecesToday}</div>
-                <div className="text-xs text-gray-600">Pieces</div>
-              </div>
-              <div className="p-2 bg-purple-50 rounded">
-                <div className="font-bold text-purple-600">${bucket.totalEarningsToday.toFixed(0)}</div>
-                <div className="text-xs text-gray-600">Earned</div>
+              <div className="text-center p-2 bg-blue-50 rounded-lg">
+                <div className="text-lg font-bold text-blue-600">
+                  {operator.totalPiecesToday}
+                </div>
+                <p className="text-xs text-gray-600">Pieces Completed</p>
               </div>
             </div>
 
-            {/* Recently Completed */}
-            {bucket.todayCompleted.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Recently Completed:</h4>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {bucket.todayCompleted.slice(-3).reverse().map((activity) => (
-                    <div key={activity.id} className="p-2 bg-green-50 rounded border border-green-200">
-                      <div className="flex items-center justify-between">
+            {/* Today's Completed Tasks (if detailed view) */}
+            {viewMode === 'detailed' && operator.todayCompleted.length > 0 && (
+              <div className="mt-4">
+                <h5 className="font-medium text-gray-900 mb-2">Today's Completed Tasks</h5>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {operator.todayCompleted.map((activity) => (
+                    <div 
+                      key={activity.id}
+                      className="p-2 bg-gray-50 rounded border text-xs"
+                    >
+                      <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-sm font-medium">{activity.operationName}</p>
-                          <p className="text-xs text-gray-600">{activity.bundleNumber}</p>
+                          <p className="font-medium">{activity.operationName}</p>
+                          <p className="text-gray-600">{activity.bundleNumber}</p>
                         </div>
                         <div className="text-right">
-                          <div className="flex items-center text-xs text-green-600">
-                            <CheckCircleIcon className="h-3 w-3 mr-1" />
-                            {activity.piecesCompleted}pc
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {activity.qualityScore ? `Q: ${activity.qualityScore}/10` : ''}
-                          </div>
+                          <p className="text-green-600 font-medium">
+                            ${activity.earnings.toFixed(2)}
+                          </p>
+                          <p className="text-gray-500">
+                            {activity.piecesCompleted} pcs
+                          </p>
                         </div>
                       </div>
+                      {activity.qualityScore && (
+                        <div className="mt-1 flex justify-between">
+                          <span>Quality: {activity.qualityScore}/10</span>
+                          <span>Duration: {formatDuration(activity.duration)}</span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* View Details Button */}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full mt-3"
-              onClick={() => setSelectedOperator(selectedOperator === bucket.operatorId ? null : bucket.operatorId)}
-            >
-              <EyeIcon className="h-4 w-4 mr-1" />
-              {selectedOperator === bucket.operatorId ? 'Hide Details' : 'View Details'}
-            </Button>
-
-            {/* Detailed View */}
-            {selectedOperator === bucket.operatorId && (
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg border">
-                <h4 className="font-medium mb-3">Detailed Activity Log</h4>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {bucket.todayCompleted.map((activity) => (
-                    <div key={activity.id} className="p-3 bg-white rounded border">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">{activity.operationName}</span>
-                        <Badge variant={getActivityStatusColor(activity.status)} size="sm">
-                          {activity.status}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <p>Bundle: {activity.bundleNumber}</p>
-                        <p>Duration: {formatDuration(activity.duration)}</p>
-                        <p>Pieces: {activity.piecesCompleted}/{activity.targetPieces}</p>
-                        <p>Earnings: ${activity.earnings.toFixed(2)}</p>
-                        <p>Efficiency: {activity.efficiency}%</p>
-                        {activity.qualityScore && <p>Quality: {activity.qualityScore}/10</p>}
-                        {activity.defects > 0 && <p className="text-red-600">Defects: {activity.defects}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+            {/* No Activity Message */}
+            {!operator.currentActivity && operator.status !== 'offline' && (
+              <div className="text-center p-4 text-gray-500">
+                <ClockIcon className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-sm">No current activity</p>
               </div>
             )}
           </Card>
         ))}
       </div>
 
-      {/* Refresh Button */}
-      <div className="text-center">
-        <Button 
-          variant="primary"
-          onClick={loadRealOperatorData}
-          className="flex items-center space-x-2"
-        >
-          <ArrowRightIcon className="h-4 w-4" />
-          <span>Refresh Data</span>
-        </Button>
-      </div>
+      {/* No Operators Message */}
+      {operatorBuckets.length === 0 && (
+        <Card className="p-8 text-center">
+          <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">No operators found</p>
+          <Button
+            variant="outline"
+            onClick={loadRealOperatorData}
+            className="mt-4"
+          >
+            Refresh Data
+          </Button>
+        </Card>
+      )}
     </div>
   );
 };

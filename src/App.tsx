@@ -808,7 +808,9 @@ Ready for supervisor assignment!`);
         return <DragDropAssignmentDashboard userRole={userRole} />;
       
       case 'kanban-assignment':
-        return <DragDropAssignmentDashboard userRole={userRole} />; // Temporarily use drag-drop instead of kanban
+        // Redirect to drag-drop since they're the same functionality
+        window.location.hash = '#/work-assignment/drag-drop';
+        return null;
       
       case 'operator-buckets':
         return <SupervisorOperatorBuckets userRole={userRole} />;
@@ -893,8 +895,8 @@ function App() {
         try {
           // Enable Firebase session validation
           try {
-            const { authService } = await import('./services/auth-service');
-            const result = await authService.validateSession(storedUsername, storedRole);
+            const { AuthService } = await import('./services/auth-service');
+            const result = await AuthService.validateSession(storedUsername, storedRole);
             if (!result.success) {
               console.log('Session validation failed, logging out');
               handleLogout();

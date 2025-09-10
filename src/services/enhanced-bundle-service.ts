@@ -249,37 +249,28 @@ export class EnhancedBundleService {
    */
   static async getAvailableOperators(): Promise<ServiceResponse<OperatorProfile[]>> {
     try {
-      // TODO: Replace with actual Firebase query
-      // const operators = await db.collection('operators')
-      //   .where('status', '==', 'active')
-      //   .get();
+      // Import and use the real operator service
+      const { operatorService } = await import('./operator-service');
+      const operators = await operatorService.getAllOperators();
       
-      await new Promise(resolve => setTimeout(resolve, 400));
+      if (operators.success && operators.data) {
+        // Transform operators to the expected OperatorProfile format
+        const operatorProfiles: OperatorProfile[] = operators.data.map(op => ({
+          id: op.id,
+          name: op.name,
+          machineType: op.machineType || 'sewing' as any,
+          efficiency: op.efficiency || 85,
+          currentWorkload: op.currentWorkload || 0,
+          experience: op.skillLevel || 'intermediate' as any,
+          specialties: op.specialties || [],
+          status: op.status || 'active' as any
+        }));
+        
+        return { success: true, data: operatorProfiles };
+      }
       
-      const mockOperators: OperatorProfile[] = [
-        {
-          id: 'op_1',
-          name: 'Maya Patel',
-          machineType: 'overlock',
-          efficiency: 94.5,
-          currentWorkload: 2,
-          experience: 'expert',
-          specialties: ['shoulder_join', 'side_seam'],
-          status: 'active'
-        },
-        {
-          id: 'op_2',
-          name: 'Rajesh Kumar',
-          machineType: 'singleNeedle',
-          efficiency: 91.2,
-          currentWorkload: 1,
-          experience: 'expert',
-          specialties: ['sleeve_attach', 'hem_finish'],
-          status: 'active'
-        }
-      ];
-      
-      return { success: true, data: mockOperators };
+      // Return empty array if no operators found
+      return { success: true, data: [] };
     } catch (error) {
       console.error('Failed to get operators:', error);
       return { success: false, error: 'Failed to fetch operators' };

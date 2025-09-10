@@ -93,14 +93,6 @@ const navigationItems: NavigationItem[] = [
         permissions: ['work:assign'],
       },
       {
-        id: 'kanban-assignment',
-        label: 'Kanban Assignment',
-        icon: <LayoutDashboard className="w-4 h-4" />,
-        href: '/work-assignment/kanban',
-        roles: ['supervisor', 'management', 'admin'],
-        permissions: ['work:assign'],
-      },
-      {
         id: 'bulk-assignment',
         label: 'Bulk Assignment',
         icon: <Package className="w-4 h-4" />,
