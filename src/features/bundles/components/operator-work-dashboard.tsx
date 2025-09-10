@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { BundleOperation, OperatorEarnings, PartsReplacementRequest } from '@/shared/types/bundle-types';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
+import { notify } from '@/utils/notification-utils';
 
 interface OperatorWorkDashboardProps {
   operatorId: string;
@@ -39,8 +40,8 @@ const mockAssignedOperations: (BundleOperation & { bundleNumber: string })[] = [
     pricePerPiece: 2.5,
     smvMinutes: 4.5,
     status: 'assigned',
-    assignedOperatorId: 'op_maya_001',
-    assignedOperatorName: 'Maya Patel',
+    assignedOperatorId: 'DYNAMIC_OPERATOR_ID',
+    assignedOperatorName: 'DYNAMIC_OPERATOR_NAME',
     assignedAt: new Date('2024-01-15T08:30:00'),
     prerequisites: [],
     isOptional: false,
@@ -60,8 +61,8 @@ const mockAssignedOperations: (BundleOperation & { bundleNumber: string })[] = [
     pricePerPiece: 4.0,
     smvMinutes: 7.0,
     status: 'in_progress',
-    assignedOperatorId: 'op_maya_001',
-    assignedOperatorName: 'Maya Patel',
+    assignedOperatorId: 'DYNAMIC_OPERATOR_ID',
+    assignedOperatorName: 'DYNAMIC_OPERATOR_NAME',
     assignedAt: new Date('2024-01-15T09:15:00'),
     startedAt: new Date('2024-01-15T09:30:00'),
     prerequisites: ['op_1', 'op_2'],
@@ -74,8 +75,8 @@ const mockAssignedOperations: (BundleOperation & { bundleNumber: string })[] = [
 // Mock earnings history
 const mockEarnings: OperatorEarnings[] = [
   {
-    operatorId: 'op_maya_001',
-    operatorName: 'Maya Patel',
+    operatorId: 'DYNAMIC_OPERATOR_ID',
+    operatorName: 'DYNAMIC_OPERATOR_NAME',
     bundleId: 'bundle_1',
     bundleNumber: 'BND-3233-M-003',
     operationId: 'BND-3233-M-003-OP-1',
@@ -92,8 +93,8 @@ const mockEarnings: OperatorEarnings[] = [
     paymentStatus: 'pending'
   },
   {
-    operatorId: 'op_maya_001',
-    operatorName: 'Maya Patel',
+    operatorId: 'DYNAMIC_OPERATOR_ID',
+    operatorName: 'DYNAMIC_OPERATOR_NAME',
     bundleId: 'bundle_2',
     bundleNumber: 'BND-3265-L-001',
     operationId: 'BND-3265-L-001-OP-2',
@@ -115,8 +116,25 @@ export const OperatorWorkDashboard: React.FC<OperatorWorkDashboardProps> = ({
   operatorId,
   operatorName
 }) => {
-  const [assignedOps, setAssignedOps] = useState<(BundleOperation & { bundleNumber: string })[]>(mockAssignedOperations);
-  const [earnings, setEarnings] = useState<OperatorEarnings[]>(mockEarnings);
+  // ✅ FIXED: Replace dynamic placeholders with real operator data
+  const getDynamicOperations = () => {
+    return mockAssignedOperations.map(op => ({
+      ...op,
+      assignedOperatorId: operatorId,
+      assignedOperatorName: operatorName
+    }));
+  };
+  
+  const getDynamicEarnings = () => {
+    return mockEarnings.map(earning => ({
+      ...earning,
+      operatorId: operatorId,
+      operatorName: operatorName
+    }));
+  };
+
+  const [assignedOps, setAssignedOps] = useState<(BundleOperation & { bundleNumber: string })[]>(getDynamicOperations());
+  const [earnings, setEarnings] = useState<OperatorEarnings[]>(getDynamicEarnings());
   const [activeOperation, setActiveOperation] = useState<string | null>(
     assignedOps.find(op => op.status === 'in_progress')?.id || null
   );
@@ -218,7 +236,7 @@ export const OperatorWorkDashboard: React.FC<OperatorWorkDashboardProps> = ({
   // Submit parts complaint
   const submitPartsComplaint = async () => {
     if (!complainingOperation || !partsComplaint.damagedParts?.length || !partsComplaint.description) {
-      alert('Please fill in all required fields');
+      notify.warning('Please fill in all required fields', 'Form Incomplete');
       return;
     }
 
@@ -245,11 +263,11 @@ export const OperatorWorkDashboard: React.FC<OperatorWorkDashboardProps> = ({
       setComplainingOperation(null);
       setPartsComplaint({});
       
-      alert('Parts replacement request submitted successfully. Supervisor has been notified.');
+      notify.success('Parts replacement request submitted successfully. Supervisor has been notified.', 'Request Submitted');
       
     } catch (error) {
       console.error('Submit parts complaint failed:', error);
-      alert('Failed to submit complaint. Please try again.');
+      notify.error('Failed to submit complaint. Please try again.', 'Submission Failed');
     } finally {
       setIsLoading(false);
     }

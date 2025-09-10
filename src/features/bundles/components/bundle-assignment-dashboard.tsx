@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { ProductionBundle, BundleOperation, PartsComplaint } from '@/shared/types/bundle-types';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
+import { notify } from '@/utils/notification-utils';
 
 interface BundleAssignmentDashboardProps {
   userRole?: string;
@@ -105,7 +106,7 @@ const mockBundles: ProductionBundle[] = [
 ];
 
 const mockOperators = [
-  { id: 'op_maya_001', name: 'Maya Patel', machineType: 'overlock', efficiency: 94.5, currentWorkload: 2 },
+  { id: 'DYNAMIC_OPERATOR_ID', name: 'DYNAMIC_OPERATOR_NAME', machineType: 'overlock', efficiency: 94.5, currentWorkload: 2 },
   { id: 'op_rajesh_002', name: 'Rajesh Kumar', machineType: 'singleNeedle', efficiency: 91.2, currentWorkload: 1 },
   { id: 'op_priya_003', name: 'Priya Singh', machineType: 'overlock', efficiency: 89.8, currentWorkload: 0 },
   { id: 'op_amit_004', name: 'Amit Patel', machineType: 'singleNeedle', efficiency: 85.6, currentWorkload: 3 }
@@ -118,8 +119,8 @@ const mockPartsComplaints: PartsComplaint[] = [
     bundleId: 'bundle_1',
     operationId: 'BND-3233-M-001-OP-2',
     bundleNumber: 'BND-3233-M-001',
-    reportedBy: 'op_maya_001',
-    reportedByName: 'Maya Patel',
+    reportedBy: 'DYNAMIC_OPERATOR_ID',
+    reportedByName: 'DYNAMIC_OPERATOR_NAME',
     reportedAt: new Date('2024-01-15T10:30:00'),
     issueType: 'damaged',
     damagedParts: ['Front Panel', 'Left Sleeve'],
@@ -241,7 +242,7 @@ export const BundleAssignmentDashboard: React.FC<BundleAssignmentDashboardProps>
       
     } catch (error) {
       console.error('Assignment failed:', error);
-      alert('Failed to assign operation. Please try again.');
+      notify.error('Failed to assign operation. Please try again.', 'Assignment Failed');
     } finally {
       setIsLoading(false);
     }

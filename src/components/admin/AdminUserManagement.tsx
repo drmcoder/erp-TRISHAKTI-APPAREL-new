@@ -18,6 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { UserService, type UserProfile } from '@/services/user-service';
 import { permissionService } from '@/services/permission-service';
+import { notify } from '@/utils/notification-utils';
 import { safeArray, safeString, safeGet } from '@/utils/null-safety';
 
 interface AdminUserManagementProps {
@@ -84,12 +85,12 @@ const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ adminId }) =>
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+      notify.error('Passwords do not match!', 'Validation Error');
       return;
     }
 
     if (formData.password.length < 8) {
-      alert('Password must be at least 8 characters long!');
+      notify.error('Password must be at least 8 characters long!', 'Password Too Short');
       return;
     }
 
@@ -123,7 +124,7 @@ const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ adminId }) =>
           await permissionService.setUserRole(result.data.id, formData.role);
         }
         
-        alert(`${formData.role.charAt(0).toUpperCase() + formData.role.slice(1)} account created successfully!`);
+        notify.success(`${formData.role.charAt(0).toUpperCase() + formData.role.slice(1)} account created successfully!`, 'Account Created');
         
         // Reset form and reload users
         setFormData({
@@ -138,10 +139,10 @@ const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ adminId }) =>
         setShowCreateForm(false);
         await loadUsers();
       } else {
-        alert(`Failed to create ${formData.role}: ${result.error}`);
+        notify.error(`Failed to create ${formData.role}: ${result.error}`, 'Creation Failed');
       }
     } catch (err) {
-      alert(`Error creating ${formData.role}`);
+      notify.error(`Error creating ${formData.role}`, 'Creation Error');
       console.error('Error creating user:', err);
     } finally {
       setFormLoading(false);
@@ -156,13 +157,13 @@ const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ adminId }) =>
     try {
       const result = await UserService.deleteUser(userId);
       if (result.success) {
-        alert('User deleted successfully!');
+        notify.success('User deleted successfully!', 'User Deleted');
         await loadUsers();
       } else {
-        alert(`Failed to delete user: ${result.error}`);
+        notify.error(`Failed to delete user: ${result.error}`, 'Deletion Failed');
       }
     } catch (err) {
-      alert('Error deleting user');
+      notify.error('Error deleting user', 'Deletion Error');
       console.error('Error deleting user:', err);
     }
   };
@@ -171,13 +172,13 @@ const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ adminId }) =>
     try {
       const result = await UserService.updateUser(userId, { active: !currentStatus });
       if (result.success) {
-        alert(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
+        notify.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully!`, 'Status Updated');
         await loadUsers();
       } else {
-        alert(`Failed to update user status: ${result.error}`);
+        notify.error(`Failed to update user status: ${result.error}`, 'Status Update Failed');
       }
     } catch (err) {
-      alert('Error updating user status');
+      notify.error('Error updating user status', 'Update Error');
       console.error('Error updating user status:', err);
     }
   };

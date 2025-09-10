@@ -6,6 +6,7 @@ import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { Card } from '@/shared/components/ui/Card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
+import { notify } from '@/utils/notification-utils';
 
 interface AdminDashboardProps {
   adminId: string;
@@ -106,7 +107,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminId }) => {
 
   const handleSendSystemNotification = async () => {
     if (!permissions.canManageNotifications) {
-      alert('You do not have permission to send notifications');
+      notify.warning('You do not have permission to send notifications', 'Access Denied');
       return;
     }
 
@@ -121,17 +122,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminId }) => {
           message,
           priority: 'medium'
         });
-        alert('Notification sent successfully!');
+        notify.success('Notification sent successfully!', 'Message Delivered');
       } catch (error) {
         console.error('Notification error:', error);
-        alert('Failed to send notification');
+        notify.error('Failed to send notification', 'Delivery Failed');
       }
     }
   };
 
   const handleGenerateReport = async () => {
     if (!permissions.canGenerateReports) {
-      alert('You do not have permission to generate reports');
+      notify.warning('You do not have permission to generate reports', 'Access Denied');
       return;
     }
 
@@ -140,11 +141,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ adminId }) => {
       try {
         const result = await analyticsService.generateReport(reportType);
         if (result.success) {
-          alert(`Report generated: ${result.data.reportId}`);
+          notify.success(`Report generated: ${result.data.reportId}`, 'Report Ready');
         }
       } catch (error) {
         console.error('Report generation error:', error);
-        alert('Failed to generate report');
+        notify.error('Failed to generate report', 'Generation Failed');
       }
     }
   };

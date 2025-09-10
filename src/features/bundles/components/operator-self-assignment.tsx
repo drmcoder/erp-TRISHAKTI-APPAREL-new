@@ -14,6 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { BundleOperation, ProductionBundle } from '@/shared/types/bundle-types';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
+import { notify } from '@/utils/notification-utils';
 
 interface OperatorSelfAssignmentProps {
   operatorId: string;
@@ -171,11 +172,11 @@ export const OperatorSelfAssignment: React.FC<OperatorSelfAssignmentProps> = ({
       setShowConfirmModal(false);
       setSelectedOperation(null);
       
-      alert(`✅ You have successfully picked up ${operation.name} for ${operation.bundleInfo.bundleNumber}. The job is now assigned to you!`);
+      notify.success(`You have successfully picked up ${operation.name} for ${operation.bundleInfo.bundleNumber}. The job is now assigned to you!`, 'Job Assigned Successfully!');
       
     } catch (error) {
       console.error('Self assignment failed:', error);
-      alert('❌ Failed to assign job. Please try again.');
+      notify.error('Failed to assign job. Please try again.', 'Assignment Failed');
     } finally {
       setIsLoading(false);
     }

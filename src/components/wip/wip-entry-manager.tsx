@@ -4,6 +4,7 @@ import { Card } from '@/shared/components/ui/Card';
 import { Badge } from '@/shared/components/ui/Badge';
 import { LoadingSpinner } from '@/shared/components/LoadingSpinner';
 import { formatFirebaseValue, formatCurrency, getDataHelperMessage } from '@/shared/utils/firebase-data-display';
+import { notify } from '@/utils/notification-utils';
 
 interface WipEntry {
   id: string;
@@ -34,9 +35,10 @@ interface EditHistoryEntry {
 
 interface WipEntryManagerProps {
   userRole: string;
+  userData?: { name?: string; id?: string };
 }
 
-export const WipEntryManager: React.FC<WipEntryManagerProps> = ({ userRole }) => {
+export const WipEntryManager: React.FC<WipEntryManagerProps> = ({ userRole, userData }) => {
   const [wipEntries, setWipEntries] = useState<WipEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingEntry, setEditingEntry] = useState<WipEntry | null>(null);
@@ -121,17 +123,23 @@ export const WipEntryManager: React.FC<WipEntryManagerProps> = ({ userRole }) =>
       await loadWipEntries();
       setEditingEntry(null);
       
-      alert(`✅ WIP Entry ${entry.bundleNumber} updated successfully!`);
+      notify.success(`WIP Entry ${entry.bundleNumber} updated successfully!`, 'Entry Updated');
     } catch (error) {
       console.error('Error updating WIP entry:', error);
-      alert('❌ Failed to update WIP entry. Please try again.');
+      notify.error('Failed to update WIP entry. Please try again.', 'Update Failed');
     }
   };
 
   const getUserName = (role: string) => {
+    // ✅ FIXED: Use real authenticated user data instead of hardcoded names
+    if (userData?.name) {
+      return userData.name;
+    }
+    
+    // Fallback based on role if no user data available
     switch (role) {
-      case 'operator': return 'Maya Patel';
-      case 'supervisor': return 'John Smith';
+      case 'operator': return 'Operator';
+      case 'supervisor': return 'Supervisor';
       case 'admin': return 'Admin User';
       default: return 'Unknown User';
     }
@@ -366,7 +374,7 @@ const EditWipEntryForm: React.FC<{
     e.preventDefault();
     
     if (!editReason.trim()) {
-      alert('Please provide a reason for editing this WIP entry.');
+      notify.warning('Please provide a reason for editing this WIP entry.', 'Reason Required');
       return;
     }
 
@@ -380,7 +388,7 @@ const EditWipEntryForm: React.FC<{
     if (formData.status !== entry.status) updates.status = formData.status;
 
     if (Object.keys(updates).length === 0) {
-      alert('No changes detected.');
+      notify.info('No changes detected.', 'No Updates');
       return;
     }
 
