@@ -46,6 +46,8 @@ interface BundleWithOperations {
   totalPieces: number;
   estimatedTime: number;
   totalValue: number;
+  dueDate: Date;
+  createdDate: Date;
   operations: {
     id: string;
     name: string;
@@ -115,7 +117,6 @@ export const SmartWorkAssignmentDashboard: React.FC<SmartWorkAssignmentDashboard
       // Load bundles with operations from Firebase
       const bundlesResult = await bundleService.getBundles();
       const operatorsResult = await operatorService.getAllOperators();
-      const assignmentsResult = await workAssignmentService.getAvailableAssignments();
       
       let bundles: BundleWithOperations[] = [];
       

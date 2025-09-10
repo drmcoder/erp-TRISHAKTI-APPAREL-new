@@ -808,9 +808,8 @@ Ready for supervisor assignment!`);
         return <DragDropAssignmentDashboard userRole={userRole} />;
       
       case 'kanban-assignment':
-        // Redirect to drag-drop since they're the same functionality
-        window.location.hash = '#/work-assignment/drag-drop';
-        return null;
+        // Use drag-drop component directly since they're the same functionality
+        return <DragDropAssignmentDashboard userRole={userRole} />;
       
       case 'operator-buckets':
         return <SupervisorOperatorBuckets userRole={userRole} />;
